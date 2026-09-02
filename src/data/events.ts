@@ -1,0 +1,15 @@
+import type { RelationshipEvent } from "../types/game";
+
+const eventLines: Record<string,[string,string]> = {
+  ren:["君の店、少し気になってたんだ。今度この豆を試してみて。","……感想を、聞かせてくれると嬉しい。"],
+  haru:["いつも来てくれるから、新作を一番に味見してほしくて。","君の『おいしい』って顔、けっこう励みになるんだ。"],
+  sota:["店の子牛がね、君が来る日は不思議と機嫌がいいんだ。","僕も……まあ、同じかもしれない。"],
+  aki:["最近、畑を見ながら君の店なら何を作るかなって考える。","商売仲間ってだけじゃなくなってきたな。"],
+  itsuki:["君の喫茶店には、飾らない良さがある。","それはたぶん、店主の人柄なんだろうね。"],
+  nagisa:["この花、君の店の窓辺に似合いそうだと思って。","次に咲いた時も、こうして話せたらいいな。"],
+};
+
+export const relationshipEvents: RelationshipEvent[] = Object.entries(eventLines).flatMap(([characterId, lines]) => [
+  { id:`${characterId}-stage2`, characterId, fromStage:1, toStage:2, requiredAffection:20, title:"顔なじみのしるし", dialogue:["最近、よく顔を合わせるようになったね。", lines[0]] },
+  { id:`${characterId}-stage3`, characterId, fromStage:2, toStage:3, requiredAffection:45, title:"いつもより近い距離", dialogue:[lines[0], lines[1]] },
+]);

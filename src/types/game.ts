@@ -1,0 +1,28 @@
+export type Season = "春" | "夏" | "秋" | "冬";
+export type Gender = "male" | "female" | "nonbinary";
+export type GiftReaction = "love" | "like" | "normal" | "dislike";
+
+export interface Ingredient { id:string; name:string; icon:string; price:number; supplierId:string; }
+export interface Recipe { id:string; name:string; icon:string; price:number; requiredIngredients:string[]; unlockHint:string; initiallyUnlocked?:boolean; }
+export interface Gift { id:string; name:string; icon:string; price:number; tags:string[]; description:string; }
+export interface Supplier { id:string; name:string; icon:string; description:string; characterId:string; }
+export interface Character {
+  id:string; name:string; gender:Gender; age:number; occupation:string; supplierId:string;
+  profile:string; image:string; silhouette:string; favoriteGiftTags:string[]; dislikedGiftTags:string[];
+}
+export interface RelationshipEvent { id:string; characterId:string; fromStage:number; toStage:number; requiredAffection:number; title:string; dialogue:string[]; }
+export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; }
+export interface Order { id:string; customerSlot:number; recipeId:string; }
+export interface DailyStats { sales:number; orders:number; recipeSales:Record<string,number>; }
+export interface DaySummary extends DailyStats { day:number; topRecipeId?:string; news:string[]; }
+export interface Notice { id:number; type:"coin"|"unlock"|"heart"|"info"; text:string; }
+
+export interface GameState {
+  saveVersion:number; season:Season; day:number; currency:number;
+  ingredients:Record<string,number>; unlockedRecipes:string[];
+  characterProgress:Record<string,CharacterProgress>; inventory:Record<string,number>;
+  giftShopItems:string[]; giftShopRefreshAt:number;
+  dailyTalkStatus:Record<string,boolean>; dailyGiftStatus:Record<string,boolean>;
+  lastPlayedAt:number; dailyStats:DailyStats; dayNews:string[]; orders:Order[];
+  notice?:Notice; offlineOffer:number;
+}

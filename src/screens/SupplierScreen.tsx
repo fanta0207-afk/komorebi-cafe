@@ -16,12 +16,12 @@ function dialogue(visits:number,stage:number,name:string) {
 
 export function SupplierScreen({supplierId,onBack}:{supplierId:string;onBack:()=>void}) {
   const {state,dispatch}=useGame(); const supplier=getSupplier(supplierId)!; const character=getCharacter(supplier.characterId)!;
-  const progress=state.characterProgress[character.id]; const stock=ingredients.filter(item=>item.supplierId===supplierId);
+  const progress=state.characterProgress[character.id]; const stock=ingredients.filter(item=>item.supplierId===supplierId&&(!item.unlockEventId||state.unlockedIngredients.includes(item.id)));
   return <section className="screen fade-in">
     <button className="back-button" onClick={onBack}>← 街へ戻る</button>
     <div className="supplier-hero"><Portrait character={character}/><div className="supplier-sign"><span>{supplier.icon} {supplier.name}</span><h1>{character.name}</h1><p>{character.occupation}</p><Hearts stage={progress.relationshipStage}/><small>{relationshipNames[progress.relationshipStage]}</small></div></div>
     <div className="dialogue-box"><b>{character.name}</b><p>「{dialogue(progress.visits,progress.relationshipStage,character.name)}」</p></div>
     <div className="section-heading"><div><span className="tiny-label">WHOLESALE</span><h2>今日の仕入れ</h2></div><small>所持数も表示しています</small></div>
-    <div className="shop-list">{stock.map(item=><div className="shop-row" key={item.id}><span className="item-icon">{item.icon}</span><div><strong>{item.name}</strong><small>所持 {state.ingredients[item.id]||0}</small></div><div className="price"><b>● {item.price}</b><button disabled={state.currency<item.price} onClick={()=>dispatch({type:"BUY_INGREDIENT",ingredientId:item.id})}>仕入れる</button></div></div>)}</div>
+    <div className="shop-list">{stock.map(item=><div className={`shop-row ${item.limited?"limited-item":""}`} key={item.id}><span className="item-icon">{item.icon}</span><div>{item.limited&&<em>RELATIONSHIP LIMITED</em>}<strong>{item.name}</strong><small>所持 {state.ingredients[item.id]||0}</small></div><div className="price"><b>● {item.price}</b><button disabled={state.currency<item.price} onClick={()=>dispatch({type:"BUY_INGREDIENT",ingredientId:item.id})}>仕入れる</button></div></div>)}</div>
   </section>;
 }

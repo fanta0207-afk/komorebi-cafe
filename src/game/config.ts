@@ -1,6 +1,6 @@
 export const GAME_CONFIG = {
   saveKey:"komorebi-cafe-save-v1",
-  saveVersion:1,
+  saveVersion:2,
   initialCurrency:3000,
   daysPerSeason:28,
   orderSpawnMinMs:5000,
@@ -9,6 +9,7 @@ export const GAME_CONFIG = {
   offlineCoinsPerMinute:2,
   maxOfflineMinutes:240,
   talkAffection:5,
+  maxDailyActions:5,
   giftAffection:{ love:25, like:15, normal:8, dislike:-5 },
 };
 

@@ -7,7 +7,7 @@ import { relationshipNames } from "../game/config";
 export function StatusBar({state,onDev}:{state:GameState;onDev:()=>void}) {
   return <header className="topbar">
     <div className="date-lockup"><span className="eyebrow">SPRING</span><strong>{state.season} {state.day}日</strong></div>
-    <div className="status-actions"><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
+    <div className="status-actions"><div className="action-pill" title="今日の残り行動"><span>⚡</span><b>{state.actionsRemaining}</b><small>/{state.maxActions}</small></div><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
   </header>;
 }
 

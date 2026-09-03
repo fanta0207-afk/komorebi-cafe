@@ -12,7 +12,7 @@ const customerLooks=["customer-green","customer-rose","customer-blue","customer-
 
 export function CafeScreen({state,onCollect,onEndDay}:{state:GameState;onCollect:(id:string)=>void;onEndDay:()=>void}) {
   const weather=getWeather(state.dailyWeatherId);const crowd=getCustomerGroup(state.dailyCustomerGroupId);const dailyEvent=getTownDailyEvent(state.dailyEventId);
-  const visibleDecorations=decorations.filter(item=>state.unlockedDecorations.includes(item.id)).slice(0,8);
+  const visibleDecorations=state.unlockedDecorations.slice(-8).flatMap(id=>decorations.filter(item=>item.id===id));
   const visibleEquipment=equipment.filter(item=>state.ownedEquipment.includes(item.id)).slice(0,4);
   return <section className="screen fade-in">
     <ScreenTitle kicker="TODAY'S CAFE" title="こもれび喫茶"><div className="open-sign">OPEN</div></ScreenTitle>

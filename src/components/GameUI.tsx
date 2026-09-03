@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Character, GameState } from "../types/game";
-import { relationshipNames } from "../game/config";
+import { relationshipLabel } from "../game/config";
 
 export function StatusBar({state,onDev}:{state:GameState;onDev:()=>void}) {
   return <header className="topbar">
@@ -22,13 +22,12 @@ export function BottomNav({active,onChange}:{active:string;onChange:(id:string)=
 export function Portrait({character,small=false,unknown=false}:{character:Character;small?:boolean;unknown?:boolean}) {
   const [failed,setFailed]=useState(false);
   return <div className={`portrait ${small?"portrait-small":""} ${unknown?"unknown":""}`}>
-    {!unknown&&!failed&&<img src={character.image} alt="" onError={()=>setFailed(true)}/>}<span>{unknown?"?":character.silhouette}</span>
+    {!unknown&&!failed&&character.image&&<img src={character.image} alt="" onError={()=>setFailed(true)}/>}<span>{unknown?"?":character.silhouette}</span>
   </div>;
 }
 
-export function Hearts({stage}:{stage:number}) {
-  const filled=Math.min(5,Math.ceil(stage/2));
-  return <span className="hearts" aria-label={`${relationshipNames[stage]}の関係`}>{Array.from({length:5},(_,i)=><i key={i}>{i<filled?"♥":"♡"}</i>)}</span>;
+export function Hearts({stage,route="undecided"}:{stage:number;route?:string}) {
+  return <span className="hearts" aria-label={`好感度${stage}/10・${relationshipLabel(stage,route)}`}>{Array.from({length:10},(_,i)=><i key={i}>{i<stage?"♥":"♡"}</i>)}</span>;
 }
 
 export function ScreenTitle({kicker,title,children}:{kicker:string;title:string;children?:React.ReactNode}) {

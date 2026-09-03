@@ -1,6 +1,9 @@
 export type Season = "春" | "夏" | "秋" | "冬";
 export type Gender = "male" | "female" | "nonbinary";
 export type GiftReaction = "love" | "like" | "normal" | "dislike";
+export type RelationshipRoute = "undecided" | "romance" | "friendship";
+export interface StoryLine { speaker:"narrator"|"character"|"player"; text:string; }
+export interface StoryChoice { id:string; label:string; response:StoryLine[]; }
 
 export interface Ingredient { id:string; name:string; icon:string; price:number; supplierId:string; limited?:boolean; unlockEventId?:string; }
 export interface Recipe { id:string; name:string; icon:string; price:number; requiredIngredients:string[]; requiredEquipmentIds?:string[]; unlockHint:string; initiallyUnlocked?:boolean; tags:string[]; limited?:boolean; hidden?:boolean; unlockEventId?:string; }
@@ -9,9 +12,17 @@ export interface Supplier { id:string; name:string; icon:string; description:str
 export interface Character {
   id:string; name:string; gender:Gender; age:number; occupation:string; supplierId:string;
   profile:string; image:string; silhouette:string; favoriteGiftTags:string[]; dislikedGiftTags:string[];
+  shortName:string; nameReading:string; routeTheme:string; voice:string;
+  backstory:string; concern:string; attraction:string;
+  greetings:{ first:string; familiar:string; close:string; romance:string; friendship:string; };
+  giftResponses:Record<GiftReaction,string>;
 }
-export interface EventReward { ingredientIds?:string[]; recipeIds?:string[]; note:string; }
-export interface RelationshipEvent { id:string; characterId:string; fromStage:number; toStage:number; requiredAffection:number; title:string; dialogue:string[]; reward?:EventReward; }
+export interface EventReward { ingredientIds?:string[]; recipeIds?:string[]; equipmentIds?:string[]; decorationIds?:string[]; note:string; }
+export interface RelationshipEvent {
+  id:string; characterId:string; fromStage:number; toStage:number; requiredAffection:number;
+  title:string; dialogue:StoryLine[]; reward?:EventReward; choices?:StoryChoice[];
+  friendshipDialogue?:StoryLine[]; friendshipTitle?:string;
+}
 export type GrowthStatType = "recipeSales"|"ingredientPurchases"|"tagSales"|"totalOrders"|"totalRevenue";
 export interface GrowthStatRequirement { type:GrowthStatType; id?:string; target:number; label:string; }
 export interface GrowthRewards { recipeIds?:string[]; ingredientIds?:string[]; equipmentIds?:string[]; decorationIds?:string[]; note:string; }
@@ -24,7 +35,7 @@ export interface GrowthEvent {
 export interface Equipment { id:string; name:string; icon:string; price:number; characterId:string; description:string; effectText:string; }
 export interface Decoration { id:string; name:string; icon:string; characterId:string; placement:"wall"|"shelf"|"counter"|"floor"; }
 export interface HiddenUnlock { id:string; requiredEvents:string[]; recipeId:string; note:string; }
-export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; }
+export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; route:RelationshipRoute; eventChoices:Record<string,string>; }
 export interface Order { id:string; customerSlot:number; recipeId:string; }
 export interface DailyStats { sales:number; orders:number; recipeSales:Record<string,number>; }
 export interface LifetimeStats { recipeSales:Record<string,number>; ingredientPurchases:Record<string,number>; tagSales:Record<string,number>; totalOrders:number; totalRevenue:number; }

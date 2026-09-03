@@ -1,12 +1,241 @@
 import type { Character } from "../types/game";
 
+// Internal IDs are retained so existing saves, suppliers and growth rewards remain compatible.
 export const characters: Character[] = [
-  { id:"ren", name:"蓮", gender:"male", age:28, occupation:"珈琲豆店 店主", supplierId:"coffee", profile:"静かに豆と向き合う職人気質。話す言葉は少ないが、客の好みはよく覚えている。", image:"/assets/characters/ren.png", silhouette:"♟", favoriteGiftTags:["coffee","craft","book"], dislikedGiftTags:["flashy"] },
-  { id:"haru", name:"陽", gender:"male", age:24, occupation:"パン職人", supplierId:"bakery", profile:"朝に強く、よく笑うパン職人。新しいパンの試作にいつも夢中。", image:"/assets/characters/haru.png", silhouette:"♟", favoriteGiftTags:["sweet","handmade","warm"], dislikedGiftTags:["perfume"] },
-  { id:"sota", name:"蒼太", gender:"male", age:26, occupation:"牧場スタッフ", supplierId:"ranch", profile:"動物たちに慕われる穏やかな青年。街へ出ると少し緊張するらしい。", image:"/assets/characters/sota.png", silhouette:"♟", favoriteGiftTags:["animal","nature","warm"], dislikedGiftTags:["flashy"] },
-  { id:"aki", name:"秋生", gender:"male", age:30, occupation:"農園主", supplierId:"farm", profile:"季節と土を大切にする頼れる農園主。さりげない気遣いが得意。", image:"/assets/characters/aki.png", silhouette:"♟", favoriteGiftTags:["nature","food","practical"], dislikedGiftTags:["luxury"] },
-  { id:"itsuki", name:"樹", gender:"male", age:27, occupation:"パティシエ", supplierId:"patisserie", profile:"美しい菓子作りに妥協しないパティシエ。意外と庶民的なおやつも好き。", image:"/assets/characters/itsuki.png", silhouette:"♟", favoriteGiftTags:["sweet","art","elegant"], dislikedGiftTags:["rough"] },
-  { id:"nagisa", name:"凪", gender:"male", age:25, occupation:"花・ハーブ店員", supplierId:"herb", profile:"草花の話になると止まらない、柔らかな雰囲気の青年。ハーブティーが得意。", image:"/assets/characters/nagisa.png", silhouette:"♟", favoriteGiftTags:["flower","nature","tea"], dislikedGiftTags:["synthetic"] },
+  {
+    "id": "ren",
+    "name": "黒豆 蓮",
+    "shortName": "蓮",
+    "nameReading": "くろまめ れん",
+    "gender": "male",
+    "age": 26,
+    "occupation": "コーヒー豆店 店主",
+    "supplierId": "coffee",
+    "profile": "亡き父の小さな焙煎店を継いだ職人。接客は不器用だが、買い手の器具や営業形態まで覚えて豆を選ぶ。愛情表現は、荷物を持つ、焙煎日をメモする、閉店まで待つなどの行動が先に出る。豆の説明になると少しだけ口数が増える。",
+    "image": "",
+    "silhouette": "蓮",
+    "favoriteGiftTags": [
+      "coffee",
+      "craft",
+      "book"
+    ],
+    "dislikedGiftTags": [
+      "flashy"
+    ],
+    "routeTheme": "言わなくても、から、言葉にして",
+    "voice": "「俺」と話す。言葉は短く、考える時には少し間がある。豆の話になると、いつもより口数が増える。",
+    "backstory": "幼い頃から父の店の手伝いをしてきた。若い頃に自作ブレンドを提案した際、父の「まだ早い」という言葉を否定と受け取り、それ以来自分の味を出さなくなった。父とは和解しないまま死別。店を守るため、今も父の定番ブレンドを忠実に作り続けている。",
+    "concern": "父の定番を守りながら、自分の味を出してもよいのか迷っている。否定されるのが怖くて、伝えたい言葉を飲み込むことがある。",
+    "attraction": "知らないことを取り繕わず、何度も試して感想を返してくれる。沈黙を急かさず、欲しい言葉も伝えてくれる。自分の味と努力を見てくれるあなたに、もっと自分を知ってほしくなった。",
+    "greetings": {
+      "first": "……黒豆蓮。使う器具は？　それに合う豆を選ぶ。",
+      "familiar": "……来たか。この前の豆、どうだった。",
+      "close": "仕事が終わったら、座っていけ。お前の分も淹れる。",
+      "romance": "会いたかった。……今のは、聞き流すなよ。",
+      "friendship": "次の試飲、お前に頼みたい。率直に聞かせてくれ。"
+    },
+    "giftResponses": {
+      "love": "……これ、欲しかった。よく覚えてたな。ありがとう。",
+      "like": "いいな。……大事に使う。",
+      "normal": "……ありがとう。受け取る。",
+      "dislike": "……気持ちは、うれしい。俺には少し派手かもな。"
+    }
+  },
+  {
+    "id": "sota",
+    "name": "白川 牧",
+    "shortName": "牧",
+    "nameReading": "しらかわ まき",
+    "gender": "male",
+    "age": 24,
+    "occupation": "牧場スタッフ",
+    "supplierId": "ranch",
+    "profile": "家族経営の牧場で働き、乳製品の販売を担当する。動物の小さな変化に気づき、人の話も最後まで聞く。天然さは、牛の誕生日は全頭覚えているのに自分の誕生日を忘れるような生活の偏り。飼育の判断には責任感がある。",
+    "image": "",
+    "silhouette": "牧",
+    "favoriteGiftTags": [
+      "animal",
+      "nature",
+      "warm"
+    ],
+    "dislikedGiftTags": [
+      "flashy"
+    ],
+    "routeTheme": "安心させる人が、安心して甘えられるまで",
+    "voice": "「僕」と話す。「〜だね」「〜かな」と穏やかで、こちらの返事をゆっくり待ってくれる。",
+    "backstory": "幼い頃、家族が忙しい日は祖母や牧場の動物と過ごした。自分が泣くより誰かを慰めると喜ばれたため、「手のかからない子」でいる癖がついた。数年前、父がけがで休んだ際に仕事を多く引き受け、父が復帰した今も担当を戻せていない。",
+    "concern": "頼まれると断れず、自分の休みを後回しにしてきた。引退した牛がゆっくり暮らせる区画を作りたいと思いながら、人手や費用の相談をためらっている。",
+    "attraction": "「牧はどうしたい？」と聞き、何もしない時間にも隣にいてくれる。誰かの役に立っていなくても一緒にいられることが、彼にとって大きな安心になった。",
+    "greetings": {
+      "first": "僕は白川牧。急がなくて大丈夫。牛たちにも挨拶していく？",
+      "familiar": "また来てくれたんだね。今日はどの子に会っていく？",
+      "close": "今日は、君の話を聞きながら休みたいな。",
+      "romance": "会えてうれしい。今日は、僕のほうから甘えてもいい？",
+      "friendship": "無理のない量から、一緒に考えようね。"
+    },
+    "giftResponses": {
+      "love": "わあ、これ好きなんだ。僕のこと、覚えてくれていたんだね。",
+      "like": "ありがとう。なんだか、ほっとするね。",
+      "normal": "僕に？　ありがとう。大切にするね。",
+      "dislike": "ありがとう。いつもの僕とは、少し違う感じだね。"
+    }
+  },
+  {
+    "id": "aki",
+    "name": "三ツ葉 葵",
+    "shortName": "葵",
+    "nameReading": "みつば あおい",
+    "gender": "male",
+    "age": 22,
+    "occupation": "農園・栽培と直売担当",
+    "supplierId": "farm",
+    "profile": "祖父母の農園で栽培と直売を担当する。新しい品種や売り方を試すのが好き。勝負を持ちかけたり、大きな野菜を宝物のように差し出したりして、人を笑わせる。距離は近いが、嫌がられたことは繰り返さない。",
+    "image": "",
+    "silhouette": "葵",
+    "favoriteGiftTags": [
+      "nature",
+      "food",
+      "practical"
+    ],
+    "dislikedGiftTags": [
+      "synthetic"
+    ],
+    "routeTheme": "いつもの冗談が、本気になる日",
+    "voice": "「俺」と話す。「〜じゃん」「〜しよ」と軽快。真剣な話になると、いつもの軽口が止まる。",
+    "backstory": "町育ちで、昔から近所では「元気な葵くん」。農業系の学校で品種改良に興味を持ったが、卒業時に祖父が腰を痛め、いったん農園に戻った。祖父は回復しているものの、町の人に「やっぱり葵はここが似合う」と言われ、都市近郊の研究農場で学びたい希望を言い出しにくくなっている。",
+    "concern": "都市近郊の研究農場で品種改良を学んでみたい。でも、家族や町を置いていくようで言い出せず、本当の願いまで冗談にしてしまう。",
+    "attraction": "一緒にふざけて笑いながら、栽培や将来の話は真剣に聞いてくれる。年下扱いせず生産者として頼り、挑戦する夢も大切にしてくれるあなたを、特別に思うようになった。",
+    "greetings": {
+      "first": "俺、三ツ葉葵！　店長、今日のおすすめ当ててみ？",
+      "familiar": "店長、いいとこ来た！　今日の採れたて、見てってよ。",
+      "close": "また会えてうれしい、って……今日はちゃんと言っとく。",
+      "romance": "手、つなぎたい。今日は冗談にしないから。",
+      "friendship": "新しい栽培、試してるんだ。次の作戦会議、付き合って！"
+    },
+    "giftResponses": {
+      "love": "うわ、これめっちゃ好き！　俺のこと分かってるじゃん。",
+      "like": "ありがと！　次に使うの、楽しみだな。",
+      "normal": "俺に？　ありがと、うれしい！",
+      "dislike": "ありがと！　ちょっと俺には慣れない感じかも。"
+    }
+  },
+  {
+    "id": "itsuki",
+    "name": "アール・グレイ",
+    "shortName": "アール",
+    "nameReading": "アール・グレイ",
+    "gender": "male",
+    "age": 28,
+    "occupation": "洋菓子店 パティシエ",
+    "supplierId": "patisserie",
+    "profile": "町の洋菓子店を営むパティシエ。アール・グレイの名で親しまれている。礼儀正しく、味・温度・盛りつけに厳しい。少し意地悪な質問もするが、改善点は具体的に教えてくれる。素朴なおやつを好む一面も。",
+    "image": "",
+    "silhouette": "ア",
+    "favoriteGiftTags": [
+      "sweet",
+      "art",
+      "elegant"
+    ],
+    "dislikedGiftTags": [
+      "rough"
+    ],
+    "routeTheme": "完璧な一皿から、素顔の食卓へ",
+    "voice": "「私」と話す。丁寧な敬語に、少し意地悪な軽口が混じる。気を許すと、言葉を探す素顔が見える。",
+    "backstory": "名店で修業し、競技会でも評価された。修業先では失敗すると努力まで否定され、技術を磨くほど人に弱みを見せられなくなった。自分の店を持った今も、「また来たいと言われる店」を目指していた初心より、欠点をなくすことを優先している。",
+    "concern": "失敗すると、自分の価値までなくなったように感じてしまう。誰かと食事をしても欠点を探す癖が抜けず、完璧でない姿を見せるのが怖い。",
+    "attraction": "助言を試し、必要な時にはお客様のために反論する。仕事への敬意から始まって、素朴な好みや失敗まで受け止めてくれるあなたの隣で、力を抜きたいと思うようになった。",
+    "greetings": {
+      "first": "アール・グレイとお呼びください。まずは、お店の提供方法を伺えますか。",
+      "familiar": "試してみて、いかがでしたか。あなたの感想を聞かせてください。",
+      "close": "困りましたね。あなたが来る時間を、覚えてしまいました。",
+      "romance": "今日は、格好をつけない私でも構いませんか。",
+      "friendship": "あなたのお客様には、どちらが合うでしょう。意見を聞かせてください。"
+    },
+    "giftResponses": {
+      "love": "私の好みを、ここまで。……とても、うれしいです。",
+      "like": "よいものを選ばれましたね。ありがとうございます。",
+      "normal": "お気遣い、ありがとうございます。大切にします。",
+      "dislike": "ありがとうございます。私には少々、扱いが難しいかもしれませんね。"
+    }
+  },
+  {
+    "id": "haru",
+    "name": "空木 海斗",
+    "shortName": "海斗",
+    "nameReading": "うつぎ かいと",
+    "gender": "male",
+    "age": 25,
+    "occupation": "パン職人・配達担当",
+    "supplierId": "bakery",
+    "profile": "パン屋で製造と配達を担う。人懐っこく、困りごとを放っておけない兄貴肌。見えないところで練習を重ねる努力家で、接客中に失敗談を笑って話しても、本当に悩んでいることは言わない。主人公の店に朝いちばんで顔を出すことが多い。",
+    "image": "",
+    "silhouette": "海",
+    "favoriteGiftTags": [
+      "sweet",
+      "handmade",
+      "warm"
+    ],
+    "dislikedGiftTags": [
+      "perfume"
+    ],
+    "routeTheme": "毎日の「またね」が、未来の約束になる",
+    "voice": "「俺」と話す。「任せとけ」と明るく歯切れがよい。自分から頼む時だけ、少し言葉が遅くなる。",
+    "backstory": "家業を手伝いながら、年の離れた弟妹の世話をして育った。「海斗がいると助かる」と言われることが誇り。製パンは最初から得意だったわけではなく、早朝の練習を何年も続けて今の腕になった。家族が独立しても、自分は誰かの用事で一日を埋める癖が残っている。",
+    "concern": "頼られなくなると、居場所もなくなりそうで怖い。自分の新しいパンを作りたいのに、他の人の頼みを先に引き受けてしまう。",
+    "attraction": "完成したパンだけでなく、何年も重ねた試作や工夫に気づいてくれた。パンを持たない日も会いたいと言ってくれるあなたの前なら、役に立とうと急がず座っていられる。",
+    "greetings": {
+      "first": "おはよう！　空木海斗だ。朝いちばんの焼きたて、持ってきたぞ。",
+      "familiar": "おはよう！　昨日の売れ行き、どうだった？",
+      "close": "今日は俺が聞く番。何かあった？",
+      "romance": "会いたくて来た。……今の、結構照れるな。",
+      "friendship": "次の試作、味見頼めるか？　お前の意見、頼りにしてる。"
+    },
+    "giftResponses": {
+      "love": "これ、俺に？　うれしいな。毎日使っちゃいそうだ。",
+      "like": "ありがとな！　明日の朝から楽しみが増えた。",
+      "normal": "お、ありがと！　大事にするな。",
+      "dislike": "ありがとな。ちょっと香りが強いかな。でも気持ちは受け取った。"
+    }
+  },
+  {
+    "id": "nagisa",
+    "name": "灰島 静",
+    "shortName": "静",
+    "nameReading": "はいじま しずか",
+    "gender": "male",
+    "age": 27,
+    "occupation": "花・ハーブ店 店主",
+    "supplierId": "herb",
+    "profile": "古い温室のある花・ハーブ店を営む。香りや光に敏感で、「雨の前は葉が少し急いでいる」など独特の表現をする。静かな観察力と、ふいに出る率直な一言が魅力。神秘的に見える場面も、植物や暮らしへの細やかな注意で説明でき、超常現象の有無は確定させない。",
+    "image": "",
+    "silhouette": "静",
+    "favoriteGiftTags": [
+      "flower",
+      "nature",
+      "tea"
+    ],
+    "dislikedGiftTags": [
+      "synthetic"
+    ],
+    "routeTheme": "思い出の香りに、今日の約束を重ねる",
+    "voice": "「僕」と話す。静かな声で、香りや光にたとえることがある。大切な気持ちは、まっすぐな言葉で伝えてくれる。",
+    "backstory": "幼い頃から祖母の花店に通い、植物の世話と押し花作りを教わった。町を出て植物の仕事をしていたが、祖母の死後に店を引き継いだ。祖母の温室と手帳には大切な記憶が残る一方、生前に「また今度」と先延ばしにした約束を悔やんでいる。",
+    "concern": "祖母の温室を変えたら、大切な記憶まで失いそうで怖い。「また今度」を果たせなかった後悔が、新しい約束をためらわせている。",
+    "attraction": "独特な言葉を茶化さず、分からなければ聞いてくれる。新芽も枯れた葉も報告し、変化があっても会いに来てくれるあなたと、次の季節を待ちたいと思った。",
+    "greetings": {
+      "first": "灰島静。名前より先に、好きな香りを覚えていって。",
+      "familiar": "あの小さな葉は、元気？　続きを聞かせて。",
+      "close": "君が帰ると、温室が広くなる。……もう少し、いてほしい。",
+      "romance": "来週も会いたい。君の空いている日を、教えて。",
+      "friendship": "次の植え替え、一緒に考えよう。君のお店に合うように。"
+    },
+    "giftResponses": {
+      "love": "これを見るたび、今日のことを思い出しそう。ありがとう。",
+      "like": "好きな感じだ。君も、そう思って選んでくれたの？",
+      "normal": "ありがとう。置く場所を考えてみるね。",
+      "dislike": "ありがとう。いつもと違う香りで、少し驚いた。"
+    }
+  }
 ];
 
 export const getCharacter = (id:string) => characters.find(item => item.id === id);

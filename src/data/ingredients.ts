@@ -20,6 +20,20 @@ export const ingredients: Ingredient[] = [
   { id:"sunTomato", name:"陽だまりトマト", icon:"🌞", price:190, supplierId:"farm", limited:true, unlockEventId:"aki-growth2" },
   { id:"vanillaSugar", name:"秘密のバニラ糖", icon:"✨", price:260, supplierId:"patisserie", limited:true, unlockEventId:"itsuki-growth2" },
   { id:"mimosaHerb", name:"ミモザの若葉", icon:"🌼", price:200, supplierId:"herb", limited:true, unlockEventId:"nagisa-growth2" },
+  // Character story rewards
+  {"id": "singleOrigin", "name": "高級シングルオリジン豆", "icon": "🫘", "price": 220, "supplierId": "coffee", "limited": true, "unlockEventId": "ren-stage3"},
+  {"id": "espressoBlend", "name": "エスプレッソ向け豆", "icon": "🫘", "price": 240, "supplierId": "coffee", "limited": true, "unlockEventId": "ren-stage5"},
+  {"id": "originalRoast", "name": "蓮のオリジナル焙煎豆", "icon": "🫘", "price": 290, "supplierId": "coffee", "limited": true, "unlockEventId": "ren-stage8"},
+  {"id": "houseBlend", "name": "こもれびハウスブレンド", "icon": "🫘", "price": 310, "supplierId": "coffee", "limited": true, "unlockEventId": "ren-stage10"},
+  {"id": "richMilk", "name": "濃厚ミルク", "icon": "🥛", "price": 210, "supplierId": "ranch", "limited": true, "unlockEventId": "sota-stage3"},
+  {"id": "seasonalFruit", "name": "季節のフルーツ", "icon": "🍑", "price": 200, "supplierId": "farm", "limited": true, "unlockEventId": "aki-stage3"},
+  {"id": "bakedSweets", "name": "定番焼き菓子", "icon": "🍪", "price": 160, "supplierId": "patisserie", "limited": true, "unlockEventId": "itsuki-stage1"},
+  {"id": "petitGateau", "name": "高級プチガトー", "icon": "🍰", "price": 280, "supplierId": "patisserie", "limited": true, "unlockEventId": "itsuki-stage3"},
+  {"id": "teaChiffon", "name": "紅茶シフォンケーキ", "icon": "🍰", "price": 260, "supplierId": "patisserie", "limited": true, "unlockEventId": "itsuki-stage5"},
+  {"id": "campagne", "name": "カンパーニュ", "icon": "🥖", "price": 180, "supplierId": "bakery", "limited": true, "unlockEventId": "haru-stage3"},
+  {"id": "kaitoBread", "name": "海斗の新作パン", "icon": "🥖", "price": 270, "supplierId": "bakery", "limited": true, "unlockEventId": "haru-stage10"},
+  {"id": "chamomile", "name": "カモミール", "icon": "🌼", "price": 150, "supplierId": "herb", "limited": true, "unlockEventId": "nagisa-stage3"},
+  {"id": "lemonBalm", "name": "レモンバーム", "icon": "🌿", "price": 150, "supplierId": "herb", "limited": true, "unlockEventId": "nagisa-stage3"},
 ];
 
 export const getIngredient = (id:string) => ingredients.find(item => item.id === id);

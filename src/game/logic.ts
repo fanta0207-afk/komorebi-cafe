@@ -64,7 +64,7 @@ export function hiddenRecipeRewards(viewedEvents:string[],unlockedRecipes:string
 }
 
 export function createCharacterProgress() {
-  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:1,viewedEvents:[],met:false,visits:0 }]));
+  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,route:"undecided" as const,eventChoices:{} }]));
 }
 
 export function bestSeller(recipeSales:Record<string,number>) {

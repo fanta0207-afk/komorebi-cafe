@@ -42,7 +42,7 @@ function trade(state,count){
     if(!(state.ingredients.coffeeBeans>0))state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});
     state=reducer(state,{type:'SPAWN_ORDER',order:order()});
     state=reducer(state,{type:'START_COOKING',orderId:'manual'});
-    state=tick(state,10000);state=reducer(state,{type:'COLLECT_ORDER',orderId:'manual'});
+    state=tick(state,30000);state=reducer(state,{type:'COLLECT_ORDER',orderId:'manual'});
   }return state;
 }
 function play(id,route='romance',until=10) {
@@ -201,12 +201,12 @@ const start=(state,id='manual')=>reducer(state,{type:'START_COOKING',orderId:id}
 const collect=(state,id='manual')=>reducer(state,{type:'COLLECT_ORDER',orderId:id});
 function hired(state,id,role,stage=3){state={...state,characterProgress:{...state.characterProgress,[id]:{...state.characterProgress[id],met:true,relationshipStage:stage}}};return reducer(state,{type:'HIRE_STAFF',characterId:id,role});}
 
-test('coffee uses ingredients once, takes exactly 10 seconds, and earns only when served once',()=>{
+test('coffee uses ingredients once, takes exactly 30 seconds, and earns only when served once',()=>{
   const fresh=addOrder(isolated());
   assert.equal(collect(fresh),fresh);
   let state=start(fresh);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,3000);
   assert.equal(start(state),state);assert.equal(collect(state),state);
-  state=tick(state,9999);assert.equal(state.orders[0].status,'cooking');assert.equal(state.orders[0].remainingMs,1);
+  state=tick(state,29999);assert.equal(state.orders[0].status,'cooking');assert.equal(state.orders[0].remainingMs,1);
   assert.equal(collect(state),state);
   state=tick(state,1);assert.equal(state.orders[0].status,'ready');assert.equal(state.currency,3000);
   state=tick(state,300000);assert.equal(state.orders[0].status,'ready','no customer timeout');
@@ -214,15 +214,20 @@ test('coffee uses ingredients once, takes exactly 10 seconds, and earns only whe
   assert.equal(collect(served),served);assert.equal(served.ingredients.coffeeBeans,9);
 });
 
-test('a machine handles one dish; different machines and added machines cook in parallel',()=>{
+test('the whole cafe cooks one dish at a time even with different or additional machines',()=>{
   let state=addOrder(addOrder(addOrder(isolated(),'first'),'second','coffee',1),'toast','toast',2);
-  state=start(state,'first');assert.match(startProblem(state,recipes[0]),/空き/);
-  assert.equal(start(state,'second'),state);state=start(state,'toast');assert.equal(state.orders.filter(item=>item.status==='cooking').length,2);
+  state=start(state,'first');assert.match(startProblem(state,recipes[0]),/1品ずつ/);
+  assert.equal(start(state,'second'),state);assert.equal(start(state,'toast'),state);
   const price=equipmentPrice(state,'coffeeCounter');state=reducer(state,{type:'BUY_EQUIPMENT',equipmentId:'coffeeCounter'});assert.equal(state.currency,3000-price);
-  state=start(state,'second');assert.equal(state.orders.filter(item=>item.status==='cooking').length,3);
-  assert.equal(new Set(state.orders.map(item=>item.stationId)).size,3);
-  state=tick(state,10000);assert.equal(state.orders.filter(item=>item.status==='ready').length,3);
-  state=addOrder(state,'next','coffee',3);assert.equal(start(state,'next').orders.find(item=>item.id==='next').status,'cooking','ready dishes release their machines');
+  assert.equal(start(state,'second'),state);
+  assert.equal(state.orders.filter(item=>item.status==='cooking').length,1);
+  state=tick(state,30000);state=start(state,'second');
+  assert.equal(state.orders.filter(item=>item.status==='cooking').length,1);
+  assert.notEqual(state.orders[0].stationId,state.orders[1].stationId,'ready dishes hold their own station until served');
+  state=tick(state,30000);state=start(state,'toast');state=tick(state,30000);
+  assert.equal(state.orders.filter(item=>item.status==='ready').length,3);
+  state=addOrder(state,'next','coffee',3);assert.equal(start(state,'next'),state);
+  state=collect(state,'first');state=start(state,'next');assert.equal(state.orders.find(item=>item.id==='next').status,'cooking');
 });
 
 test('insufficient food, locked recipes and missing equipment cannot consume stock or cook',()=>{
@@ -237,7 +242,7 @@ test('all 51 recipes have real ingredients, a valid station, finite cooking time
   for(const recipe of recipes){
     assert.ok(recipe.requiredIngredients.length>0,recipe.id);
     assert.equal(new Set(recipe.requiredIngredients).size,recipe.requiredIngredients.length);
-    const prep=preparation(recipe);assert.ok(equipment.some(item=>item.id===prep.equipmentId),recipe.id);assert.ok(prep.seconds>=8&&prep.seconds<=20);
+    const prep=preparation(recipe);assert.ok(equipment.some(item=>item.id===prep.equipmentId),recipe.id);assert.equal(prep.seconds,30);
     const cost=recipe.requiredIngredients.reduce((sum,id)=>sum+ingredients.find(item=>item.id===id).price/5,0);assert.ok(recipe.price>cost,recipe.id);
     let state={...isolated(),unlockedRecipes:[recipe.id],ownedEquipment:equipment.map(item=>item.id),stations:equipment.map(item=>({id:item.id,equipmentId:item.id,level:1})),ingredients:Object.fromEntries(recipe.requiredIngredients.map(id=>[id,1]))};
     state=start(addOrder(state,'manual',recipe.id));assert.equal(state.orders[0].status,'cooking',recipe.id);
@@ -248,7 +253,7 @@ test('all 51 recipes have real ingredients, a valid station, finite cooking time
 
 test('upgrades shorten preparation and enforce costs, busy state, levels and machine cap',()=>{
   let state={...isolated(),currency:100000};const first=state.stations[0];const cost=upgradePrice(first);
-  state=reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:first.id});assert.equal(state.currency,100000-cost);assert.equal(cookingMs(state,recipes[0],state.stations[0]),8500);
+  state=reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:first.id});assert.equal(state.currency,100000-cost);assert.equal(cookingMs(state,recipes[0],state.stations[0]),25500);
   const cooking=start(addOrder(state));assert.equal(reducer(cooking,{type:'UPGRADE_EQUIPMENT',stationId:first.id}),cooking);
   for(let i=0;i<3;i++)state=reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:first.id});assert.equal(state.stations[0].level,5);assert.equal(reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:first.id}),state);
   for(let i=0;i<2;i++)state=reducer(state,{type:'BUY_EQUIPMENT',equipmentId:'coffeeCounter'});assert.equal(state.stations.filter(item=>item.equipmentId==='coffeeCounter').length,3);assert.equal(reducer(state,{type:'BUY_EQUIPMENT',equipmentId:'coffeeCounter'}),state);
@@ -263,17 +268,17 @@ test('hiring is gated at stage 3, charged once, and works on friendship routes',
 
 test('a cook and a server run the whole loop; manual serving during delivery never pays twice',()=>{
   let state=hired(hired(isolated(),'ren','cook'),'haru','server');state=addOrder(state);
-  state=tick(state,9999);assert.equal(state.orders[0].status,'cooking');assert.equal(state.currency,600);
+  state=tick(state,29999);assert.equal(state.orders[0].status,'cooking');assert.equal(state.currency,600);
   state=tick(state,1);assert.equal(state.orders[0].status,'ready');assert.equal(state.staff[1].servingOrderId,'manual');
   const manual=collect(state);const afterDelivery=tick(manual,2000);assert.equal(afterDelivery.lifetimeStats.totalOrders,1);
-  state=tick(state,1999);assert.equal(state.lifetimeStats.totalOrders,0);state=tick(state,1);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,798);
+  state=tick(state,1999);assert.equal(state.lifetimeStats.totalOrders,0);state=tick(state,1);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,780);
 });
 
 test('multiple cooks and servers cannot reserve one machine, ingredient or finished dish twice',()=>{
   let state={...isolated(),currency:20000,ingredients:{coffeeBeans:1,bread:0}};
   for(const id of ['ren','sota'])state=hired(state,id,'cook');
   for(const id of ['haru','aki'])state=hired(state,id,'server');
-  state=addOrder(addOrder(state,'a'),'b','coffee',1);state=tick(state,12000);
+  state=addOrder(addOrder(state,'a'),'b','coffee',1);state=tick(state,32000);
   assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,0);assert.equal(state.orders.length,1);assert.equal(state.orders[0].status,'queued');
   const coins=state.currency;state=tick(state,60000);assert.equal(state.currency,coins);assert.equal(state.lifetimeStats.ingredientPurchases.coffeeBeans,undefined,'no automatic procurement');
 });
@@ -281,7 +286,7 @@ test('multiple cooks and servers cannot reserve one machine, ingredient or finis
 test('role changes finish current work before starting a new job, including resting',()=>{
   let state=hired(isolated(),'ren','cook');state=addOrder(addOrder(state,'a'),'b','coffee',1);state=tick(state,1000);
   state=reducer(state,{type:'ASSIGN_STAFF',characterId:'ren',role:'server'});assert.equal(state.staff[0].role,'server');
-  state=tick(state,9000);assert.equal(state.orders.find(item=>item.id==='a').status,'ready');assert.equal(state.orders.find(item=>item.id==='b').status,'queued');
+  state=tick(state,29000);assert.equal(state.orders.find(item=>item.id==='a').status,'ready');assert.equal(state.orders.find(item=>item.id==='b').status,'queued');
   state=reducer(state,{type:'ASSIGN_STAFF',characterId:'ren',role:'rest'});state=tick(state,2000);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.staff[0].role,'rest');
   state=tick(state,10000);assert.equal(state.orders[0].status,'queued');
 });
@@ -299,7 +304,7 @@ test('each character gains the specified specialty at level 6 only',()=>{
 test('reload and suspended time never yield offline coins or progress; v4 migration is idempotent',()=>{
   let state=tick(start(addOrder(isolated())),3000);const saved=JSON.parse(JSON.stringify(state));
   for(const deltaMs of [0,-1,1001,86400000,Infinity,NaN])assert.equal(reducer(state,{type:'TICK',deltaMs}),state);
-  const resumed=migrateSavedState(saved,Date.now()+86400000);assert.equal(resumed.currency,state.currency);assert.equal(resumed.orders[0].remainingMs,7000);assert.equal(resumed.offlineOffer,0);assert.equal(collect(resumed),resumed);
+  const resumed=migrateSavedState(saved,Date.now()+86400000);assert.equal(resumed.currency,state.currency);assert.equal(resumed.orders[0].remainingMs,27000);assert.equal(resumed.offlineOffer,0);assert.equal(collect(resumed),resumed);
   const old={...saved,saveVersion:4,ingredients:{coffeeBeans:3},ownedEquipment:['espressoMachine'],unlockedEquipment:['espressoMachine'],orders:[{id:'old',recipeId:'coffee',customerSlot:0}],offlineOffer:480};
   const migrated=migrateSavedState(old);assert.equal(migrated.ingredients.coffeeBeans,25);assert.equal(migrated.stations.length,4);assert.equal(migrated.orders[0].status,'queued');assert.equal(migrated.currency,old.currency);assert.equal(migrated.offlineOffer,0);
   assert.deepEqual(migrateSavedState(migrated).ingredients,migrated.ingredients);
@@ -315,7 +320,7 @@ test('visiting and gifting have no daily limit, repeated dialogue is not farmabl
 });
 
 test('automatic order generation respects stock, slots and capacity during sustained play',()=>{
-  let state=hired(hired(createInitialState(),'ren','cook'),'haru','server');state=tick(state,600000);
+  let state=hired(hired(createInitialState(),'ren','cook'),'haru','server');state=tick(state,700000);
   assert.ok(state.lifetimeStats.totalOrders>=19);assert.ok(state.orders.length<=4);assert.ok(Object.values(state.ingredients).every(count=>count>=0));
   const coins=state.currency;state=tick(state,60000);assert.equal(state.currency,coins);
   state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});state=tick(state,120000);assert.ok(state.currency>coins);
@@ -326,4 +331,63 @@ test('incoming orders account for waiting orders so an exhausted menu cannot blo
   state=addOrder(state);for(let i=0;i<20;i++)assert.equal(pickWeightedRecipe(state),'toast');
   state=addOrder(state,'toast','toast',1);assert.equal(pickWeightedRecipe(state),undefined);
   assert.equal(state.ingredients.coffeeBeans,1,'admission does not consume ingredients');
+});
+
+test('legacy simultaneous cooking resumes serially without losing time, stock or save compatibility', () => {
+  const initial = createInitialState();
+  const coffeeStation = initial.stations.find(item => item.equipmentId === 'coffeeCounter');
+  const toastStation = initial.stations.find(item => item.equipmentId === 'toastGrill');
+  let state = migrateSavedState({ ...initial, spawnRemainingMs: 1e12, orders: [
+    { ...order('old-coffee'), status: 'cooking', totalMs: 10000, remainingMs: 2000, stationId: coffeeStation.id },
+    { ...order('old-toast', 'toast', 1), status: 'cooking', totalMs: 8000, remainingMs: 4000, stationId: toastStation.id },
+  ] });
+  const stock = { ...state.ingredients };
+  state = tick(state, 1000);
+  assert.deepEqual(state.orders.map(item => item.remainingMs), [1000, 4000]);
+  state = tick(state, 1000);
+  assert.deepEqual(state.orders.map(item => [item.status, item.remainingMs]), [['ready', 0], ['cooking', 4000]]);
+  state = migrateSavedState(JSON.parse(JSON.stringify(state)));
+  state = tick(state, 4000);
+  assert.ok(state.orders.every(item => item.status === 'ready'));
+  assert.deepEqual(state.ingredients, stock);
+  assert.equal(state.lifetimeStats.totalOrders, 0);
+});
+
+test('staff and manual orders share the single kitchen even when different machines are free', () => {
+  let state = { ...createInitialState(), spawnRemainingMs: 1e12,
+    staff: [{ characterId: 'ren', role: 'cook', remainingMs: 0 }, { characterId: 'haru', role: 'cook', remainingMs: 0 }],
+    orders: [order('manual'), order('staff-toast', 'toast', 1), order('next-coffee', 'coffee', 2)] };
+  state = reducer(state, { type: 'START_COOKING', orderId: 'manual' });
+  state = tick(state, 1000);
+  assert.equal(state.orders.filter(item => item.status === 'cooking').length, 1);
+  assert.equal(state.orders[1].status, 'queued');
+  state = tick(state, 29000);
+  assert.equal(state.orders[0].status, 'ready');
+  assert.equal(state.orders[1].status, 'cooking');
+  assert.equal(state.orders[2].status, 'queued');
+  const before = state.ingredients;
+  state = reducer(state, { type: 'START_COOKING', orderId: 'next-coffee' });
+  assert.equal(state.orders.filter(item => item.status === 'cooking').length, 1);
+  assert.deepEqual(state.ingredients, before);
+});
+
+test('legacy weather and trend fields no longer affect orders, prices or rotate during service', () => {
+  const { salePrice } = require(join(output, 'game/logic.js'));
+  const state = { ...createInitialState(), spawnRemainingMs: 1e12 };
+  const originalRandom = Math.random;
+  try {
+    for (const value of [0, .2, .5, .9]) {
+      Math.random = () => value;
+      const expected = pickWeightedRecipe(state);
+      for (let day = 1; day <= 12; day++) {
+        const { conditionForDay } = require(join(output, 'data/dailyConditions.js'));
+        const condition = conditionForDay(day);
+        const changed = { ...state, dailyWeatherId: condition.weatherId, dailyCustomerGroupId: condition.customerGroupId, dailyEventId: condition.dailyEventId };
+        assert.equal(pickWeightedRecipe(changed), expected);
+        assert.equal(salePrice('coffee', changed), recipes.find(item => item.id === 'coffee').price);
+      }
+    }
+  } finally { Math.random = originalRandom; }
+  const later = tick(state, 301000);
+  for (const key of ["dailyWeatherId", "dailyCustomerGroupId", "dailyEventId"]) assert.equal(later[key], state[key]);
 });

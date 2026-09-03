@@ -2,7 +2,6 @@ import { characters } from "../data/characters";
 import { gifts } from "../data/gifts";
 import { ingredients } from "../data/ingredients";
 import { recipes } from "../data/recipes";
-import { getCustomerGroup, getTownDailyEvent, getWeather } from "../data/dailyConditions";
 import { growthEvents } from "../data/growthEvents";
 import { hiddenUnlocks } from "../data/hiddenUnlocks";
 import type { Character, Gift, GiftReaction, GameState, GrowthEvent, GrowthStatRequirement, RelationshipEvent } from "../types/game";
@@ -81,10 +80,10 @@ export function bestSeller(recipeSales:Record<string,number>) {
   return Object.entries(recipeSales).sort((a,b)=>b[1]-a[1])[0]?.[0];
 }
 
-export function salePrice(recipeId:string,state:GameState) {
+export function salePrice(recipeId:string) {
   const recipe=recipes.find(item=>item.id===recipeId);
   if(!recipe)return 0;
-  return Math.round(recipe.price*getTownDailyEvent(state.dailyEventId).saleMultiplier);
+  return recipe.price;
 }
 
 export function isRecipeUsable(recipeId:string,state:GameState) {
@@ -93,18 +92,9 @@ export function isRecipeUsable(recipeId:string,state:GameState) {
 }
 
 export function pickWeightedRecipe(state:GameState) {
-  const weather=getWeather(state.dailyWeatherId);
-  const crowd=getCustomerGroup(state.dailyCustomerGroupId);
-  const event=getTownDailyEvent(state.dailyEventId);
   // Pending orders commit stock for admission only; the inventory is debited at cooking start.
   const remaining={...state.ingredients};
   for(const order of state.orders.filter(item=>item.status==="queued"))for(const id of recipes.find(item=>item.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
-  const options=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)&&recipe.requiredIngredients.every(id=>(remaining[id]||0)>0)).map(recipe=>{
-    const matches=[...weather.favoredTags,...crowd.favoredTags,...event.favoredTags].filter(tag=>recipe.tags.includes(tag)).length;
-    return {recipe,weight:1+matches*2};
-  });
-  const total=options.reduce((sum,item)=>sum+item.weight,0);
-  let roll=Math.random()*total;
-  for(const option of options){roll-=option.weight;if(roll<=0)return option.recipe.id;}
-  return options[0]?.recipe.id;
+  const options=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)&&recipe.requiredIngredients.every(id=>(remaining[id]||0)>0));
+  return options[Math.floor(Math.random()*options.length)]?.id;
 }

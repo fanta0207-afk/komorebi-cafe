@@ -181,3 +181,38 @@
 @keyframes manager-steps { 0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)} }
 @keyframes manager-complete { from{scale:.5;opacity:0}to{scale:1;opacity:1} }
 @media(prefers-reduced-motion:reduce) { .scene-manager .manager-body,.scene-manager .person-legs,.scene-manager .person-arm,.manager-complete{animation:none!important;transform:none} }
+
+/* Equipment and workers share equipmentLayout.ts coordinates. */
+.cafe-scene .room-counter { left:5%; width:74%; }
+.cafe-scene.has-expanded-kitchen .room-counter { top:35%; height:18%; }
+.equipment-layout { position:absolute; inset:0; }
+.equipment-layout .scene-equipment { position:absolute; width:12%; height:10cqw; min-height:0; max-width:none; transform:translate(-50%,-100%); }
+.equipment-state-label { position:absolute; top:-18px; left:50%; transform:translateX(-50%); white-space:nowrap; border-radius:4px; padding:2px 4px; background:#ece0c6; border:1px solid #9a8767; color:#695840; font-size:11px; line-height:1.2; }
+.equipment-cooking .equipment-state-label { background:#e3edc6; color:#3a572c; border-color:#6b834a; }
+.equipment-cooking .equipment-prop { box-shadow:0 0 0 2px #d9e9a6,0 3px 0 #513f2b; }
+.equipment-ready .equipment-state-label { background:#ffefbf; color:#815721; border-color:#bea05f; }
+.equipment-uninstalled .equipment-state-label { background:#e7dfd0; border-style:dashed; }
+.equipment-uninstalled .equipment-prop { filter:saturate(.45); border-style:dashed; }
+.equipment-layout .scene-equipment>progress { position:absolute; left:4%; bottom:-6px; height:4px; width:92%; accent-color:#638345; }
+.equipment-done { position:absolute; top:0; right:-5px; background:#f3e6ac; border:1px solid #98835c; color:#537039; border-radius:50%; width:20px; height:20px; font-size:14px; }
+.equipment-layout .equipment-prop i { font-size:4.3cqw; }
+.prop-coffeeCounter { background:linear-gradient(90deg,#9c8563,#d8c396 55%,#877454); border-radius:7px 7px 2px 2px; }
+.prop-coffeeCounter::before,.prop-espressoMachine::before { content:""; position:absolute; left:13%; right:13%; top:12%; height:9%; border-radius:3px; background:#513f2f; }
+.prop-espressoMachine { background:linear-gradient(90deg,#ae762f,#edd296 48%,#ad823c); border-radius:14px 14px 3px 3px; }
+.prop-espressoMachine::after { content:""; position:absolute; width:20%; height:24%; border:2px solid #6c5234; background:#f7ecc2; border-radius:50%; top:24%; right:12%; }
+.prop-toastGrill { top:30%; border-radius:9px 9px 3px 3px; background:linear-gradient(100deg,#957459,#e4cbb0,#967257); }
+.prop-toastGrill::before { content:""; position:absolute; top:6%; left:15%; right:15%; height:10%; background:#5b4233; border-radius:50%; }
+.prop-prepTable,.prop-seasonalCounter { top:45%; border-radius:2px; border-top:5px solid #846340; background:#bca776; }
+.prop-prepTable i,.prop-seasonalCounter i { position:absolute; top:-75%; }
+.prop-bakeryOven { border-radius:40% 40% 3px 3px; background:repeating-linear-gradient(0deg,#a2694c 0 7px,#785237 8px 9px); }
+.prop-bakeryOven::before { content:""; position:absolute; inset:27% 16% 4%; background:radial-gradient(at bottom,#d4a353,#4c3429 75%); border:2px solid #d2a775; border-radius:50% 50% 1px 1px; }
+.prop-bakeryOven i { position:relative; opacity:.75; }
+.prop-chilledCase,.prop-parfaitStation { border-top:4px solid #8c6f4d; background:linear-gradient(120deg,#aac2b0,#e3ebdb 45%,#9cac9e 47%,#bdcabb); }
+.prop-herbInfuser { border-radius:40% 40% 20% 20%; background:linear-gradient(90deg,#9b603e,#e9b281,#9e613e); }
+.cafe-kitchen-rule { text-align:right; color:#6a7459; font-size:12px; line-height:1.7; }
+.cafe-kitchen-rule small { display:block; color:#857153; font-size:12px; }
+.station-order-detail { display:block; color:#84745a; margin-top:3px; }
+.notebook-equipment>div>span>progress { display:block; width:100%; height:5px; accent-color:#648046; margin-top:7px; }
+.notebook-equipment>div>b.cooking { color:#58703b; }.notebook-equipment>div>b.ready{color:#9b7136}
+.notebook-equipment>div>b>small { display:block; margin-top:3px; }
+.notebook-equipment-link { width:100%; min-height:44px; margin-top:15px; border:1px solid #c1ae83; border-radius:7px; background:#ebdfc0; color:#615436; font-size:14px; cursor:pointer; }

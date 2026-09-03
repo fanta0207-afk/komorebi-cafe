@@ -8,12 +8,12 @@
 | --- | --- | --- |
 | 1 | `background` | 壁・床の独立した背景 |
 | 2 | `furniture` | 窓、ドア、棚、カウンター、照明、植物、解放済み装飾 |
-| 3 | `equipment` | 実際の設置設備。増設数と稼働状態も表示 |
+| 3 | `equipment` | 解放済み設備。未設置・増設数・稼働状態も表示 |
 | 4 | `seating` | 4組のテーブルと左右の椅子 |
 | 5 | `customers` | 注文に対応する客。来店→着席→提供後のひと息→退店 |
 | 6 | `characters` | 雇用して調理・提供に配置した既存キャラクター |
 | 7 | `bubbles` | 注文・進捗・提供・お礼の吹き出し |
-| 8 | `effects` | 木漏れ日、埃、雨、提供時のきらめき |
+| 8 | `effects` | 木漏れ日、埃、提供時のきらめき |
 
 背景に家具・キャラクター・文字・操作UIを描き込まないでください。完成した店内の一枚絵ではなく、個々の素材を差し替える構成です。料理は注文吹き出しと提供後のテーブルで共通利用します。
 
@@ -27,11 +27,11 @@
 | `assets/cafe/furniture/` | `window.png`, `door.png`, `shelf.png`, `counter.png`, `pendant.png`, `plant.png` | 各 400〜800px。各オブジェクトのみ |
 | `assets/cafe/furniture/` | `table.png`, `chair.png` | 400×300 / 180×260px。テーブルは天板と脚。椅子は独立 |
 | `assets/cafe/furniture/` | `{装飾ID}.png` | 128〜256px。解放済み装飾だけ表示 |
-| `assets/cafe/equipment/` | `{設備ID}.png` | 256×256px。購入・設置済み設備だけ表示 |
+| `assets/cafe/equipment/` | `{設備ID}.png` | 256×256px。解放時に未設置の姿を表示。購入後に稼働可能 |
 | `assets/customers/` | `moss.png`, `rose.png`, `navy.png`, `ochre.png` | 240×320px。一般客4種の全身 |
 | `assets/characters/` | `ren.png`, `sota.png`, `aki.png`, `itsuki.png`, `haru.png`, `nagisa.png` | 240×360px。既存キャラクターの店内用全身 |
 | `assets/foods/` | `{料理ID}.png` | 128×128px。例 `coffee.png`, `toast.png` |
-| `assets/effects/` | `sunlight.png`, `rain.png`, `serve.png` | 600×800 / 300×400 / 256×256px。透過素材 |
+| `assets/effects/` | `sunlight.png`, `serve.png` | 600×800 / 256×256px。透過素材 |
 
 客は `{look}-{phase}.png` があると優先します。例：`moss-entering.png`, `moss-seated.png`, `moss-enjoying.png`, `moss-leaving.png`。ない状態は `moss.png`、それもなければCSSへ戻ります。
 
@@ -58,3 +58,5 @@
 `public/assets/characters/manager.png` を追加すると、店長（あなた）のCSS人物から画像へ置き換わります。動作別の画像を使う場合は、`manager-idle.png`, `manager-walking.png`, `manager-cooking.png`, `manager-ready.png`, `manager-pickup.png`, `manager-carrying.png`, `manager-serving.png`, `manager-returning.png` を追加してください。動作別画像がない場合は `manager.png`、それもない場合はCSS人物を使用します。おすすめは透過PNG・240×360pxです。
 
 店長の操作待ちは一時的な演出データで、セーブ形式には追加されません。リロードした場合、未着手の注文や完成済み料理は従来どおり残り、もう一度吹き出しから店長へ指示できます。調理時間・食材消費・売上は既存のゲーム処理が担当し、店長は移動後にその処理を呼び出します。
+
+設備の座標は `src/components/cafe/equipmentLayout.ts` で管理し、店内描画と店長・スタッフの移動先で共用します。設備追加による配置変更にも追従します。調理中は実際の残り秒数と湯気、完成後は提供待ちの印を表示します。基本調理時間は30秒、店全体で1品ずつです。

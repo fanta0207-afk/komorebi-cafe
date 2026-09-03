@@ -20,5 +20,5 @@ export function StaffCard({characterId}:{characterId:string}) {
 }
 export function StaffScreen() {
   const {state}=useGame();
-  return <section className="screen fade-in"><ScreenTitle kicker="CAFE PARTNERS" title="一緒に働く人"/><p className="intro-copy">仕入れ先のみんなが、本業の合間にお手伝い。調理と提供をそれぞれ任せられます。仕入れはあなたが担当します。</p><div className="staff-guide"><b>調理担当 + 提供担当で、自動営業へ</b><p>調理担当は空いている設備で1品ずつ作ります。提供担当は完成品を運びます。食材がなくなったら街へ仕入れに行きましょう。</p><small>雇用 {state.staff.length}/6人 · 継続のお給料なし · 友人ルートでも働けます</small></div><div className="staff-list">{characters.map(character=><StaffCard key={character.id} characterId={character.id}/>)}</div></section>;
+  return <section className="screen fade-in"><ScreenTitle kicker="CAFE PARTNERS" title="一緒に働く人"/><p className="intro-copy">仕入れ先のみんなが、本業の合間にお手伝い。調理と提供をそれぞれ任せられます。仕入れはあなたが担当します。</p><div className="staff-guide"><b>調理担当 + 提供担当で、自動営業へ</b><p>調理は店長・スタッフを合わせて店全体で1品ずつ。調理担当は前の料理の完成を待ち、対応する設備で基本30秒かけて作ります。提供担当は完成品を運びます。食材がなくなったら街へ仕入れに行きましょう。</p><small>雇用 {state.staff.length}/6人 · 継続のお給料なし · 友人ルートでも働けます</small></div><div className="staff-list">{characters.map(character=><StaffCard key={character.id} characterId={character.id}/>)}</div></section>;
 }

@@ -9,6 +9,7 @@ import { conditionForDay } from "../data/dailyConditions";
 import type { CharacterProgress, EventReward, GameState, GiftReaction, Order, RelationshipRoute, StaffRole } from "../types/game";
 import { startCooking, serveOrder, equipmentPrice, upgradePrice } from "./operations";
 import { advanceGame } from "./simulation";
+import { stationOccupied } from "./kitchen";
 import { GAME_CONFIG, relationshipLabel } from "./config";
 import { availableEvent, createCharacterProgress, findNewRecipes, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction } from "./logic";
 
@@ -224,7 +225,7 @@ export function reducer(state:GameState, action:Action):GameState {
     }
     case "UPGRADE_EQUIPMENT": {
       const station=state.stations.find(item=>item.id===action.stationId);
-      if(!station||station.level>=GAME_CONFIG.maxStationLevel||state.orders.some(order=>order.status==="cooking"&&order.stationId===station.id))return state;
+      if(!station||station.level>=GAME_CONFIG.maxStationLevel||stationOccupied(state,station.id))return state;
       const price=upgradePrice(station);if(state.currency<price)return state;
       return {...state,currency:state.currency-price,stations:state.stations.map(item=>item.id===station.id?{...item,level:item.level+1}:item),notice:notice("unlock","設備を強化しました。調理時間が15%短くなります")};
     }

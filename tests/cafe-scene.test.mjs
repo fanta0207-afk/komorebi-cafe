@@ -108,7 +108,7 @@ test('presentation does not alter v5 round trips, ingredient consumption or manu
   const beans = state.ingredients.coffeeBeans;
   state = reducer(state, { type: 'START_COOKING', orderId: queued.id });
   assert.equal(state.ingredients.coffeeBeans, beans - 1);
-  for (let i = 0; i < 10; i++) state = reducer(state, { type: 'TICK', deltaMs: 1000 });
+  for (let i = 0; i < 30; i++) state = reducer(state, { type: 'TICK', deltaMs: 1000 });
   const ready = state.orders.find(item => item.id === queued.id);
   assert.equal(ready.status, 'ready');
   const previous = state.orders;
@@ -222,16 +222,58 @@ test('staff completing a pending order cancels the manager action without double
 
 test('one busy machine keeps the next manager preparation queued until it is free', () => {
   let state = { ...createInitialState(), activeMs: 0, orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
+  state = { ...state, stations: [...state.stations, { id: 'coffeeCounter-2', equipmentId: 'coffeeCounter', level: 1 }] };
   let manager = createManager();
   for (const id of ['first', 'second']) manager = enqueueManager(manager, state, { kind: 'start', orderId: id });
   const commands = [];
-  for (let i = 0; i < 250; i++) {
+  for (let i = 0; i < 650; i++) {
     const result = advanceManager(manager, state); manager = result.model;
     if (result.command) { commands.push({ ...result.command, at: state.activeMs }); state = reducer(state, result.command); }
     state = reducer(state, { type: 'TICK', deltaMs: 100 });
   }
   assert.deepEqual(commands.map(command => command.orderId), ['first', 'second']);
-  assert.ok(commands[1].at - commands[0].at >= 10000);
+  assert.ok(commands[1].at - commands[0].at >= 30000);
   assert.equal(state.ingredients.coffeeBeans, createInitialState().ingredients.coffeeBeans - 2);
   assert.ok(state.orders.every(item => item.status === 'ready'));
+});
+
+const { equipmentLayout, equipmentWorkPosition } = require(join(output, 'components/cafe/equipmentLayout.js'));
+const { machinePosition } = require(join(output, 'components/cafe/managerModel.js'));
+const { stationActivity } = require(join(output, 'game/kitchen.js'));
+
+test('unlocking reveals a machine before purchase, then installation and work share its actual position', () => {
+  const initial = createInitialState();
+  const render = state => renderToStaticMarkup(React.createElement(CafeScene, { state, onOrder() {}, onCharacter() {}, onEquipment() {} }));
+  assert.doesNotMatch(render(initial), /data-equipment="espressoMachine"/);
+  const unlocked = { ...initial, currency: 10000, unlockedEquipment: [...initial.unlockedEquipment, 'espressoMachine'] };
+  assert.match(render(unlocked), /data-equipment="espressoMachine" data-equipment-status="uninstalled"/);
+  assert.equal(unlocked.stations.some(item => item.equipmentId === 'espressoMachine'), false);
+  const installed = reducer(unlocked, { type: 'BUY_EQUIPMENT', equipmentId: 'espressoMachine' });
+  assert.match(render(installed), /data-equipment="espressoMachine" data-equipment-status="idle"/);
+  const expanded = { ...installed, unlockedEquipment: equipment.map(item => item.id) };
+  for (const state of [installed, expanded]) {
+    for (const station of state.stations) {
+      const assigned = { ...order(), stationId: station.id };
+      const drawn = equipmentLayout(state).find(item => item.item.id === station.equipmentId);
+      assert.deepEqual(machinePosition(state, assigned), drawn.workPosition);
+      assert.deepEqual(equipmentWorkPosition(state, assigned), drawn.workPosition);
+    }
+  }
+  assert.doesNotMatch(render(expanded), /weather-|scene-rain/);
+});
+
+test('equipment and scene track idle, countdown, ready and served from the same order', () => {
+  let state = { ...createInitialState(), spawnRemainingMs: 1e12, orders: [order()] };
+  const station = state.stations.find(item => item.equipmentId === 'coffeeCounter');
+  assert.equal(stationActivity(state, station.id).status, 'idle');
+  state = reducer(state, { type: 'START_COOKING', orderId: 'one' });
+  assert.equal(stationActivity(state, station.id).order.remainingMs, 30000);
+  const render = () => renderToStaticMarkup(React.createElement(CafeScene, { state, onOrder() {}, onCharacter() {}, onEquipment() {} }));
+  assert.match(render(), /data-equipment="coffeeCounter" data-equipment-status="cooking"/);
+  assert.match(render(), /あと30秒/);
+  for (let i = 0; i < 30; i++) state = reducer(state, { type: 'TICK', deltaMs: 1000 });
+  assert.equal(stationActivity(state, station.id).status, 'ready');
+  assert.match(render(), /data-equipment="coffeeCounter" data-equipment-status="ready"/);
+  state = reducer(state, { type: 'COLLECT_ORDER', orderId: 'one' });
+  assert.equal(stationActivity(state, station.id).status, 'idle');
 });

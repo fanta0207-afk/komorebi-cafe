@@ -6,6 +6,7 @@ export const GAME_CONFIG = {
   orderSpawnMinMs:5000,
   orderSpawnMaxMs:10000,
   maxOrders:4,
+  baseCookingSeconds:30,
   ingredientPackSize:5,
   hirePrice:1200,
   maxStationsPerType:3,

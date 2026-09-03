@@ -3,9 +3,10 @@
 import { useState, type CSSProperties } from "react";
 import { getCharacter } from "../../data/characters";
 import { getDecoration } from "../../data/decorations";
-import { getEquipment } from "../../data/equipment";
 import { getRecipe } from "../../data/recipes";
 import { startProblem } from "../../game/operations";
+import { activeCookingOrder } from "../../game/kitchen";
+import { equipmentLayout, equipmentWorkPosition } from "./equipmentLayout";
 import type { GameState, Order } from "../../types/game";
 import { CafeAsset } from "./CafeAsset";
 import { cafeAsset, makeVisit, reconcileVisits, TABLE_POSITIONS, visitPhase, VISIT_TIMING } from "./sceneModel";
@@ -33,10 +34,11 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
   const visits = useVisits(state.orders, state.activeMs);
   const activeVisits = visits.flatMap(visit => { const phase = visitPhase(visit, state.activeMs); return phase ? [{ ...visit, phase }] : []; });
   const workingStaff = state.staff.filter(person => person.role !== "rest");
-  const installed = [...new Set(state.stations.map(station => station.equipmentId))];
+  const layout = equipmentLayout(state);
+  const activeOrder = activeCookingOrder(state);
   const memories = state.unlockedDecorations.flatMap(id => { const item = getDecoration(id); return item ? [item] : []; });
   const serving = workingStaff.some(person => person.servingOrderId);
-  return <div className={`cafe-scene weather-${state.dailyWeatherId}`} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
+  return <div className={`cafe-scene ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
     <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
       <div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
       <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div>
@@ -65,15 +67,17 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       })}
     </div>
     <div className="scene-layer layer-equipment" data-layer="equipment">
-      <div className="equipment-on-counter">
-        {installed.map(id => {
-          const item = getEquipment(id); if (!item) return null;
-          const count = state.stations.filter(station => station.equipmentId === id).length;
-          const busy = state.orders.some(order => order.status === "cooking" && state.stations.some(station => station.id === order.stationId && station.equipmentId === id));
-          return <button key={id} type="button" className={`scene-equipment ${busy ? "is-busy" : ""}`} data-equipment={id} onClick={onEquipment}
-            aria-label={`${item.name} ${count}台・${busy ? "調理中" : "空き"}。設備の詳細を開く`}>
-            <CafeAsset src={cafeAsset.equipment(id)}><span className={`equipment-prop prop-${id}`}><i>{item.icon}</i></span></CafeAsset>
-            {count > 1 && <small>×{count}</small>}{busy && <span className="equipment-steam"><i/><i/><i/></span>}
+      <div className="equipment-layout">
+        {layout.map(({ item, position, stations, status, label, order }) => {
+          const busy = status === "cooking";
+          return <button key={item.id} type="button" className={`scene-equipment equipment-${status}`} data-equipment={item.id} data-equipment-status={status}
+            style={place(position.x, position.y)} onClick={onEquipment}
+            aria-label={`${item.name} ${stations.length}台・${label}${busy && order ? `・あと${Math.ceil(order.remainingMs / 1000)}秒` : ""}。設備の詳細を開く`}>
+            <CafeAsset src={cafeAsset.equipment(item.id)}><span className={`equipment-prop prop-${item.id}`}><i>{item.icon}</i></span></CafeAsset>
+            {stations.length > 1 && <small>×{stations.length}</small>}
+            <span className="equipment-state-label">{busy && order ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : label}</span>
+            {busy && <><span className="equipment-steam"><i/><i/><i/></span><progress max={order!.totalMs} value={order!.totalMs - order!.remainingMs} aria-label={`${item.name}の調理進捗`}/></>}
+            {status === "ready" && <span className="equipment-done">✓</span>}
           </button>;
         })}
       </div>
@@ -101,9 +105,10 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
     <div className="scene-layer layer-characters" data-layer="characters">
       {workingStaff.map((person, index) => {
         const character = getCharacter(person.characterId); if (!character) return null;
-        const cooking = state.orders.some(order => order.status === "cooking" && order.cookId === person.characterId);
+        const cooking = activeOrder?.cookId === person.characterId;
+        const workPosition = cooking && activeOrder ? equipmentWorkPosition(state, activeOrder) : undefined;
         const target = person.servingOrderId && state.orders.find(order => order.id === person.servingOrderId);
-        const position = target ? place(TABLE_POSITIONS[target.customerSlot].x + 15, TABLE_POSITIONS[target.customerSlot].y + 7) : place(37 + index * 9, 43);
+        const position = target ? place(TABLE_POSITIONS[target.customerSlot].x + (target.customerSlot % 2 ? -15 : 15), TABLE_POSITIONS[target.customerSlot].y + 7) : workPosition ? place(workPosition.x, workPosition.y) : place(33 + index * 8, 52);
         return <button className={`scene-staff ${target ? "staff-serving" : ""} ${cooking ? "staff-cooking" : ""}`} type="button"
           key={person.characterId} style={position} onClick={() => onCharacter(person.characterId)}
           aria-label={`${character.name}・${person.role === "cook" ? "調理担当" : "提供担当"}。人物の詳細を開く`}>
@@ -123,7 +128,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
         const { x, y } = TABLE_POSITIONS[order.customerSlot];
         const problem = order.status === "queued" ? startProblem(state, recipe) : "";
         const pending = manager && managerPending(manager, order.id);
-        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : problem ? "確認する" : "調理開始";
+        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeOrder?.id === order.id ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち" : problem ? "確認する" : "調理開始";
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
         return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
@@ -141,7 +146,6 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
     <div className="scene-layer layer-effects" data-layer="effects" aria-hidden="true">
       <div className="scene-light"><CafeAsset src={cafeAsset.effect("sunlight")}><i/></CafeAsset></div>
       <div className="scene-dust"><i/><i/><i/><i/><i/></div>
-      {state.dailyWeatherId === "rain" && <div className="window-rain"><CafeAsset src={cafeAsset.effect("rain")}><i/></CafeAsset></div>}
       {activeVisits.filter(visit => visit.phase === "enjoying").map(visit => <span className="serve-sparkles" key={visit.id} style={place(TABLE_POSITIONS[visit.slot].x + 6, TABLE_POSITIONS[visit.slot].y - 5)}><CafeAsset src={cafeAsset.effect("serve")}><i>✦</i><i>♡</i><i>✧</i></CafeAsset></span>)}
       <div className="scene-vignette"/>
     </div>

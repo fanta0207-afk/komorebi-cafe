@@ -1,9 +1,9 @@
 import { getRecipe } from "../data/recipes";
-import { conditionForDay } from "../data/dailyConditions";
 import { GAME_CONFIG } from "./config";
 import { pickWeightedRecipe } from "./logic";
 import { serveDuration, serveOrder, startCooking } from "./operations";
 import type { GameState } from "../types/game";
+import { activeCookingOrder } from "./kitchen";
 
 // Only foreground elapsed time is supplied. Long gaps (sleep / suspended tabs) are ignored.
 export function advanceGame(state:GameState,deltaMs:number):GameState {
@@ -12,8 +12,9 @@ export function advanceGame(state:GameState,deltaMs:number):GameState {
   while(remaining>0) {
     const step=Math.min(100,remaining);remaining-=step;
     next=assignWork(next);
+    const cookingId=activeCookingOrder(next)?.id;
     next={...next,activeMs:next.activeMs+step,spawnRemainingMs:next.spawnRemainingMs-step,
-      orders:next.orders.map(order=>order.status!=="cooking"?order:{...order,remainingMs:Math.max(0,order.remainingMs-step),status:order.remainingMs<=step?"ready":"cooking"}),
+      orders:next.orders.map(order=>order.id!==cookingId?order:{...order,remainingMs:Math.max(0,order.remainingMs-step),status:order.remainingMs<=step?"ready":"cooking"}),
       staff:next.staff.map(person=>person.servingOrderId?{...person,remainingMs:Math.max(0,person.remainingMs-step)}:person)};
     for(const person of next.staff)if(person.servingOrderId&&person.remainingMs<=0)next=serveOrder(next,person.servingOrderId);
     next=assignWork(next);
@@ -24,8 +25,6 @@ export function advanceGame(state:GameState,deltaMs:number):GameState {
       next={...next,spawnRemainingMs:GAME_CONFIG.orderSpawnMinMs+Math.random()*(GAME_CONFIG.orderSpawnMaxMs-GAME_CONFIG.orderSpawnMinMs)};
     }
   }
-  const oldPeriod=Math.floor(state.activeMs/300000),newPeriod=Math.floor(next.activeMs/300000);
-  if(oldPeriod!==newPeriod){const condition=conditionForDay(newPeriod+1);next={...next,dailyWeatherId:condition.weatherId,dailyCustomerGroupId:condition.customerGroupId,dailyEventId:condition.dailyEventId};}
   return next;
 }
 

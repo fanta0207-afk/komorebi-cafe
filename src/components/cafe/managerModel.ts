@@ -1,7 +1,9 @@
 import { getRecipe } from "../../data/recipes";
-import { preparation, startProblem } from "../../game/operations";
+import { startProblem } from "../../game/operations";
+import { activeCookingOrder } from "../../game/kitchen";
+import { equipmentWorkPosition } from "./equipmentLayout";
 import type { Action } from "../../game/state";
-import type { GameState, Order } from "../../types/game";
+import type { GameState } from "../../types/game";
 import { TABLE_POSITIONS } from "./sceneModel";
 
 export interface Point { x: number; y: number }
@@ -31,15 +33,7 @@ export function createManager(now = 0): ManagerModel {
   return { queue: [], rest: { from: MANAGER_HOME, to: MANAGER_HOME, startedAt: now - MANAGER_TIMING.return }, clock: now };
 }
 
-/** Same centers as the counter's flex rows. Actor feet sit in front of its machines. */
-export function machinePosition(state: GameState, order: Order): Point {
-  const installed = [...new Set(state.stations.map(station => station.equipmentId))];
-  const equipmentId = state.stations.find(station => station.id === order.stationId)?.equipmentId
-    ?? (getRecipe(order.recipeId) ? preparation(getRecipe(order.recipeId)!).equipmentId : "coffeeCounter");
-  const index = Math.max(0, installed.indexOf(equipmentId));
-  const columns = installed.length > 4 ? Math.min(5, installed.length - Math.floor(index / 5) * 5) : installed.length;
-  return { x: 33 + ((index % 5 + .5) / Math.max(1, columns)) * 46, y: 47 };
-}
+export const machinePosition = equipmentWorkPosition;
 
 function between(from: Point, to: Point, progress: number): Point {
   const t = Math.max(0, Math.min(1, progress));
@@ -67,7 +61,13 @@ export function managerFrame(model: ManagerModel, state: GameState): ManagerFram
     const order = state.orders.find(item => item.id === run.orderId);
     const base = { recipeId: run.recipeId, orderId: run.orderId };
     if (elapsed < MANAGER_TIMING.toMachine) return { ...base, position: walk(run.from, run.machine, elapsed / MANAGER_TIMING.toMachine), phase: "walking", label: run.kind === "start" ? "マシンへ移動中" : "料理を取りに" };
-    if (run.kind === "start") return { ...base, position: run.machine, phase: "cooking", label: "調理を始めます", progress: order?.totalMs ? 1 - order.remainingMs / order.totalMs : 0 };
+    if (run.kind === "start") {
+      const active = activeCookingOrder(state)?.id === order?.id;
+      const ready = order?.status === "ready";
+      return { ...base, position: run.machine, phase: ready ? "ready" : active ? "cooking" : "idle",
+        label: ready ? "できました！" : active ? `調理中 · あと${Math.ceil(order!.remainingMs / 1000)}秒` : "準備中",
+        progress: order?.totalMs ? 1 - order.remainingMs / order.totalMs : 0 };
+    }
     if (elapsed < MANAGER_TIMING.toMachine + MANAGER_TIMING.pickup) return { ...base, position: run.machine, phase: "pickup", label: "できたてをお盆に" };
     if (elapsed < HANDOFF_AT) return { ...base, position: walk(run.machine, run.table, (elapsed - MANAGER_TIMING.toMachine - MANAGER_TIMING.pickup) / MANAGER_TIMING.toTable), phase: "carrying", label: order ? `テーブル${order.customerSlot + 1}へお届け` : "客席へお届け" };
     return { ...base, position: run.table, phase: "serving", label: "お待たせしました" };
@@ -77,7 +77,7 @@ export function managerFrame(model: ManagerModel, state: GameState): ManagerFram
     return { position: walk(model.rest.from, model.rest.to, elapsed / MANAGER_TIMING.return), phase: "returning", label: "カウンターへ" };
   }
   const focus = state.orders.find(order => order.id === model.focusId && !order.cookId);
-  if (focus?.status === "cooking") return { position: model.rest.to, phase: "cooking", label: `調理中 · あと${Math.ceil(focus.remainingMs / 1000)}秒`, recipeId: focus.recipeId, orderId: focus.id, progress: 1 - focus.remainingMs / Math.max(1, focus.totalMs) };
+  if (focus?.status === "cooking" && activeCookingOrder(state)?.id === focus.id) return { position: model.rest.to, phase: "cooking", label: `調理中 · あと${Math.ceil(focus.remainingMs / 1000)}秒`, recipeId: focus.recipeId, orderId: focus.id, progress: 1 - focus.remainingMs / Math.max(1, focus.totalMs) };
   if (focus?.status === "ready") return { position: model.rest.to, phase: "ready", label: "できました！", recipeId: focus.recipeId, orderId: focus.id, progress: 1 };
   return { position: model.rest.to, phase: "idle", label: "いらっしゃいませ" };
 }
@@ -101,12 +101,20 @@ export function advanceManager(model: ManagerModel, state: GameState): { model: 
   let next = model;
   const queue = model.queue.filter(task => applicable(task, state));
   if (queue.length !== model.queue.length) next = { ...next, queue };
-  const run = next.current;
+  let run = next.current;
+  if (run) {
+    const order = state.orders.find(item => item.id === run!.orderId);
+    const machine = order && machinePosition(state, order);
+    if (machine && (machine.x !== run.machine.x || machine.y !== run.machine.y)) {
+      run = { ...run, machine };
+      next = { ...next, current: run };
+    }
+  }
   if (run) {
     const elapsed = now - run.startedAt;
     const order = state.orders.find(item => item.id === run.orderId);
     const invalid = !run.issued && !applicable(run, state);
-    const finished = run.issued && elapsed >= (run.kind === "start" ? MANAGER_TIMING.toMachine + MANAGER_TIMING.startWork : HANDOFF_AT + MANAGER_TIMING.handoff);
+    const finished = run.issued && (run.kind === "start" ? order?.status !== "cooking" && elapsed >= MANAGER_TIMING.toMachine + MANAGER_TIMING.startWork : elapsed >= HANDOFF_AT + MANAGER_TIMING.handoff);
     if (invalid || finished) {
       const position = managerFrame(next, state).position;
       const focus = state.orders.find(item => item.id === (run.kind === "start" ? run.orderId : next.focusId) && !item.cookId && item.status !== "queued");
@@ -135,8 +143,11 @@ export function advanceManager(model: ManagerModel, state: GameState): { model: 
     return { model: { ...next, queue: next.queue.filter((_, index) => index !== availableIndex), current: { ...task, recipeId: order.recipeId, startedAt: now, from: managerFrame(next, state).position, machine: machinePosition(state, order), table: { x: table.x + (table.x < 50 ? 15 : -15), y: table.y + 8 }, issued: false }, clock: now } };
   }
   // Resume a saved manual cooking order; staffing/recipe/save schemas stay unchanged.
-  const focus = state.orders.find(order => order.id === next.focusId && !order.cookId && order.status !== "queued")
+  const active = activeCookingOrder(state);
+  const focus = (active && !active.cookId ? active : undefined)
+    ?? state.orders.find(order => order.id === next.focusId && !order.cookId && order.status !== "queued")
     ?? state.orders.find(order => !order.cookId && order.status !== "queued");
-  if (focus?.id !== next.focusId) next = { ...next, focusId: focus?.id, rest: { from: managerFrame(next, state).position, to: focus ? machinePosition(state, focus) : MANAGER_HOME, startedAt: now }, clock: now };
+  const target = focus ? machinePosition(state, focus) : MANAGER_HOME;
+  if (focus?.id !== next.focusId || next.rest.to.x !== target.x || next.rest.to.y !== target.y) next = { ...next, focusId: focus?.id, rest: { from: managerFrame(next, state).position, to: focus ? machinePosition(state, focus) : MANAGER_HOME, startedAt: now }, clock: now };
   return { model: next };
 }

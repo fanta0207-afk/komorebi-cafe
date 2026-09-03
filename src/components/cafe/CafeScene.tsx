@@ -1,0 +1,148 @@
+"use client";
+
+import { useState, type CSSProperties } from "react";
+import { getCharacter } from "../../data/characters";
+import { getDecoration } from "../../data/decorations";
+import { getEquipment } from "../../data/equipment";
+import { getRecipe } from "../../data/recipes";
+import { startProblem } from "../../game/operations";
+import type { GameState, Order } from "../../types/game";
+import { CafeAsset } from "./CafeAsset";
+import { cafeAsset, makeVisit, reconcileVisits, TABLE_POSITIONS, visitPhase, VISIT_TIMING } from "./sceneModel";
+
+type SceneProps = { state: GameState; onOrder: (id: string) => void; onCharacter: (id: string) => void; onEquipment: () => void };
+
+function place(x: number, y: number): CSSProperties { return { left: `${x}%`, top: `${y}%` }; }
+function useVisits(orders: Order[], now: number) {
+  const signature = orders.map(order => `${order.id}:${order.status}`).join("|");
+  const [snapshot, setSnapshot] = useState(() => ({ signature, orders,
+    visits: orders.map(order => makeVisit(order, now - VISIT_TIMING.enter)) }));
+  if (signature !== snapshot.signature) {
+    const next = { signature, orders, visits: reconcileVisits(snapshot.visits, snapshot.orders, orders, now) };
+    setSnapshot(next);
+    return next.visits;
+  }
+  return snapshot.visits;
+}
+
+export function PersonFallback({ look, apron = false }: { look: string; apron?: boolean }) {
+  return <span className={`scene-person look-${look} ${apron ? "with-apron" : ""}`}>
+    <i className="person-shadow"/><i className="person-legs"/><i className="person-body"/>
+    <i className="person-arm arm-left"/><i className="person-arm arm-right"/>
+    <i className="person-head"><b className="person-hair"/><b className="person-eyes"/><b className="person-cheeks"/></i>
+  </span>;
+}
+
+export function CafeScene({ state, onOrder, onCharacter, onEquipment }: SceneProps) {
+  const visits = useVisits(state.orders, state.activeMs);
+  const activeVisits = visits.flatMap(visit => { const phase = visitPhase(visit, state.activeMs); return phase ? [{ ...visit, phase }] : []; });
+  const workingStaff = state.staff.filter(person => person.role !== "rest");
+  const installed = [...new Set(state.stations.map(station => station.equipmentId))];
+  const memories = state.unlockedDecorations.flatMap(id => { const item = getDecoration(id); return item ? [item] : []; });
+  const serving = workingStaff.some(person => person.servingOrderId);
+  return <div className={`cafe-scene weather-${state.dailyWeatherId}`} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
+    <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
+      <div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
+      <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div>
+    </div>
+    <div className="scene-layer layer-furniture" data-layer="furniture" aria-hidden="true">
+      <div className="room-window"><CafeAsset src={cafeAsset.furniture("window")}><span className="window-outside"><i/><i/><i/></span><span className="window-frame"/><span className="window-curtain curtain-left"/><span className="window-curtain curtain-right"/></CafeAsset></div>
+      <div className="room-door"><CafeAsset src={cafeAsset.furniture("door")}><span className="door-glass"/><span className="door-open">OPEN</span><i className="door-knob"/></CafeAsset></div>
+      <div className="room-sign"><span>自家焙煎珈琲</span><b>こもれび</b><small>COFFEE &amp; GOOD DAYS</small></div>
+      <div className="room-shelf"><CafeAsset src={cafeAsset.furniture("shelf")}><span>☕ ▥ ☕ 🫖</span></CafeAsset></div>
+      <div className="room-clock"><span>Ⅻ</span><i/><b/></div>
+      <div className="room-counter"><CafeAsset src={cafeAsset.furniture("counter")}><i className="counter-top"/><span className="counter-panels"/><b>KOMOREBI</b></CafeAsset></div>
+      <div className="room-lamp lamp-left"><CafeAsset src={cafeAsset.furniture("pendant")}><i/><b/></CafeAsset></div>
+      <div className="room-lamp lamp-right"><CafeAsset src={cafeAsset.furniture("pendant")}><i/><b/></CafeAsset></div>
+      <div className="room-plant plant-left"><CafeAsset src={cafeAsset.furniture("plant")}><span>🪴</span></CafeAsset></div>
+      <div className="room-plant plant-right"><CafeAsset src={cafeAsset.furniture("plant")}><span>🪴</span></CafeAsset></div>
+      <div className="door-mat">WELCOME</div>
+      {memories.map((item, index) => {
+        const group = memories.filter(memory => memory.placement === item.placement);
+        const offset = group.findIndex(memory => memory.id === item.id);
+        const position = item.placement === "wall" ? place(8 + offset * 11, 5)
+          : item.placement === "shelf" ? place(43 + offset * 6, 25)
+          : item.placement === "counter" ? place(38 + offset * 7, 41) : place(6 + offset * 7, 91);
+        return <span className={`room-memory memory-on-${item.placement}`} key={item.id} style={position} title={item.name} data-decoration={item.id}>
+          <CafeAsset src={cafeAsset.furniture(item.id)}><span>{item.icon}</span></CafeAsset><span className="sr-only">{index + 1}. {item.name}</span>
+        </span>;
+      })}
+    </div>
+    <div className="scene-layer layer-equipment" data-layer="equipment">
+      <div className="equipment-on-counter">
+        {installed.map(id => {
+          const item = getEquipment(id); if (!item) return null;
+          const count = state.stations.filter(station => station.equipmentId === id).length;
+          const busy = state.orders.some(order => order.status === "cooking" && state.stations.some(station => station.id === order.stationId && station.equipmentId === id));
+          return <button key={id} type="button" className={`scene-equipment ${busy ? "is-busy" : ""}`} data-equipment={id} onClick={onEquipment}
+            aria-label={`${item.name} ${count}台・${busy ? "調理中" : "空き"}。設備の詳細を開く`}>
+            <CafeAsset src={cafeAsset.equipment(id)}><span className={`equipment-prop prop-${id}`}><i>{item.icon}</i></span></CafeAsset>
+            {count > 1 && <small>×{count}</small>}{busy && <span className="equipment-steam"><i/><i/><i/></span>}
+          </button>;
+        })}
+      </div>
+    </div>
+    <div className="scene-layer layer-seating" data-layer="seating" aria-hidden="true">
+      {TABLE_POSITIONS.map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>
+        <span className="table-chair chair-left"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
+        <span className="table-chair chair-right"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
+        <CafeAsset src={cafeAsset.furniture("table")}><i className="table-foot"/><i className="table-top"/><span className="table-cloth"/></CafeAsset>
+        <span className="table-number">{String(slot + 1).padStart(2, "0")}</span><span className="table-flower">✿</span>
+      </div>)}
+    </div>
+    <div className="scene-layer layer-customers" data-layer="customers" aria-hidden="true">
+      {activeVisits.map(visit => {
+        const { x, y } = TABLE_POSITIONS[visit.slot];
+        const elapsed = visit.phase === "leaving" ? state.activeMs - visit.servedAt! - VISIT_TIMING.enjoy : state.activeMs - visit.arrivedAt;
+        const style = { ...place(x - 7, y + 5), "--door-x": `${87 - (x - 7)}cqw`, "--door-y": `${48 - (y + 5)}cqh`, "--visit-delay": `${-elapsed}ms` } as CSSProperties;
+        return <div key={visit.id} className={`scene-guest guest-${visit.phase}`} style={style} data-visit-phase={visit.phase}>
+          <div className="guest-motion"><CafeAsset src={cafeAsset.customer(visit.look, visit.phase)} alternatives={[cafeAsset.customer(visit.look)]}>
+            <PersonFallback look={visit.look}/></CafeAsset></div>
+          {visit.phase === "enjoying" && <span className="served-food"><CafeAsset src={cafeAsset.food(visit.recipeId)}>{getRecipe(visit.recipeId)?.icon}</CafeAsset></span>}
+        </div>;
+      })}
+    </div>
+    <div className="scene-layer layer-characters" data-layer="characters">
+      {workingStaff.map((person, index) => {
+        const character = getCharacter(person.characterId); if (!character) return null;
+        const cooking = state.orders.some(order => order.status === "cooking" && order.cookId === person.characterId);
+        const target = person.servingOrderId && state.orders.find(order => order.id === person.servingOrderId);
+        const position = target ? place(TABLE_POSITIONS[target.customerSlot].x + 15, TABLE_POSITIONS[target.customerSlot].y + 7) : place(37 + index * 9, 43);
+        return <button className={`scene-staff ${target ? "staff-serving" : ""} ${cooking ? "staff-cooking" : ""}`} type="button"
+          key={person.characterId} style={position} onClick={() => onCharacter(person.characterId)}
+          aria-label={`${character.name}・${person.role === "cook" ? "調理担当" : "提供担当"}。人物の詳細を開く`}>
+          <CafeAsset src={cafeAsset.character(person.characterId, person.role)} alternatives={[cafeAsset.character(person.characterId), character.image]}>
+            <PersonFallback look={person.characterId} apron/>
+          </CafeAsset><span className="staff-name">{character.shortName} <b>♡</b></span>
+        </button>;
+      })}
+    </div>
+    <div className="scene-layer layer-bubbles" data-layer="bubbles">
+      {state.orders.map(order => {
+        const recipe = getRecipe(order.recipeId); if (!recipe) return null;
+        const { x, y } = TABLE_POSITIONS[order.customerSlot];
+        const problem = order.status === "queued" ? startProblem(state, recipe) : "";
+        const label = order.status === "ready" ? "提供する" : order.status === "cooking" ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : problem ? "確認する" : "調理開始";
+        const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
+        const entering = !!arrival;
+        return <button type="button" key={order.id} className={`scene-order bubble-${order.status} ${entering ? "bubble-entering" : ""}`}
+          style={{ ...place(x + 5, y - 6), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
+          aria-label={`テーブル${order.customerSlot + 1}、${recipe.name}、${problem || label}`}>
+          <span className="bubble-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
+          <span className="bubble-label">{label}</span>
+          {order.status === "cooking" && <progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/>}
+          {order.status === "ready" && <i className="ready-star">✦</i>}
+        </button>;
+      })}
+      {activeVisits.filter(visit => visit.phase === "enjoying").map(visit => <span key={visit.id} className="thanks-bubble" style={place(TABLE_POSITIONS[visit.slot].x, TABLE_POSITIONS[visit.slot].y - 13)}>ごちそうさま ♡</span>)}
+      {serving && <span className="staff-talk">お待たせしました</span>}
+    </div>
+    <div className="scene-layer layer-effects" data-layer="effects" aria-hidden="true">
+      <div className="scene-light"><CafeAsset src={cafeAsset.effect("sunlight")}><i/></CafeAsset></div>
+      <div className="scene-dust"><i/><i/><i/><i/><i/></div>
+      {state.dailyWeatherId === "rain" && <div className="window-rain"><CafeAsset src={cafeAsset.effect("rain")}><i/></CafeAsset></div>}
+      {activeVisits.filter(visit => visit.phase === "enjoying").map(visit => <span className="serve-sparkles" key={visit.id} style={place(TABLE_POSITIONS[visit.slot].x + 6, TABLE_POSITIONS[visit.slot].y - 5)}><CafeAsset src={cafeAsset.effect("serve")}><i>✦</i><i>♡</i><i>✧</i></CafeAsset></span>)}
+      <div className="scene-vignette"/>
+    </div>
+  </div>;
+}

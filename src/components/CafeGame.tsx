@@ -62,10 +62,10 @@ function GameContent() {
   const openSupplier=(id:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});setSupplierId(id);setScreen("supplier");};
   const active=["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen;
 
-  return <main className="game-shell">
+  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
     <StatusBar state={state} onDev={()=>setDevOpen(true)}/>
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen state={state} onStart={id=>dispatch({type:"START_COOKING",orderId:id})} onCollect={id=>dispatch({type:"COLLECT_ORDER",orderId:id})}/>}
+      {screen==="cafe"&&<CafeScreen state={state} onStart={id=>dispatch({type:"START_COOKING",orderId:id})} onCollect={id=>dispatch({type:"COLLECT_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
       {screen==="gifts"&&<GiftShopScreen/>}

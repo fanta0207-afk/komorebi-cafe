@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../src/components/cafe/cafe-scene.css";
 
 :root { --ink:#49372f; --cream:#fffaf0; --rose:#d8786d; --green:#66806d; --gold:#e8b65f; --line:#decbb2; }
 * { box-sizing:border-box; }

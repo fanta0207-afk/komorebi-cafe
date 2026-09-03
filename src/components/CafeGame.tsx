@@ -3,13 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { characters, getCharacter } from "../data/characters";
 import { relationshipEvents } from "../data/events";
+import { getDecoration } from "../data/decorations";
+import { getEquipment } from "../data/equipment";
+import { getIngredient } from "../data/ingredients";
 import { getRecipe } from "../data/recipes";
 import { getSupplier } from "../data/suppliers";
 import { conditionForDay, getCustomerGroup, getTownDailyEvent, getWeather } from "../data/dailyConditions";
 import { GAME_CONFIG } from "../game/config";
 import { GameProvider, useGame } from "../game/GameContext";
-import { availableEvent, bestSeller, pickWeightedRecipe } from "../game/logic";
-import type { DaySummary, RelationshipEvent } from "../types/game";
+import { availableEvent, availableGrowthEvent, bestSeller, pickWeightedRecipe } from "../game/logic";
+import type { DaySummary, GrowthEvent, RelationshipEvent } from "../types/game";
 import { BottomNav, Portrait, StatusBar } from "./GameUI";
 import { CafeScreen } from "../screens/CafeScreen";
 import { TownScreen } from "../screens/TownScreen";
@@ -31,6 +34,7 @@ function GameContent() {
   const [devOpen,setDevOpen]=useState(false);
   const [devCharacter,setDevCharacter]=useState(characters[0].id);
   const [event,setEvent]=useState<RelationshipEvent>();
+  const [growthEvent,setGrowthEvent]=useState<GrowthEvent>();
   const [eventPage,setEventPage]=useState(0);
   const stateRef=useRef(state); stateRef.current=state;
 
@@ -52,10 +56,12 @@ function GameContent() {
   },[spawnOrder]);
 
   useEffect(()=>{
-    if(event)return;
+    if(event||growthEvent)return;
     const next=availableEvent(state,relationshipEvents);
-    if(next){setEvent(next);setEventPage(0);}
-  },[state,event]);
+    if(next){setEvent(next);setEventPage(0);return;}
+    const growth=availableGrowthEvent(state);
+    if(growth){setGrowthEvent(growth);setEventPage(0);}
+  },[state,event,growthEvent]);
 
   const navigate=(id:string)=>{setScreen(id as Screen);setSupplierId(undefined);setCharacterId(undefined);};
   const openSupplier=(id:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});if(state.actionsRemaining<=0)return;setSupplierId(id);setScreen("supplier");};
@@ -78,9 +84,24 @@ function GameContent() {
     {screen!=="result"&&<BottomNav active={active} onChange={navigate}/>}
     {state.notice&&<div key={state.notice.id} className={`notice notice-${state.notice.type}`}>{state.notice.text}</div>}
     {state.offlineOffer>0&&<div className="modal-backdrop"><div className="modal-card offline-card"><span className="sun-icon">☀</span><span className="tiny-label">WELCOME BACK</span><h2>留守中の売上</h2><strong>● {state.offlineOffer.toLocaleString()}</strong><p>店を離れている間も、常連さんが立ち寄ってくれました。ゲーム内の日付は進んでいません。</p><button className="primary-button" onClick={()=>dispatch({type:"CLAIM_OFFLINE"})}>受け取る</button></div></div>}
-    {event&&<EventModal event={event} page={eventPage} onNext={()=>{if(eventPage<event.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_EVENT",eventId:event.id,characterId:event.characterId,toStage:event.toStage});setEvent(undefined);}}}/>}
+    {event&&<EventModal
+      event={event}
+      page={eventPage}
+      onNext={()=>{if(eventPage<event.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_EVENT",eventId:event.id,characterId:event.characterId,toStage:event.toStage});setEvent(undefined);}}}
+    />}
+    {growthEvent&&<GrowthEventModal
+      event={growthEvent}
+      page={eventPage}
+      onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
+    />}
     {devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)}/>}
   </main>;
+}
+
+function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onNext:()=>void}) {
+  const character=getCharacter(event.characterId)!;const finalPage=page===event.dialogue.length-1;
+  const rewardNames=[...(event.rewards.ingredientIds || []).map(id=>getIngredient(id)?.name),...(event.rewards.recipeIds || []).map(id=>getRecipe(id)?.name),...(event.rewards.equipmentIds || []).map(id=>getEquipment(id)?.name),...(event.rewards.decorationIds || []).map(id=>getDecoration(id)?.name)].filter(Boolean);
+  return <div className="event-overlay growth-event-overlay"><div className="event-scene"><div className="event-banner"><span>CAFE GROWTH STORY · {event.routeStage}/5</span><h2>{event.title}</h2></div><Portrait character={character}/><div className="event-dialogue"><b>{character.name}</b><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="event-reward growth-reward"><span>✦ CAFE GROWTH</span><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}<button onClick={onNext}>{finalPage?"店の新しい一歩へ":"次へ"} →</button></div><div className="page-dots">{event.dialogue.map((_,i)=><i className={i===page?"active":""} key={i}/>)}</div></div></div>;
 }
 
 function EventModal({event,page,onNext}:{event:RelationshipEvent;page:number;onNext:()=>void}) {

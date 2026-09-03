@@ -1,0 +1,12 @@
+import type { Equipment } from "../types/game";
+
+export const equipment:Equipment[] = [
+  {id:"espressoMachine",name:"真鍮のエスプレッソマシン",icon:"⚙️",price:5200,characterId:"ren",description:"蓮が選んだ、圧力を細かく調整できる一台。",effectText:"エスプレッソ系の特別なドリンクを作れます"},
+  {id:"bakeryOven",name:"小さな石窯オーブン",icon:"🧱",price:4800,characterId:"haru",description:"陽と火加減を試した、パンの香りを引き出す石窯。",effectText:"焼きたてパンと焼き菓子を販売できます"},
+  {id:"chilledCase",name:"木枠の冷蔵ショーケース",icon:"❄️",price:5000,characterId:"sota",description:"蒼太の乳製品を一番おいしい温度で並べられます。",effectText:"プリンなどの冷たい生菓子を販売できます"},
+  {id:"seasonalCounter",name:"季節の仕込み台",icon:"🧺",price:4200,characterId:"aki",description:"秋生が使いやすい高さに整えた、野菜と果物の仕込み台。",effectText:"旬の素材を使った季節料理を販売できます"},
+  {id:"parfaitStation",name:"ガラスのパフェ台",icon:"🍨",price:5500,characterId:"itsuki",description:"樹の手順を再現できる、冷菓専用の作業台。",effectText:"パフェや繊細な生菓子を販売できます"},
+  {id:"herbInfuser",name:"銅のハーブ抽出器",icon:"🫗",price:4600,characterId:"nagisa",description:"凪と香りを確かめながら組み上げた抽出器。",effectText:"ハーブを使った特殊ドリンクを作れます"},
+];
+
+export const getEquipment=(id:string)=>equipment.find(item=>item.id===id);

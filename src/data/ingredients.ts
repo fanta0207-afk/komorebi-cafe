@@ -14,12 +14,12 @@ export const ingredients: Ingredient[] = [
   { id:"chocolate", name:"チョコレート", icon:"🍫", price:180, supplierId:"patisserie" },
   { id:"herb", name:"香りハーブ", icon:"🌿", price:100, supplierId:"herb" },
   { id:"mint", name:"ミント", icon:"☘️", price:110, supplierId:"herb" },
-  { id:"moonRoast", name:"月舟の宵豆", icon:"🌙", price:240, supplierId:"coffee", limited:true, unlockEventId:"ren-stage2" },
-  { id:"goldenHoney", name:"朝焼けはちみつ", icon:"🍯", price:210, supplierId:"bakery", limited:true, unlockEventId:"haru-stage2" },
-  { id:"cloverCream", name:"四つ葉クリーム", icon:"🍀", price:230, supplierId:"ranch", limited:true, unlockEventId:"sota-stage2" },
-  { id:"sunTomato", name:"陽だまりトマト", icon:"🌞", price:190, supplierId:"farm", limited:true, unlockEventId:"aki-stage2" },
-  { id:"vanillaSugar", name:"秘密のバニラ糖", icon:"✨", price:260, supplierId:"patisserie", limited:true, unlockEventId:"itsuki-stage2" },
-  { id:"mimosaHerb", name:"ミモザの若葉", icon:"🌼", price:200, supplierId:"herb", limited:true, unlockEventId:"nagisa-stage2" },
+  { id:"moonRoast", name:"月舟の宵豆", icon:"🌙", price:240, supplierId:"coffee", limited:true, unlockEventId:"ren-growth2" },
+  { id:"goldenHoney", name:"朝焼けはちみつ", icon:"🍯", price:210, supplierId:"bakery", limited:true, unlockEventId:"haru-growth2" },
+  { id:"cloverCream", name:"四つ葉クリーム", icon:"🍀", price:230, supplierId:"ranch", limited:true, unlockEventId:"sota-growth2" },
+  { id:"sunTomato", name:"陽だまりトマト", icon:"🌞", price:190, supplierId:"farm", limited:true, unlockEventId:"aki-growth2" },
+  { id:"vanillaSugar", name:"秘密のバニラ糖", icon:"✨", price:260, supplierId:"patisserie", limited:true, unlockEventId:"itsuki-growth2" },
+  { id:"mimosaHerb", name:"ミモザの若葉", icon:"🌼", price:200, supplierId:"herb", limited:true, unlockEventId:"nagisa-growth2" },
 ];
 
 export const getIngredient = (id:string) => ingredients.find(item => item.id === id);

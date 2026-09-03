@@ -147,3 +147,37 @@
 .room-shelf:has(> [data-asset-state="image"]) { border:0; box-shadow:none; }
 /* Match bubbles to the same foreground clock as their arriving guest. */
 .bubble-entering { animation-play-state:paused; animation-delay:var(--arrival-delay,0ms); }
+
+/* The player owns one actor; the foreground clock drives every step of service. */
+.scene-manager { position:absolute; width:13%; height:18cqw; transform:translate(-50%,-100%); pointer-events:none; z-index:2; transition:left .12s linear,top .12s linear; }
+.manager-body { width:100%; height:100%; }
+.look-manager { --shirt:#455f55; --hair:#564236; --skin:#e9bd97; }
+.look-manager .person-hair { border-radius:20% 25% 60% 10%; }
+.look-manager .person-body::after { background:#e6c5a2; border-color:#f3d6ad; }
+.look-manager .person-body::before { content:""; position:absolute; width:19%; height:14%; left:43%; top:40%; z-index:1; background:#80684e; border-radius:0 0 3px 3px; }
+.manager-name { position:absolute; left:50%; bottom:-19px; transform:translateX(-50%); white-space:nowrap; font-size:12px; font-weight:700; color:#fff5d8; background:#425745; border:1px solid #e0c492; border-radius:5px; padding:2px 5px; box-shadow:0 2px 3px #3e302938; }
+.manager-name small { font-size:10px; color:#e9d6b0; font-weight:400; }
+.manager-moving .manager-body { animation:manager-walk .6s linear infinite; animation-play-state:paused; animation-delay:var(--manager-step); }
+.manager-moving .person-legs { animation:manager-steps .6s linear infinite; animation-play-state:paused; animation-delay:var(--manager-step); }
+.manager-cooking .arm-right { animation:cafe-stir 1.2s ease-in-out infinite; animation-play-state:paused; animation-delay:var(--manager-step); }
+.manager-cooking .arm-left { transform:rotate(30deg); }
+.manager-working-spark { position:absolute; right:-7%; top:25%; color:#f8e6b6; font-size:22px; text-shadow:0 1px #7b7045; }
+.manager-tray { position:absolute; left:57%; top:51%; width:90%; height:43%; }
+.manager-tray>i { position:absolute; left:0; right:0; height:18%; bottom:14%; border:2px solid #675037; background:#cfad76; border-radius:50%; box-shadow:0 3px 0 #6b4934; }
+.manager-dish { position:absolute; left:18%; bottom:30%; width:66%; height:90%; font-size:7cqw; line-height:1; z-index:1; }
+.manager-pickup .arm-right,.manager-carrying .arm-right { transform:rotate(-70deg); }
+.manager-pickup .arm-left,.manager-carrying .arm-left { transform:rotate(-35deg); }
+.manager-serving .manager-body { transform:rotate(7deg); transform-origin:bottom; }
+.manager-serving .arm-right { transform:rotate(-75deg); }
+.manager-complete { position:absolute; right:-8%; top:3%; display:grid; place-items:center; width:24px; height:24px; border-radius:50%; background:#f6efd1; color:#4c734c; border:2px solid #b3bd81; font-size:16px; animation:manager-complete .5s ease-out both; }
+.manager-bubble { position:absolute; transform:translate(-50%,calc(-100% - 19cqw)); font-size:12px; line-height:1.5; white-space:nowrap; padding:5px 8px; border-radius:8px; background:#f8edcf; color:#526044; border:1px solid #a69368; box-shadow:0 2px 3px #4e412922; pointer-events:none; }
+.manager-bubble::after { content:""; position:absolute; bottom:-4px; left:48%; width:6px; height:6px; background:inherit; border-right:1px solid #a69368; border-bottom:1px solid #a69368; transform:rotate(45deg); }
+.manager-bubble progress { display:block; width:100%; height:4px; margin:4px 0 1px; accent-color:#597847; }
+.manager-bubble-ready { background:#f1f5d6; border-color:#90a06f; color:#4d6539; }
+.scene-order.bubble-manager-pending { background:#e7eddb; border-color:#859477; color:#4e6249; box-shadow:0 3px 0 #78936633; cursor:default; animation:none; }
+.scene-order.bubble-manager-pending::after { border-color:#859477; }
+.scene-order.bubble-manager-pending .ready-star { display:none; }
+@keyframes manager-walk { 0%,50%,100%{translate:0 0;rotate:0deg}25%{translate:0 -2px;rotate:-2deg}75%{translate:0 -2px;rotate:2deg} }
+@keyframes manager-steps { 0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)} }
+@keyframes manager-complete { from{scale:.5;opacity:0}to{scale:1;opacity:1} }
+@media(prefers-reduced-motion:reduce) { .scene-manager .manager-body,.scene-manager .person-legs,.scene-manager .person-arm,.manager-complete{animation:none!important;transform:none} }

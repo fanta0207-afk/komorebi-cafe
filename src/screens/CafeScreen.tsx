@@ -12,9 +12,12 @@ import type { GameState } from "../types/game";
 import { CafeScene } from "../components/cafe/CafeScene";
 import { CafeAsset } from "../components/cafe/CafeAsset";
 import { cafeAsset } from "../components/cafe/sceneModel";
+import { managerPending, type ManagerFrame, type ManagerModel } from "../components/cafe/managerModel";
 
 interface CafeProps {
   state: GameState;
+  manager: ManagerModel;
+  managerFrame: ManagerFrame;
   onStart: (id: string) => void;
   onCollect: (id: string) => void;
   onCharacter: (id: string) => void;
@@ -22,7 +25,7 @@ interface CafeProps {
 }
 type Notebook = { page: "orders" | "today"; selected?: string };
 
-export function CafeScreen({ state, onCollect, onStart, onCharacter, onTown }: CafeProps) {
+export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, onCharacter, onTown }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
   const weather = getWeather(state.dailyWeatherId);
   const dailyEvent = getTownDailyEvent(state.dailyEventId);
@@ -33,6 +36,7 @@ export function CafeScreen({ state, onCollect, onStart, onCharacter, onTown }: C
     const order = state.orders.find(item => item.id === id);
     const recipe = order && getRecipe(order.recipeId);
     if (!order || !recipe) return;
+    if (managerPending(manager, id)) return;
     if (order.status === "ready") onCollect(id);
     else if (order.status === "queued" && !startProblem(state, recipe)) onStart(id);
     else setNotebook({ page: "orders", selected: id });
@@ -44,21 +48,21 @@ export function CafeScreen({ state, onCollect, onStart, onCharacter, onTown }: C
         <span>{weather.icon}</span><span>{weather.name}<small>{dailyEvent.name} ›</small></span>
       </button>
     </div>
-    <CafeScene state={state} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={() => setNotebook({ page: "today" })}/>
+    <CafeScene state={state} manager={manager} managerPose={managerFrame} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={() => setNotebook({ page: "today" })}/>
     <div className="cafe-action-dock">
-      <div className="cafe-live-line"><span className={ready ? "ready-indicator" : ""}/><p>{ready ? `できたてが${ready}品。吹き出しをタップして提供` : cooking ? `${cooking}品を調理中。ゆっくりお待ちください` : state.orders.length ? "吹き出しをタップして調理開始" : stocked ? "窓辺にひと息。まもなくお客さまが来店します" : "食材を仕入れて、お客さまを迎えましょう"}</p></div>
+      <div className="cafe-live-line"><span className={ready ? "ready-indicator" : ""}/><p>{manager.current ? `店長：${managerFrame.label}${manager.queue.length ? ` · 次の仕事 ${manager.queue.length}件` : ""}` : ready ? `できたてが${ready}品。タップすると店長が提供します` : cooking ? `${cooking}品を調理中。ゆっくりお待ちください` : state.orders.length ? "吹き出しをタップすると、店長がマシンへ" : stocked ? "窓辺にひと息。まもなくお客さまが来店します" : "食材を仕入れて、お客さまを迎えましょう"}</p></div>
       <div className="cafe-dock-buttons">
         <button type="button" onClick={() => setNotebook({ page: "orders" })}><span className="dock-icon">☷</span><span>注文とキッチン</span><b className={ready ? "has-ready" : ""}>{state.orders.length}<small>/4</small></b><span className="dock-chevron">⌃</span></button>
         <button type="button" className="cafe-journal-button" onClick={() => setNotebook({ page: "today" })}><span>♧</span> 店のようす</button>
       </div>
     </div>
-    {notebook && <CafeNotebook state={state} notebook={notebook} onClose={() => setNotebook(undefined)}
-      onStart={onStart} onCollect={onCollect} stocked={stocked} onTown={onTown}/>}
+    {notebook && <CafeNotebook state={state} manager={manager} notebook={notebook} onClose={() => setNotebook(undefined)}
+      onStart={id => { onStart(id); setNotebook(undefined); }} onCollect={id => { onCollect(id); setNotebook(undefined); }} stocked={stocked} onTown={onTown}/>}
   </section>;
 }
 
-function CafeNotebook({ state, notebook, onClose, onStart, onCollect, stocked, onTown }: {
-  state: GameState; notebook: Notebook; onClose: () => void; onStart: (id: string) => void;
+function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, stocked, onTown }: {
+  state: GameState; manager: ManagerModel; notebook: Notebook; onClose: () => void; onStart: (id: string) => void;
   onCollect: (id: string) => void; stocked: boolean; onTown: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -76,18 +80,19 @@ function CafeNotebook({ state, notebook, onClose, onStart, onCollect, stocked, o
     <div className="notebook-handle"/>
     <header className="notebook-header"><div><span>CAFE NOTEBOOK</span><h2 id="notebook-title">{notebook.page === "orders" ? "注文とキッチン" : "店のようす"}</h2></div><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
     {notebook.page === "orders" ? <>
-      <p className="notebook-intro">調理開始 → 完成を待つ → 提供する。お客さまは時間を気にせず待ってくれます。</p>
+      <p className="notebook-intro">調理開始で店長がマシンへ。完成後に提供を選ぶと、お盆で客席まで運びます。お客さまは時間を気にせず待ってくれます。</p>
       {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "お湯を沸かして、次のお客さまを待ちましょう。" : "食材を仕入れると、注文の受付を再開します。"}</p></div>}
       <div className="notebook-orders">{state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
         const problem = order.status === "queued" ? startProblem(state, recipe) : "";
+        const pending = managerPending(manager, order.id);
         return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>
           <span className="notebook-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
           <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {salePrice(recipe.id, state)}コイン</small><h3>{recipe.name}</h3>
             {order.stationId && <small>{getEquipment(state.stations.find(station => station.id === order.stationId)?.equipmentId || "")?.name}{order.cookId ? ` · ${getCharacter(order.cookId)?.shortName}` : ""}</small>}
             {order.status === "cooking" ? <><progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/><p>調理中 · あと{Math.ceil(order.remainingMs / 1000)}秒</p></> : <p>{order.status === "ready" ? state.staff.some(person => person.servingOrderId === order.id) ? "スタッフが提供中です。タップでも提供できます" : "できたてです！" : problem || "注文が入りました"}</p>}
           </div>
-          <button type="button" className="notebook-action" disabled={order.status === "cooking" || (order.status === "queued" && !!problem)} onClick={() => order.status === "ready" ? onCollect(order.id) : onStart(order.id)}>{order.status === "ready" ? "提供する" : order.status === "cooking" ? "調理中" : "調理開始"}</button>
+          <button type="button" className="notebook-action" disabled={!!pending || order.status === "cooking" || (order.status === "queued" && !!problem)} onClick={() => order.status === "ready" ? onCollect(order.id) : onStart(order.id)}>{pending === "serve" ? "お届け待ち" : pending === "start" ? "準備待ち" : order.status === "ready" ? "提供する" : order.status === "cooking" ? "調理中" : "調理開始"}</button>
         </article>;
       })}</div>
       {!stocked && <div className="notebook-stock"><p>食材が足りません。仕入れは1パック5食分です。</p><button type="button" onClick={onTown}>街へ仕入れに行く →</button></div>}

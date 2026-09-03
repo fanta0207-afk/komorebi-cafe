@@ -21,6 +21,7 @@ import { GiftShopScreen } from "../screens/GiftShopScreen";
 import { CharacterDetail, PeopleScreen } from "../screens/PeopleScreen";
 import { MenuScreen } from "../screens/MenuScreen";
 import { StaffScreen } from "../screens/StaffScreen";
+import { useCafeManager } from "./cafe/useCafeManager";
 
 type Screen="cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
@@ -28,6 +29,7 @@ export default function CafeGame() { return <GameProvider><GameContent/></GamePr
 
 function GameContent() {
   const {state,dispatch,refreshGiftShop}=useGame();
+  const cafeManager=useCafeManager(state,dispatch);
   const [screen,setScreen]=useState<Screen>("cafe");
   const [supplierId,setSupplierId]=useState<string>();
   const [characterId,setCharacterId]=useState<string>();
@@ -65,7 +67,7 @@ function GameContent() {
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
     <StatusBar state={state} onDev={()=>setDevOpen(true)}/>
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen state={state} onStart={id=>dispatch({type:"START_COOKING",orderId:id})} onCollect={id=>dispatch({type:"COLLECT_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")}/>}
+      {screen==="cafe"&&<CafeScreen state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
       {screen==="gifts"&&<GiftShopScreen/>}

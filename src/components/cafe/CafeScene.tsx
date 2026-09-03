@@ -9,8 +9,11 @@ import { startProblem } from "../../game/operations";
 import type { GameState, Order } from "../../types/game";
 import { CafeAsset } from "./CafeAsset";
 import { cafeAsset, makeVisit, reconcileVisits, TABLE_POSITIONS, visitPhase, VISIT_TIMING } from "./sceneModel";
+import { CafeManager } from "./CafeManager";
+import { createManager, managerFrame, managerPending, type ManagerModel, type ManagerFrame } from "./managerModel";
+import { PersonFallback } from "./PersonFallback";
 
-type SceneProps = { state: GameState; onOrder: (id: string) => void; onCharacter: (id: string) => void; onEquipment: () => void };
+type SceneProps = { state: GameState; manager?: ManagerModel; managerPose?: ManagerFrame; onOrder: (id: string) => void; onCharacter: (id: string) => void; onEquipment: () => void };
 
 function place(x: number, y: number): CSSProperties { return { left: `${x}%`, top: `${y}%` }; }
 function useVisits(orders: Order[], now: number) {
@@ -25,15 +28,8 @@ function useVisits(orders: Order[], now: number) {
   return snapshot.visits;
 }
 
-export function PersonFallback({ look, apron = false }: { look: string; apron?: boolean }) {
-  return <span className={`scene-person look-${look} ${apron ? "with-apron" : ""}`}>
-    <i className="person-shadow"/><i className="person-legs"/><i className="person-body"/>
-    <i className="person-arm arm-left"/><i className="person-arm arm-right"/>
-    <i className="person-head"><b className="person-hair"/><b className="person-eyes"/><b className="person-cheeks"/></i>
-  </span>;
-}
-
-export function CafeScene({ state, onOrder, onCharacter, onEquipment }: SceneProps) {
+export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, onEquipment }: SceneProps) {
+  const managerView = managerPose ?? managerFrame(createManager(state.activeMs), state);
   const visits = useVisits(state.orders, state.activeMs);
   const activeVisits = visits.flatMap(visit => { const phase = visitPhase(visit, state.activeMs); return phase ? [{ ...visit, phase }] : []; });
   const workingStaff = state.staff.filter(person => person.role !== "rest");
@@ -116,16 +112,21 @@ export function CafeScene({ state, onOrder, onCharacter, onEquipment }: ScenePro
           </CafeAsset><span className="staff-name">{character.shortName} <b>♡</b></span>
         </button>;
       })}
+      <CafeManager frame={managerView} now={state.activeMs}/>
     </div>
     <div className="scene-layer layer-bubbles" data-layer="bubbles">
+      {managerView.phase !== "idle" && <span className={`manager-bubble manager-bubble-${managerView.phase}`} style={place(managerView.position.x, managerView.position.y)}>
+        {managerView.label}{managerView.phase === "cooking" && <progress max={1} value={managerView.progress ?? 0} aria-label="店長の調理進捗"/>}
+      </span>}
       {state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
         const { x, y } = TABLE_POSITIONS[order.customerSlot];
         const problem = order.status === "queued" ? startProblem(state, recipe) : "";
-        const label = order.status === "ready" ? "提供する" : order.status === "cooking" ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : problem ? "確認する" : "調理開始";
+        const pending = manager && managerPending(manager, order.id);
+        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : problem ? "確認する" : "調理開始";
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
-        return <button type="button" key={order.id} className={`scene-order bubble-${order.status} ${entering ? "bubble-entering" : ""}`}
+        return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
           style={{ ...place(x + 5, y - 6), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
           aria-label={`テーブル${order.customerSlot + 1}、${recipe.name}、${problem || label}`}>
           <span className="bubble-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>

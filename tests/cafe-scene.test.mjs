@@ -93,6 +93,7 @@ test('a fully developed cafe renders all equipment, memories, staff and 4 usable
   for (const item of equipment) assert.ok(html.includes(`data-equipment="${item.id}"`));
   for (const item of decorations) assert.ok(html.includes(`data-decoration="${item.id}"`));
   for (const character of characters) assert.ok(html.includes(`aria-label="${character.name}・`));
+  assert.match(html, /aria-label="店長（あなた）・いらっしゃいませ"/);
   assert.equal((html.match(/class="scene-order /g) || []).length, 4);
   assert.match(html, /あと5秒/);
   assert.match(html, /提供する/);
@@ -120,4 +121,117 @@ test('presentation does not alter v5 round trips, ingredient consumption or manu
   assert.equal(JSON.stringify(state), json);
   const restored = migrateSavedState(JSON.parse(json));
   for (const key of ['currency', 'ingredients', 'orders', 'stations', 'staff', 'lifetimeStats', 'characterProgress', 'saveVersion']) assert.deepEqual(restored[key], state[key]);
+});
+
+const { createManager, enqueueManager, advanceManager, managerFrame, managerPending, MANAGER_TIMING } = require(join(output, 'components/cafe/managerModel.js'));
+
+test('the manager walks to the assigned machine before existing cooking starts', () => {
+  let state = { ...createInitialState(), activeMs: 0, spawnRemainingMs: 1e12 };
+  state = reducer(state, { type: 'SPAWN_ORDER', order: order('manager-coffee') });
+  let manager = enqueueManager(createManager(), state, { kind: 'start', orderId: 'manager-coffee' });
+  ({ model: manager } = advanceManager(manager, state));
+  assert.equal(managerFrame(manager, state).phase, 'walking');
+  assert.equal(state.orders[0].status, 'queued');
+  state = { ...state, activeMs: MANAGER_TIMING.toMachine - 1 };
+  let result = advanceManager(manager, state); manager = result.model;
+  assert.equal(result.command, undefined);
+  assert.equal(state.orders[0].status, 'queued');
+  state = { ...state, activeMs: MANAGER_TIMING.toMachine };
+  result = advanceManager(manager, state); manager = result.model;
+  assert.deepEqual(result.command, { type: 'START_COOKING', orderId: 'manager-coffee' });
+  state = reducer(state, result.command);
+  assert.equal(state.orders[0].status, 'cooking');
+  assert.equal(managerFrame(manager, state).phase, 'cooking');
+  assert.equal(managerPending(manager, 'manager-coffee'), undefined);
+});
+
+test('the manager carries a ready dish to its exact table before the existing reward is collected', () => {
+  let state = { ...createInitialState(), activeMs: 2000, orders: [order('ready-for-two', 1, 'ready')], spawnRemainingMs: 1e12 };
+  const coins = state.currency;
+  let manager = enqueueManager(createManager(state.activeMs), state, { kind: 'serve', orderId: 'ready-for-two' });
+  ({ model: manager } = advanceManager(manager, state));
+  assert.equal(managerFrame(manager, state).phase, 'walking');
+  state = { ...state, activeMs: 2000 + MANAGER_TIMING.toMachine + MANAGER_TIMING.pickup + 500 };
+  assert.equal(managerFrame(manager, state).phase, 'carrying');
+  let result = advanceManager(manager, state); manager = result.model;
+  assert.equal(result.command, undefined);
+  assert.equal(state.currency, coins);
+  state = { ...state, activeMs: 2000 + MANAGER_TIMING.toMachine + MANAGER_TIMING.pickup + MANAGER_TIMING.toTable };
+  result = advanceManager(manager, state); manager = result.model;
+  assert.deepEqual(result.command, { type: 'COLLECT_ORDER', orderId: 'ready-for-two' });
+  state = reducer(state, result.command);
+  assert.equal(state.orders.length, 0);
+  assert.ok(state.currency > coins);
+  assert.equal(managerFrame(manager, state).phase, 'serving');
+  assert.deepEqual(managerFrame(manager, state).position, { x: 57, y: 65 });
+});
+
+test('the manager queues separate valid orders without changing save data itself', () => {
+  const state = { ...createInitialState(), orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
+  const saved = JSON.stringify(state);
+  let manager = enqueueManager(createManager(), state, { kind: 'start', orderId: 'first' });
+  manager = enqueueManager(manager, state, { kind: 'start', orderId: 'second' });
+  manager = enqueueManager(manager, state, { kind: 'start', orderId: 'first' });
+  assert.equal(manager.queue.length, 2);
+  ({ model: manager } = advanceManager(manager, state));
+  assert.equal(manager.current.orderId, 'first');
+  assert.equal(manager.queue[0].orderId, 'second');
+  assert.equal(JSON.stringify(state), saved);
+});
+
+test('repeated requests and paused foreground time cannot replay a manager delivery', () => {
+  let state = { ...createInitialState(), activeMs: 0, orders: [order('a', 0, 'ready'), order('b', 1, 'ready')], spawnRemainingMs: 1e12 };
+  let manager = createManager();
+  for (const id of ['a', 'a', 'b', 'b']) manager = enqueueManager(manager, state, { kind: 'serve', orderId: id });
+  ({ model: manager } = advanceManager(manager, state));
+  const pausedFrame = managerFrame(manager, state);
+  for (let i = 0; i < 20; i++) {
+    const result = advanceManager(manager, state); manager = result.model;
+    assert.equal(result.command, undefined);
+  }
+  assert.deepEqual(managerFrame(manager, state), pausedFrame);
+  const commands = [];
+  for (let i = 0; i < 90; i++) {
+    state = reducer(state, { type: 'TICK', deltaMs: 100 });
+    const result = advanceManager(manager, state); manager = result.model;
+    if (result.command) { commands.push(result.command); state = reducer(state, result.command); }
+  }
+  assert.deepEqual(commands.map(command => command.orderId), ['a', 'b']);
+  assert.equal(state.orders.length, 0);
+  assert.equal(state.lifetimeStats.totalOrders, 2);
+  assert.equal(managerFrame(manager, state).phase, 'idle');
+});
+
+test('staff completing a pending order cancels the manager action without double payment', () => {
+  let state = { ...createInitialState(), activeMs: 0, orders: [order('staff-wins', 0, 'ready')], spawnRemainingMs: 1e12 };
+  let manager = enqueueManager(createManager(), state, { kind: 'serve', orderId: 'staff-wins' });
+  ({ model: manager } = advanceManager(manager, state));
+  // This is the same reducer operation the automated server invokes.
+  state = reducer(state, { type: 'COLLECT_ORDER', orderId: 'staff-wins' });
+  const coins = state.currency;
+  state = { ...state, activeMs: 500 };
+  let result = advanceManager(manager, state); manager = result.model;
+  assert.equal(result.command, undefined);
+  assert.equal(manager.current, undefined);
+  state = { ...state, activeMs: 5000 };
+  result = advanceManager(manager, state);
+  assert.equal(result.command, undefined);
+  assert.equal(state.currency, coins);
+  assert.equal(state.lifetimeStats.totalOrders, 1);
+});
+
+test('one busy machine keeps the next manager preparation queued until it is free', () => {
+  let state = { ...createInitialState(), activeMs: 0, orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
+  let manager = createManager();
+  for (const id of ['first', 'second']) manager = enqueueManager(manager, state, { kind: 'start', orderId: id });
+  const commands = [];
+  for (let i = 0; i < 250; i++) {
+    const result = advanceManager(manager, state); manager = result.model;
+    if (result.command) { commands.push({ ...result.command, at: state.activeMs }); state = reducer(state, result.command); }
+    state = reducer(state, { type: 'TICK', deltaMs: 100 });
+  }
+  assert.deepEqual(commands.map(command => command.orderId), ['first', 'second']);
+  assert.ok(commands[1].at - commands[0].at >= 10000);
+  assert.equal(state.ingredients.coffeeBeans, createInitialState().ingredients.coffeeBeans - 2);
+  assert.ok(state.orders.every(item => item.status === 'ready'));
 });

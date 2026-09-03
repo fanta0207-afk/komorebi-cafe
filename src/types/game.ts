@@ -35,8 +35,11 @@ export interface GrowthEvent {
 export interface Equipment { id:string; name:string; icon:string; price:number; characterId:string; description:string; effectText:string; }
 export interface Decoration { id:string; name:string; icon:string; characterId:string; placement:"wall"|"shelf"|"counter"|"floor"; }
 export interface HiddenUnlock { id:string; requiredEvents:string[]; recipeId:string; note:string; }
-export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; route:RelationshipRoute; eventChoices:Record<string,string>; }
-export interface Order { id:string; customerSlot:number; recipeId:string; }
+export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; route:RelationshipRoute; eventChoices:Record<string,string>; talkedStages:number[]; }
+export interface Station { id:string; equipmentId:string; level:number; }
+export type StaffRole = "cook"|"server"|"rest";
+export interface Staff { characterId:string; role:StaffRole; servingOrderId?:string; remainingMs:number; }
+export interface Order { id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
 export interface DailyStats { sales:number; orders:number; recipeSales:Record<string,number>; }
 export interface LifetimeStats { recipeSales:Record<string,number>; ingredientPurchases:Record<string,number>; tagSales:Record<string,number>; totalOrders:number; totalRevenue:number; }
 export interface DaySummary extends DailyStats { day:number; topRecipeId?:string; news:string[]; weatherId:string; customerGroupId:string; dailyEventId:string; actionsUsed:number; }
@@ -48,6 +51,7 @@ export interface TownDailyEvent { id:string; name:string; icon:string; descripti
 export interface DailyCondition { weatherId:string; customerGroupId:string; dailyEventId:string; }
 
 export interface GameState {
+  stations:Station[]; staff:Staff[]; activeMs:number; spawnRemainingMs:number; nextOrderNumber:number;
   saveVersion:number; season:Season; day:number; currency:number;
   ingredients:Record<string,number>; unlockedRecipes:string[]; unlockedIngredients:string[];
   characterProgress:Record<string,CharacterProgress>; inventory:Record<string,number>;

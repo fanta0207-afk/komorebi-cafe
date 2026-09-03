@@ -5,9 +5,10 @@ import { characters, getCharacter } from "../data/characters";
 import { relationshipEvents } from "../data/events";
 import { getGift } from "../data/gifts";
 import { useGame } from "../game/GameContext";
-import { giftReaction, growthRequirements, nextGrowthEvent } from "../game/logic";
+import { giftReaction, relationshipRequirements, growthRequirements, nextGrowthEvent } from "../game/logic";
 import { relationshipLabel, relationshipNames } from "../game/config";
 import type { RelationshipEvent } from "../types/game";
+import { StaffCard } from "./StaffScreen";
 import { EmptyState, Hearts, Portrait, ScreenTitle } from "../components/GameUI";
 
 export function PeopleScreen({onOpen}:{onOpen:(id:string)=>void}) {
@@ -51,12 +52,14 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
       </div>
       <div className="hint-box"><b>好きなもののヒント</b><p>仕事にまつわるものや、{character.favoriteGiftTags.includes("nature")?"自然を感じるもの":"丁寧に作られたもの"}が好きそう。</p></div>
       {reaction&&<div className="gift-reaction"><b>{character.name}</b><p>{reaction}</p></div>}
-      <button className="primary-button" disabled={state.dailyGiftStatus[characterId]||state.actionsRemaining<=0} onClick={()=>setChoosing(true)}>{state.dailyGiftStatus[characterId]?"今日は贈物を渡しました":state.actionsRemaining<=0?"今日はもう行動できません":"プレゼントを渡す（⚡1）"}</button>
+      <button className="primary-button" onClick={()=>setChoosing(true)}>プレゼントを渡す</button>
+      <StaffCard characterId={characterId}/>
       <div className="relationship-card">
         <h2>ふたりの物語 <span>{p.relationshipStage}/10</span></h2>
         {nextStory?<div className="next-story"><strong>次は好感度{nextStory.toStage}「{nextStory.title}」</strong>
           <progress max={Math.max(1,nextStory.requiredAffection)} value={Math.min(p.affection,nextStory.requiredAffection)} aria-label="次の物語までの交流ポイント"/>
-          <p>{p.affection>=nextStory.requiredAffection?"物語を読む準備ができています。":`あと${nextStory.requiredAffection-p.affection}交流ポイント。毎日の会話や贈り物で近づきます。`}</p>
+          <p>{p.affection>=nextStory.requiredAffection?"交流ポイントを満たしました。営業と仕入れの条件も確認しましょう。":`あと${nextStory.requiredAffection-p.affection}交流ポイント。新しい会話・仕入れ・贈り物で近づきます。`}</p>
+          {relationshipRequirements(nextStory,state).map(item=><p key={item.label}>{item.met?"✓":"○"} {item.label}：{item.current}/{item.target}</p>)}
         </div>:<p className="story-complete">10の思い出を重ねました。これからも、{p.route==="friendship"?"大切な仕事仲間":"恋人"}として。</p>}
         <ol className="memory-list">{stories.map(story=>{
           const viewed=p.viewedEvents.includes(story.id);

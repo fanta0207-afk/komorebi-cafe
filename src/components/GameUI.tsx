@@ -6,13 +6,13 @@ import { relationshipLabel } from "../game/config";
 
 export function StatusBar({state,onDev}:{state:GameState;onDev:()=>void}) {
   return <header className="topbar">
-    <div className="date-lockup"><span className="eyebrow">SPRING</span><strong>{state.season} {state.day}日</strong></div>
-    <div className="status-actions"><div className="action-pill" title="今日の残り行動"><span>⚡</span><b>{state.actionsRemaining}</b><small>/{state.maxActions}</small></div><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
+    <div className="date-lockup"><span className="eyebrow">KOMOREBI CAFE</span><strong>のんびり営業中</strong></div>
+    <div className="status-actions"><div className="action-pill" title="お手伝い中のスタッフ"><span>♧</span><b>{state.staff.filter(person=>person.role!=="rest").length}</b><small>人</small></div><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
   </header>;
 }
 
 export const navItems = [
-  {id:"cafe",icon:"▣",label:"店"},{id:"town",icon:"⌂",label:"街"},{id:"gifts",icon:"♧",label:"贈物"},{id:"people",icon:"♡",label:"人物"},{id:"menu",icon:"☰",label:"メニュー"},
+  {id:"cafe",icon:"▣",label:"店"},{id:"town",icon:"⌂",label:"街"},{id:"gifts",icon:"♧",label:"贈物"},{id:"people",icon:"♡",label:"人物"},{id:"menu",icon:"☰",label:"設備・料理"},{id:"staff",icon:"♧",label:"スタッフ"},
 ] as const;
 
 export function BottomNav({active,onChange}:{active:string;onChange:(id:string)=>void}) {

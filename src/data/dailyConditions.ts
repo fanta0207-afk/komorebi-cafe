@@ -29,7 +29,7 @@ export function conditionForDay(day:number):DailyCondition {
   return {
     weatherId:dailyWeathers[index%dailyWeathers.length].id,
     customerGroupId:customerGroups[(index*2)%customerGroups.length].id,
-    dailyEventId:townDailyEvents[(index*3)%townDailyEvents.length].id,
+    dailyEventId:townDailyEvents[index%townDailyEvents.length].id,
   };
 }
 

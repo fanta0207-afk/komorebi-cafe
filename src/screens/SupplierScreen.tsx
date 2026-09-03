@@ -15,7 +15,7 @@ export function SupplierScreen({supplierId,onBack}:{supplierId:string;onBack:()=
     <button className="back-button" onClick={onBack}>← 街へ戻る</button>
     <div className="supplier-hero"><Portrait character={character}/><div className="supplier-sign"><span>{supplier.icon} {supplier.name}</span><h1>{character.name}</h1><p>{character.age}歳 · {character.occupation}</p><Hearts stage={progress.relationshipStage} route={progress.route}/><small>好感度 {progress.relationshipStage}/10 · {relationshipLabel(progress.relationshipStage,progress.route)}</small></div></div>
     <div className="dialogue-box"><b>{character.name}</b><p>「{greeting}」</p></div>
-    <div className="section-heading"><div><span className="tiny-label">WHOLESALE</span><h2>今日の仕入れ</h2></div><small>所持数も表示しています</small></div>
-    <div className="shop-list">{stock.map(item=><div className={`shop-row ${item.limited?"limited-item":""}`} key={item.id}><span className="item-icon">{item.icon}</span><div>{item.limited&&<em>STORY LIMITED</em>}<strong>{item.name}</strong><small>所持 {state.ingredients[item.id]||0}</small></div><div className="price"><b>● {item.price}</b><button disabled={state.currency<item.price} onClick={()=>dispatch({type:"BUY_INGREDIENT",ingredientId:item.id})}>仕入れる</button></div></div>)}</div>
+    <div className="section-heading"><div><span className="tiny-label">WHOLESALE</span><h2>食材の仕入れ</h2></div><small>1パック = 5食分 · 仕入れで交流 +2</small></div>
+    <div className="shop-list">{stock.map(item=><div className={`shop-row ${item.limited?"limited-item":""}`} key={item.id}><span className="item-icon">{item.icon}</span><div>{item.limited&&<em>STORY LIMITED</em>}<strong>{item.name}</strong><small>在庫 {state.ingredients[item.id]||0}食分</small></div><div className="price"><b>● {item.price}</b><button disabled={state.currency<item.price} onClick={()=>dispatch({type:"BUY_INGREDIENT",ingredientId:item.id})}>5食分仕入れ</button></div></div>)}</div>
   </section>;
 }

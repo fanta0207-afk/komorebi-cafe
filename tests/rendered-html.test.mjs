@@ -12,7 +12,10 @@ test('the production Worker renders the cafe game instead of the starter',async(
   const html=await response.text();
   assert.match(html,/<html[^>]*lang="ja"/);
   assert.match(html,/<title>こもれび喫茶/);
-  assert.match(html,/本日の営業を終了/);
+  assert.match(html,/注文とキッチン/);
+  assert.match(html,/調理開始/);
+  assert.match(html,/スタッフ/);
+  assert.doesNotMatch(html,/本日の営業を終了|留守中の売上|今日の残り行動/);
   assert.match(html,/メインメニュー/);
   assert.match(html,/出会い|街の人/);
   assert.doesNotMatch(html,/Your site is taking shape|Building your site|SkeletonPreview/);

@@ -1,9 +1,9 @@
 import type { Recipe } from "../types/game";
 
 export const recipes: Recipe[] = [
-  { id:"coffee", name:"深煎りコーヒー", icon:"☕", price:180, requiredIngredients:[], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["coffee","drink","warm"] },
-  { id:"toast", name:"バタートースト", icon:"🍞", price:150, requiredIngredients:[], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["bread","breakfast","warm"] },
-  { id:"latte", name:"カフェラテ", icon:"🥛", price:260, requiredIngredients:["milk"], unlockHint:"牛乳を仕入れると作れそう", tags:["coffee","drink","milk","warm"] },
+  { id:"coffee", name:"深煎りコーヒー", icon:"☕", price:180, requiredIngredients:["coffeeBeans"], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["coffee","drink","warm"] },
+  { id:"toast", name:"バタートースト", icon:"🍞", price:150, requiredIngredients:["bread"], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["bread","breakfast","warm"] },
+  { id:"latte", name:"カフェラテ", icon:"🥛", price:260, requiredIngredients:["coffeeBeans","milk"], unlockHint:"牛乳を仕入れると作れそう", tags:["coffee","drink","milk","warm"] },
   { id:"pancake", name:"ふんわりパンケーキ", icon:"🥞", price:360, requiredIngredients:["flour","egg","milk"], unlockHint:"小麦粉・卵・牛乳があれば…", tags:["sweet","breakfast","family"] },
   { id:"veggieSandwich", name:"野菜サンド", icon:"🥪", price:320, requiredIngredients:["bread","tomato","lettuce"], unlockHint:"パンと新鮮な野菜を揃えよう", tags:["bread","lunch","vegetable"] },
   { id:"strawberryCake", name:"苺のショートケーキ", icon:"🍰", price:420, requiredIngredients:["strawberry","sugar","flour"], unlockHint:"苺・砂糖・小麦粉で作れそう", tags:["sweet","dessert","family"] },

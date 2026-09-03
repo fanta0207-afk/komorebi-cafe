@@ -1,5 +1,6 @@
 import { characters } from "../data/characters";
 import { gifts } from "../data/gifts";
+import { ingredients } from "../data/ingredients";
 import { recipes } from "../data/recipes";
 import { getCustomerGroup, getTownDailyEvent, getWeather } from "../data/dailyConditions";
 import { growthEvents } from "../data/growthEvents";
@@ -29,8 +30,17 @@ export function giftReaction(character:Character, gift:Gift):GiftReaction {
 export function availableEvent(state:GameState, events:RelationshipEvent[]) {
   return events.find(event => {
     const progress=state.characterProgress[event.characterId];
-    return progress?.met && progress.relationshipStage===event.fromStage && progress.affection>=event.requiredAffection && !progress.viewedEvents.includes(event.id);
+    return progress?.met && progress.relationshipStage===event.fromStage && progress.affection>=event.requiredAffection && relationshipRequirements(event,state).every(item=>item.met) && !progress.viewedEvents.includes(event.id);
   });
+}
+
+export function relationshipRequirements(event:RelationshipEvent,state:GameState) {
+  const orderTargets=[0,0,0,5,10,15,25,40,60,80,100];
+  const supplierId=characters.find(item=>item.id===event.characterId)?.supplierId;
+  const purchases=ingredients.filter(item=>item.supplierId===supplierId).reduce((sum,item)=>sum+(state.lifetimeStats.ingredientPurchases[item.id]||0),0);
+  const orderTarget=orderTargets[event.toStage],purchaseTarget=event.toStage<3?0:event.toStage-2;
+  return [{label:"お店の累計提供",current:state.lifetimeStats.totalOrders,target:orderTarget,met:state.lifetimeStats.totalOrders>=orderTarget},
+    {label:"このお店での累計仕入れ",current:purchases,target:purchaseTarget,met:purchases>=purchaseTarget}].filter(item=>item.target>0);
 }
 
 export function growthStatValue(requirement:GrowthStatRequirement,state:GameState) {
@@ -64,7 +74,7 @@ export function hiddenRecipeRewards(viewedEvents:string[],unlockedRecipes:string
 }
 
 export function createCharacterProgress() {
-  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,route:"undecided" as const,eventChoices:{} }]));
+  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,route:"undecided" as const,eventChoices:{},talkedStages:[] }]));
 }
 
 export function bestSeller(recipeSales:Record<string,number>) {
@@ -86,7 +96,10 @@ export function pickWeightedRecipe(state:GameState) {
   const weather=getWeather(state.dailyWeatherId);
   const crowd=getCustomerGroup(state.dailyCustomerGroupId);
   const event=getTownDailyEvent(state.dailyEventId);
-  const options=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)).map(recipe=>{
+  // Pending orders commit stock for admission only; the inventory is debited at cooking start.
+  const remaining={...state.ingredients};
+  for(const order of state.orders.filter(item=>item.status==="queued"))for(const id of recipes.find(item=>item.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
+  const options=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)&&recipe.requiredIngredients.every(id=>(remaining[id]||0)>0)).map(recipe=>{
     const matches=[...weather.favoredTags,...crowd.favoredTags,...event.favoredTags].filter(tag=>recipe.tags.includes(tag)).length;
     return {recipe,weight:1+matches*2};
   });

@@ -11,6 +11,7 @@ export const GAME_CONFIG = {
   baseCookingSeconds:30,
   ingredientPackSize:5,
   procurementMs:180000,
+  minProcurementMs:30000,
   maxProcurementPacks:20,
   hirePrice:1200,
   maxStationsPerType:3,

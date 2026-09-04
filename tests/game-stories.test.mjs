@@ -31,7 +31,7 @@ const {createInitialState,reducer,migrateSavedState}=require(join(output,'game/s
 const {availableEvent,isRecipeUsable,giftReaction,pickWeightedRecipe}=require(join(output,'game/logic.js'));
 const {relationshipLabel,GAME_CONFIG}=require(join(output,'game/config.js'));
 
-const {receiveSupplies}=require(join(output,'game/procurement.js'));
+const {receiveSupplies,procurementRate,procurementQuote}=require(join(output,'game/procurement.js'));
 const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;
 const routeEvents=id=>relationshipEvents.filter(event=>event.characterId===id);
 function complete(state,event,route='romance') {
@@ -397,24 +397,24 @@ test('legacy weather and trend fields no longer affect orders, prices or rotate 
   for (const key of ["dailyWeatherId", "dailyCustomerGroupId", "dailyEventId"]) assert.equal(later[key], state[key]);
 });
 
-test('bulk procurement charges once and delivers exactly three minutes later, independently per batch', () => {
+test('bulk procurement charges once and scales with quantity and serializes identical-item batches', () => {
   let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 1000 });
   assert.equal(state.currency, 2700);
   assert.equal(state.ingredients.coffeeBeans, 10);
-  assert.equal(state.deliveries[0].arrivesAt, 181000);
+  assert.equal(state.deliveries[0].arrivesAt, 541000);
   state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now: 31000 });
   assert.equal(state.deliveries.length, 2);
-  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [181000, 211000]);
-  assert.equal(receiveSupplies(state, 180999), state);
-  state = receiveSupplies(state, 181000);
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [541000, 901000]);
+  assert.equal(receiveSupplies(state, 540999), state);
+  state = receiveSupplies(state, 541000);
   assert.equal(state.ingredients.coffeeBeans, 25);
   assert.equal(state.deliveries.length, 1);
-  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 211000);
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 901000);
   assert.equal(restored.ingredients.coffeeBeans, 35);
   assert.equal(restored.currency, 2500);
   assert.equal(restored.deliveries.length, 0);
   assert.equal(restored.lifetimeStats.ingredientPurchases.coffeeBeans, 5);
-  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(restored)), 211000).ingredients, restored.ingredients);
+  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(restored)), 901000).ingredients, restored.ingredients);
   assert.equal(restored.lifetimeStats.totalRevenue, 0);
 });
 
@@ -486,4 +486,103 @@ test('a request waits for delivery, cooks serially, earns its bonus only on serv
   assert.equal(served.currency - coins, 325);
   assert.equal(served.lifetimeStats.totalOrders, 1);
   assert.equal(reducer(served, { type: 'COLLECT_ORDER', orderId: 'request' }), served);
+});
+
+
+test('one global procurement lane blocks different items without charging or granting affection', () => {
+  const state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'bread', packs: 2, now: 1000 });
+  for (const ingredientId of ['flour', 'milk']) {
+    const quote = procurementQuote(state, ingredientId, 1, 1001);
+    assert.equal(quote.blocking.ingredientId, 'bread');
+    const rejected = reducer(state, { type: 'BUY_INGREDIENT', ingredientId, now: 1001 });
+    for (const key of ['currency', 'characterProgress', 'ingredients', 'deliveries', 'lifetimeStats']) assert.deepEqual(rejected[key], state[key]);
+    assert.match(rejected.notice.text, /入荷待ち/);
+  }
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 2000);
+  assert.ok(procurementQuote(restored, 'milk', 1, 2000).blocking);
+  const next = reducer(restored, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 361000 });
+  assert.equal(next.ingredients.bread, state.ingredients.bread + 10, 'overdue batch settles before next purchase');
+  assert.equal(next.deliveries.length, 1);
+  assert.equal(next.deliveries[0].ingredientId, 'milk');
+  assert.equal(next.deliveries[0].arrivesAt, 541000);
+});
+
+test('each supplier speeds up from 180 to 30 seconds per pack on both routes, without changing existing deadlines', () => {
+  for (const character of characters) {
+    const ingredient = ingredients.find(item => item.supplierId === character.supplierId && !item.unlockEventId);
+    for (const route of ['romance', 'friendship']) {
+      for (let level = 0; level <= 10; level++) {
+        const initial = isolated();
+        const state = { ...initial, characterProgress: { ...initial.characterProgress, [character.id]: { ...initial.characterProgress[character.id], met: true, route, relationshipStage: level } } };
+        const rate = procurementRate(state, ingredient.id);
+        assert.equal(rate.perPackMs, 180000 - 15000 * level);
+        const ordered = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: ingredient.id, packs: 3, now: 1000 });
+        assert.equal(ordered.deliveries[0].arrivesAt, 1000 + rate.perPackMs * 3);
+        const other = ingredients.find(item => item.supplierId !== character.supplierId && !item.unlockEventId);
+        assert.equal(procurementRate(state, other.id).perPackMs, 180000);
+      }
+    }
+  }
+  let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', now: 1000 });
+  state = { ...state, characterProgress: { ...state.characterProgress, ren: { ...state.characterProgress.ren, relationshipStage: 10 } } };
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 2000 });
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [181000, 271000]);
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 270999);
+  assert.equal(restored.ingredients.coffeeBeans, 15);
+  assert.equal(restored.deliveries[0].arrivesAt, 271000);
+  assert.equal(receiveSupplies(restored, 271000).ingredients.coffeeBeans, 30);
+});
+
+test('previously paid parallel deliveries preserve their deadlines and settle exactly once', () => {
+  const initial = isolated();
+  const old = { ...initial, deliveries: [
+    { id: 'old-coffee', ingredientId: 'coffeeBeans', packs: 3, orderedAt: 1000, arrivesAt: 181000 },
+    { id: 'old-milk', ingredientId: 'milk', packs: 2, orderedAt: 2000, arrivesAt: 182000 },
+  ] };
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(old)), 100000);
+  assert.deepEqual(restored.deliveries, old.deliveries);
+  assert.ok(procurementQuote(restored, 'coffeeBeans', 1, 100000).blocking);
+  assert.ok(procurementQuote(restored, 'milk', 1, 100000).blocking);
+  const arrived = receiveSupplies(restored, 182000);
+  assert.equal(arrived.ingredients.coffeeBeans, 25);
+  assert.equal(arrived.ingredients.milk, 10);
+  assert.equal(arrived.currency, initial.currency);
+  assert.equal(receiveSupplies(arrived, 999999), arrived);
+});
+
+const { orderRequirements } = require(join(output, 'game/orderRequirements.js'));
+test('order requirements expose all blockers and preserve consumed ingredient satisfaction until serving', () => {
+  const order = { id: 'conditions', recipeId: 'latte', customerSlot: 0, status: 'queued', remainingMs: 0, totalMs: 0 };
+  let state = { ...isolated(), orders: [order] };
+  let conditions = orderRequirements(state, order);
+  assert.equal(conditions.find(item => item.id === 'recipe').met, false);
+  assert.match(conditions.find(item => item.id === 'recipe').detail, /入荷時に解放/);
+  assert.equal(conditions.find(item => item.id === 'ingredient-milk').met, false);
+  assert.match(conditions.find(item => item.id === 'ingredient-milk').detail, /白樺牧場/);
+  assert.equal(conditions.find(item => item.id === 'equipment-coffeeCounter').met, true);
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 1000 });
+  assert.match(orderRequirements(state, order).find(item => item.id === 'ingredient-milk').detail, /入荷まで 3:00/);
+  state = receiveSupplies(state, 181000);
+  state = { ...state, ingredients: { ...state.ingredients, coffeeBeans: 1, milk: 1 } };
+  state = reducer(state, { type: 'START_COOKING', orderId: order.id });
+  conditions = orderRequirements(state, state.orders[0]);
+  assert.equal(state.ingredients.milk, 0);
+  assert.ok(conditions.filter(item => item.id.startsWith('ingredient-')).every(item => item.met && item.detail.includes('使用済み')));
+  assert.equal(conditions.find(item => item.id === 'cooking').met, false);
+  state = tick(state, 30000);
+  assert.ok(orderRequirements(state, state.orders[0]).every(item => item.met));
+  state = reducer(state, { type: 'COLLECT_ORDER', orderId: order.id });
+  assert.equal(state.orders.length, 0);
+  assert.equal(state.lifetimeStats.totalOrders, 1);
+});
+
+test('order requirements distinguish locked, uninstalled and busy equipment', () => {
+  const order = { id: 'equipment-condition', recipeId: 'moonLatte', customerSlot: 0, status: 'queued', remainingMs: 0, totalMs: 0 };
+  const state = isolated();
+  const condition = value => orderRequirements(value, order).find(item => item.id === 'equipment-espressoMachine');
+  assert.equal(condition(state).met, false);
+  assert.match(condition(state).detail, /物語で解放/);
+  assert.match(condition({ ...state, unlockedEquipment: [...state.unlockedEquipment, 'espressoMachine'] }).detail, /5200コイン/);
+  const cooking = start(addOrder(state));
+  assert.match(orderRequirements(cooking, order).find(item => item.id === 'cooking').detail, /ほかの料理を調理中/);
 });

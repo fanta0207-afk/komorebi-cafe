@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { getCharacter } from "../data/characters";
 import { getRecipe, recipes } from "../data/recipes";
 import { getDecoration } from "../data/decorations";
+import { orderRequirements } from "../game/orderRequirements";
 import { deliveryCountdown } from "../game/procurement";
 import { getIngredient } from "../data/ingredients";
 import { getEquipment } from "../data/equipment";
@@ -88,10 +89,12 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
         return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>
           <span className="notebook-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
           <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {orderSalePrice(order)}コイン{order.request ? " · リクエスト報酬25%増" : ""}</small><h3>{recipe.name}</h3>
-            {order.status === "queued" && <small>必要な食材：{recipe.requiredIngredients.map(id => `${getIngredient(id)?.name}（在庫${state.ingredients[id] || 0}）`).join("・")}</small>}
             {order.stationId && <small>{getEquipment(state.stations.find(station => station.id === order.stationId)?.equipmentId || "")?.name}{order.cookId ? ` · ${getCharacter(order.cookId)?.shortName}` : ""}</small>}
             {order.status === "cooking" ? <><progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/><p>{activeCookingOrder(state)?.id === order.id ? `調理中 · あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち・調理の続きから再開します"}</p></> : <p>{order.status === "ready" ? state.staff.some(person => person.servingOrderId === order.id) ? "スタッフが提供中です。タップでも提供できます" : "できたてです！" : problem || "注文が入りました"}</p>}
           </div>
+          <div className="order-conditions"><h4>提供するための条件</h4><ul>{orderRequirements(state, order).map(condition => <li key={condition.id} data-met={condition.met}>
+            <span aria-label={condition.met ? "達成" : "未達成"}>{condition.met ? "✓" : "○"}</span><div><b>{condition.label}</b><small>{condition.detail}</small></div>
+          </li>)}</ul></div>
           {order.status === "queued" && <div className="notebook-order-tools">{(!state.unlockedRecipes.includes(recipe.id) || !hasIngredients(state, recipe)) && <button type="button" onClick={onTown}>食材を仕入れる →</button>}<button type="button" className="decline-order" onClick={() => onDecline(order.id)}>お断りする</button></div>}
           <button type="button" className="notebook-action" disabled={!!pending || order.status === "cooking" || (order.status === "queued" && !!problem)} onClick={() => order.status === "ready" ? onCollect(order.id) : onStart(order.id)}>{pending === "serve" ? "お届け待ち" : pending === "start" ? "準備待ち" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeCookingOrder(state)?.id === order.id ? "調理中" : "順番待ち" : "調理開始"}</button>
         </article>;

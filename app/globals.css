@@ -239,3 +239,19 @@ body { background:#241c16; }
 .order-conditions li>span { flex:0 0 14px; font-weight:700; }
 .order-conditions li>div { min-width:0; overflow-wrap:anywhere; }
 .order-conditions small { display:block; font-size:11px; font-weight:400; color:#776a56; }
+
+.cafe-hud-right { display:flex; gap:8px; }
+.cafe-inventory { position:fixed; inset:0; margin:auto auto 0; max-height:calc(100dvh - 24px - env(safe-area-inset-top)); }
+.cafe-inventory::backdrop { inset:0 max(0px,calc((100vw - 430px)/2)); }
+.inventory-group { margin:22px 0; }
+.inventory-group h3 { margin:0; padding-bottom:8px; font-size:13px; color:#7a674c; border-bottom:1px solid #cfba98; }
+.inventory-group dl { margin:0; }
+.inventory-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px 12px; padding:13px 0; border-bottom:1px dashed #deceb3; align-items:center; }
+.inventory-row dt { display:flex; align-items:center; gap:9px; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
+.inventory-row dt>span { font-size:23px; flex-shrink:0; }
+.inventory-row dd { margin:0; }
+.inventory-count { text-align:right; font-size:12px; color:#526447; white-space:nowrap; }
+.inventory-count b { font-size:20px; font-variant-numeric:tabular-nums; }
+.inventory-count small { display:block; font-size:11px; }
+.inventory-empty .inventory-count { color:#98604b; }
+.inventory-incoming { grid-column:1 / -1; padding:7px 9px; border-radius:6px; background:#ece3cd; color:#776039; font-size:12px; line-height:1.6; font-variant-numeric:tabular-nums; }

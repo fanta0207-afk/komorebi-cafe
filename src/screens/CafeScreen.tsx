@@ -13,6 +13,7 @@ import { equipmentLayout } from "../components/cafe/equipmentLayout";
 import { hasIngredients, startProblem } from "../game/operations";
 import { isRecipeUsable, orderSalePrice } from "../game/logic";
 import type { GameState } from "../types/game";
+import { InventoryModal } from "../components/cafe/InventoryModal";
 import { CafeScene } from "../components/cafe/CafeScene";
 import { CafeAsset } from "../components/cafe/CafeAsset";
 import { cafeAsset } from "../components/cafe/sceneModel";
@@ -35,6 +36,7 @@ type Notebook = { page: "orders" | "shop"; selected?: string };
 export function CafeScreen({ state, manager, managerFrame, onCollect, onDecline, onStart, onCharacter, onTown, onEquipment, onDev }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [inventoryOpen, setInventoryOpen] = useState(false);
   const stocked = recipes.some(recipe => isRecipeUsable(recipe.id, state) && hasIngredients(state, recipe));
   const actOnOrder = (id: string) => {
     const order = state.orders.find(item => item.id === id);
@@ -53,10 +55,14 @@ export function CafeScreen({ state, manager, managerFrame, onCollect, onDecline,
         <button type="button" className="scene-kitchen-entry" onClick={onEquipment} aria-label="設備・料理を開く">設備・料理 <span aria-hidden="true">›</span></button>
         {state.deliveries.length > 0 && <button type="button" className="cafe-delivery-status" onClick={() => setNotebook({ page: "orders" })}>入荷まで {deliveryCountdown(Math.min(...state.deliveries.map(item => item.arrivesAt)), state.lastPlayedAt)}</button>}
       </div>
+      <div className="cafe-hud-right">
+        <button className="cafe-menu-toggle" type="button" onClick={() => setInventoryOpen(true)} aria-label="現在の在庫状況を開く"><span aria-hidden="true">▤</span><small>在庫</small></button>
       <button className="cafe-menu-toggle" type="button" onClick={() => setMenuOpen(true)} aria-label="注文ノートと店の情報を開く"><span aria-hidden="true">☷</span><small>ノート</small></button>
+      </div>
     </header>
     <CafeScene state={state} manager={manager} managerPose={managerFrame} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={onEquipment}/>
     {!stocked && <button className="cafe-restock-hint" type="button" onClick={onTown}>食材を仕入れる →</button>}
+    {inventoryOpen && <InventoryModal state={state} onClose={() => setInventoryOpen(false)} onTown={onTown}/>}
     {menuOpen && <CafeMenu onClose={() => setMenuOpen(false)}
       onNotebook={page => { setMenuOpen(false); setNotebook({ page }); }} onDev={() => { setMenuOpen(false); onDev(); }}/>}
     {notebook && <CafeNotebook state={state} manager={manager} notebook={notebook} onClose={() => setNotebook(undefined)}

@@ -82,7 +82,6 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
           </button>;
         })}
       </div>
-      <button type="button" className="scene-kitchen-entry" style={place(64, 38)} onClick={onEquipment} aria-label="設備・料理を開く">設備・料理 <span aria-hidden="true">›</span></button>
     </div>
     <div className="scene-layer layer-seating" data-layer="seating" aria-hidden="true">
       {TABLE_POSITIONS.map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>

@@ -44,7 +44,10 @@ export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, o
   return <section className="cafe-screen" aria-label="カフェ">
     <h1 className="sr-only">こもれび喫茶</h1>
     <header className="cafe-hud">
-      <div className="cafe-wallet" aria-label={`所持コイン ${state.currency.toLocaleString()}`}><span aria-hidden="true">●</span>{state.currency.toLocaleString()}</div>
+      <div className="cafe-hud-left">
+        <div className="cafe-wallet" aria-label={`所持コイン ${state.currency.toLocaleString()}`}><span aria-hidden="true">●</span>{state.currency.toLocaleString()}</div>
+        <button type="button" className="scene-kitchen-entry" onClick={onEquipment} aria-label="設備・料理を開く">設備・料理 <span aria-hidden="true">›</span></button>
+      </div>
       <button className="cafe-menu-toggle" type="button" onClick={() => setMenuOpen(true)} aria-label="注文ノートと店の情報を開く"><span aria-hidden="true">☷</span><small>ノート</small></button>
     </header>
     <CafeScene state={state} manager={manager} managerPose={managerFrame} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={onEquipment}/>

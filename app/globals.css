@@ -159,7 +159,8 @@ body { background:#241c16; }
 .cafe-shell .bottom-nav button { min-height:48px; margin:2px 0; gap:4px; color:#785538; font-size:10px; }
 .cafe-shell .bottom-nav button.active { background:#e6d5b4; color:#52391e; }
 
-.scene-kitchen-entry { position:absolute; transform:translate(-50%,-50%); min-width:110px; min-height:44px; padding:8px 12px; border:1px solid #dab47b; border-radius:5px; background:#51371deb; color:#fff0ce; font-size:14px; font-weight:700; box-shadow:0 2px 5px #33201344,inset 0 0 0 3px #bd99602e; cursor:pointer; }
+.cafe-hud-left { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.scene-kitchen-entry { pointer-events:auto; min-width:110px; min-height:44px; padding:8px 12px; border:1px solid #dab47b; border-radius:5px; background:#51371deb; color:#fff0ce; font-size:14px; font-weight:700; box-shadow:0 2px 5px #33201344,inset 0 0 0 3px #bd99602e; cursor:pointer; }
 .scene-kitchen-entry span { margin-left:5px; color:#e6c795; }
 
 /* Original customer artwork: three transparent portraits, selected without editing the PNG. */

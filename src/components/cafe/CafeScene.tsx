@@ -41,7 +41,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
   const serving = workingStaff.some(person => person.servingOrderId);
   return <div className={`cafe-scene photo-cafe ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} style={{ "--guest-enter-duration": `${VISIT_TIMING.enter}ms`, "--guest-leave-duration": `${VISIT_TIMING.leave}ms` } as CSSProperties} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
     <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
-      <CafeAsset src={cafeAsset.background("room")} className="room-art"><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
+      <CafeAsset src={`${cafeAsset.background("room")}?v=d9fba6fd`} className="room-art"><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
       <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div></CafeAsset>
     </div>
     <div className="scene-layer layer-furniture" data-layer="furniture" aria-hidden="true">

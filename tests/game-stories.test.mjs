@@ -30,6 +30,8 @@ const {decorations}=require(join(output,'data/decorations.js'));
 const {createInitialState,reducer,migrateSavedState}=require(join(output,'game/state.js'));
 const {availableEvent,isRecipeUsable,giftReaction,pickWeightedRecipe}=require(join(output,'game/logic.js'));
 const {relationshipLabel,GAME_CONFIG}=require(join(output,'game/config.js'));
+const {missions,currentMission,updateMissions}=require(join(output,'game/missions.js'));
+const {salePrice,ingredientCost,pickIncomingOrder,availableGrowthEvent}=require(join(output,'game/logic.js'));
 
 const {receiveSupplies,procurementRate,procurementQuote}=require(join(output,'game/procurement.js'));
 const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;
@@ -60,7 +62,7 @@ function play(id,route='romance',until=10) {
     let attempts=0;
     while(state.characterProgress[id].affection<event.requiredAffection) {
       assert.ok(attempts++<100,'relationship progression must terminate');
-      if(state.currency<gift.price)state=trade(state,10);
+      while(state.currency<gift.price+100)state=trade(state,10);
       state=reducer(state,{type:'BUY_GIFT',giftId:gift.id});
       state=reducer(state,{type:'GIVE_GIFT',characterId:id,giftId:gift.id,reaction:giftReaction(character,gift)});
     }
@@ -200,7 +202,9 @@ test('the existing cooperative routes still award their ingredients, equipment a
 });
 
 const {preparation,cookingMs,startProblem,equipmentPrice,upgradePrice}=require(join(output,'game/operations.js'));
-const isolated=()=>({...createInitialState(),spawnRemainingMs:1e12});
+// These mechanics fixtures are pre-funded and past the guided order phase.
+// The new-player economy is exercised separately below without injected funds.
+const isolated=()=>{const state=createInitialState();return {...state,currency:3000,missions:{...state.missions,claimed:['serve-mocha']},spawnRemainingMs:1e12};};
 const addOrder=(state,id='manual',recipe='coffee',slot=0)=>reducer(state,{type:'SPAWN_ORDER',order:order(id,recipe,slot)});
 const start=(state,id='manual')=>reducer(state,{type:'START_COOKING',orderId:id});
 const collect=(state,id='manual')=>reducer(state,{type:'COLLECT_ORDER',orderId:id});
@@ -276,7 +280,7 @@ test('a cook and a server run the whole loop; manual serving during delivery nev
   state=tick(state,29999);assert.equal(state.orders[0].status,'cooking');assert.equal(state.currency,600);
   state=tick(state,1);assert.equal(state.orders[0].status,'ready');assert.equal(state.staff[1].servingOrderId,'manual');
   const manual=collect(state);const afterDelivery=tick(manual,2000);assert.equal(afterDelivery.lifetimeStats.totalOrders,1);
-  state=tick(state,1999);assert.equal(state.lifetimeStats.totalOrders,0);state=tick(state,1);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,780);
+  state=tick(state,1999);assert.equal(state.lifetimeStats.totalOrders,0);state=tick(state,1);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,636);
 });
 
 test('multiple cooks and servers cannot reserve one machine, ingredient or finished dish twice',()=>{
@@ -325,10 +329,156 @@ test('visiting and gifting have no daily limit, repeated dialogue is not farmabl
 });
 
 test('automatic order generation respects stock, slots and capacity during sustained play',()=>{
-  let state=hired(hired(createInitialState(),'ren','cook'),'haru','server');state=tick(state,700000);
+  let state=hired(hired({...isolated(),spawnRemainingMs:1000},'ren','cook'),'haru','server');state=tick(state,700000);
   assert.ok(state.lifetimeStats.totalOrders>=19);assert.ok(state.orders.length<=4);assert.ok(Object.values(state.ingredients).every(count=>count>=0));
   const coins=state.currency;state=tick(state,60000);assert.equal(state.currency,coins);
   state=receiveAll(reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'}));state=tick(state,120000);assert.ok(state.currency>coins);
+});
+
+test('all 51 recipes retain ingredient cost but reduce the normal profit to one tenth',()=>{
+  assert.equal(createInitialState().currency,200);
+  assert.equal(salePrice('coffee'),36);
+  assert.equal(salePrice('toast'),31);
+  assert.equal(salePrice('cafeMocha'),115);
+  for(const recipe of recipes){
+    const cost=ingredientCost(recipe.id),margin=salePrice(recipe.id)-cost;
+    assert.equal(margin,Math.round((recipe.price-cost)/10));
+    assert.ok(margin>0);
+  }
+  assert.equal(upgradePrice(createInitialState().stations[0]),450);
+  const state=createInitialState();
+  assert.equal(reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:state.stations[0].id}),state);
+  assert.equal(missions.length,37);
+  assert.equal(new Set(missions.map(m=>m.id)).size,37);
+  assert.ok(missions.every(m=>m.reward>0&&m.hint.length>20));
+  assert.ok(missions.reduce((sum,m)=>sum+m.reward,0)<=500,'intro rewards must not buy special equipment outright');
+});
+
+test('mission rewards are sequential, exactly once, latched, and separate from cafe sales',()=>{
+  let state=createInitialState();
+  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'}),state);
+  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'not-real'}),state);
+  state=addOrder(state);
+  const coins=state.currency;
+  assert.ok(state.missions.completed.includes('first-order'));
+  state=reducer(state,{type:'DECLINE_ORDER',orderId:'manual'});
+  assert.ok(state.missions.completed.includes('first-order'),'removing the order cannot undo completion');
+  state=reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'});
+  assert.equal(state.currency,coins+5);
+  assert.equal(state.lifetimeStats.totalRevenue,0);
+  assert.equal(state.lifetimeStats.totalOrders,0);
+  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'}),state);
+  state=reducer(state,{type:'MISSION_VIEW',place:'gifts'});
+  assert.ok(state.missions.completed.includes('visit-gifts'),'out-of-order achievements are retained');
+  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'visit-gifts'}),state,'cannot skip earlier rewards');
+  const restored=migrateSavedState(JSON.parse(JSON.stringify(state)));
+  assert.equal(restored.currency,state.currency);
+  assert.deepEqual(restored.missions,state.missions);
+  assert.equal(reducer(restored,{type:'CLAIM_MISSION',missionId:'first-order'}),restored);
+  const reset=reducer(restored,{type:'RESET'});
+  assert.equal(reset.currency,200);assert.equal(reset.missions.claimed.length,0);assert.equal(reset.missions.completed.length,0);
+});
+
+test('v6 saves keep money and reconstruct received packs without granting duplicate mission coins',()=>{
+  const old={...isolated(),saveVersion:6,currency:12345,lifetimeStats:{...isolated().lifetimeStats,ingredientPurchases:{coffeeBeans:4}},deliveries:[{id:'pending',ingredientId:'coffeeBeans',packs:2,orderedAt:1000,arrivesAt:5000}]};
+  delete old.missions;
+  let state=migrateSavedState(old,2000);
+  assert.equal(state.currency,12345);assert.equal(state.missions.receivedPacks.coffeeBeans,2);
+  assert.equal(state.missions.claimed.length,0);
+  state=migrateSavedState(JSON.parse(JSON.stringify(state)),5000);
+  assert.equal(state.missions.receivedPacks.coffeeBeans,4);
+  const again=migrateSavedState(JSON.parse(JSON.stringify(state)),6000);
+  assert.deepEqual(again.missions,state.missions);assert.equal(again.currency,12345);
+});
+
+test('guided orders do not depend on luck, reserve stock and return to normal requests after the intro',()=>{
+  let state=createInitialState();
+  const random=Math.random;
+  try{
+    Math.random=()=>.99;
+    assert.deepEqual(pickIncomingOrder(state),{recipeId:'coffee'});
+    state={...state,ingredients:{coffeeBeans:1,bread:0},orders:[order()]};
+    assert.equal(pickIncomingOrder(state),undefined,'reserved food is not double promised');
+    state={...state,orders:[],unlockedRecipes:[...state.unlockedRecipes,'cafeMocha'],ingredients:{coffeeBeans:1,milk:1,chocolate:1}};
+    assert.deepEqual(pickIncomingOrder(state),{recipeId:'cafeMocha'});
+    const missing={...state,ingredients:{coffeeBeans:1}};
+    assert.notEqual(pickIncomingOrder(missing)?.recipeId,'cafeMocha');
+    state={...state,missions:{...state.missions,claimed:['serve-mocha']},lifetimeStats:{...state.lifetimeStats,totalOrders:3},ingredients:{coffeeBeans:10,bread:10}};
+    Math.random=()=>0;assert.deepEqual(pickIncomingOrder(state),{recipeId:'latte',request:true});
+  }finally{Math.random=random;}
+});
+
+test('a fresh player finishes every mission, develops and serves mocha, then saves for an upgrade without cheats',t=>{
+  let state=createInitialState(),now=1000000,elapsed=0,firstDevelopmentAt=0;
+  const random=Math.random;Math.random=()=>.9;
+  const act=action=>{state=reducer(state,action);assert.ok(state.currency>=0);assert.ok(Object.values(state.ingredients).every(n=>n>=0));};
+  const settleStories=()=>{
+    for(let i=0;i<15;i++){
+      const event=availableEvent(state,relationshipEvents);
+      if(event){act({type:'COMPLETE_EVENT',eventId:event.id,choiceId:event.choices?.[0]?.id,route:'friendship'});continue;}
+      const growth=availableGrowthEvent(state);
+      if(growth){act({type:'COMPLETE_GROWTH_EVENT',eventId:growth.eventId});if(growth.eventId==='ren-growth3')firstDevelopmentAt=elapsed;continue;}
+      break;
+    }
+  };
+  const serveWhileWaiting=()=>{
+    for(const o of state.orders.filter(o=>o.status==='ready'))act({type:'COLLECT_ORDER',orderId:o.id});
+    for(const o of state.orders.filter(o=>o.status==='queued')){act({type:'START_COOKING',orderId:o.id});if(state.orders.some(o=>o.status==='cooking'))break;}
+    now+=1000;elapsed+=1000;act({type:'TICK',deltaMs:1000,now});settleStories();
+  };
+  const view=place=>act({type:'MISSION_VIEW',place});
+  const buy=ingredientId=>{
+    if(!state.deliveries.length)act({type:'BUY_INGREDIENT',ingredientId,packs:1,now});
+    serveWhileWaiting();
+  };
+  try{
+    for(let i=0;i<3000&&currentMission(state);i++){
+      settleStories();
+      const mission=currentMission(state);
+      if(state.missions.completed.includes(mission.id)){
+        const before=state.currency;act({type:'CLAIM_MISSION',missionId:mission.id});assert.equal(state.currency,before+mission.reward);
+        const saved=JSON.parse(JSON.stringify(state));state=migrateSavedState(saved,now);assert.equal(state.currency,before+mission.reward);
+        continue;
+      }
+      switch(mission.id){
+        case 'visit-town':view('town');break;
+        case 'meet-ren':case 'talk-ren':case 'ren-story1':case 'ren-story2':act({type:'VISIT',characterId:'ren'});break;
+        case 'beans-first':case 'beans-second':buy('coffeeBeans');break;
+        case 'inventory':view('inventory');break;
+        case 'visit-gifts':view('gifts');break;
+        case 'buy-book':act({type:'BUY_GIFT',giftId:'book'});break;
+        case 'ren-profile':view('ren');break;
+        case 'give-book':act({type:'GIVE_GIFT',characterId:'ren',giftId:'book',reaction:'like'});break;
+        case 'mocha-recipe':view('recipes');break;
+        case 'meet-ranch':act({type:'VISIT',characterId:'sota'});break;
+        case 'buy-milk':buy('milk');break;
+        case 'buy-chocolate':act({type:'VISIT',characterId:'itsuki'});buy('chocolate');break;
+        case 'view-investment':view('equipment');break;
+        case 'first-investment':{
+          for(const o of state.orders.filter(o=>o.status==='ready'))act({type:'COLLECT_ORDER',orderId:o.id});
+          const station=state.stations.find(s=>s.equipmentId==='coffeeCounter');
+          act({type:'UPGRADE_EQUIPMENT',stationId:station.id});
+          now+=1000;elapsed+=1000;act({type:'TICK',deltaMs:1000,now});break;
+        }
+        default:{
+          // Replenish when the available beans are all consumed or reserved, using earned money only.
+          const reserved=state.orders.filter(o=>o.status==='queued').filter(o=>recipes.find(r=>r.id===o.recipeId)?.requiredIngredients.includes('coffeeBeans')).length;
+          if((state.ingredients.coffeeBeans||0)<=reserved&&!state.deliveries.length&&state.currency>=100)buy('coffeeBeans');
+          else serveWhileWaiting();
+        }
+      }
+    }
+    assert.equal(currentMission(state),undefined,`stuck on ${currentMission(state)?.id}, coins=${state.currency}, elapsed=${elapsed/1000}s`);
+    assert.equal(state.missions.claimed.length,37);
+    assert.ok(firstDevelopmentAt>0&&firstDevelopmentAt<=15*60000,`development took ${firstDevelopmentAt/1000}s`);
+    assert.ok(state.lifetimeStats.recipeSales.cafeMocha>=1);
+    assert.equal(state.stations.find(s=>s.equipmentId==='coffeeCounter').level,2);
+    assert.ok(state.currency>=100,'investment leaves money for a pack of beans');
+    const expected=GAME_CONFIG.initialCurrency+state.lifetimeStats.totalRevenue+missions.reduce((sum,m)=>sum+m.reward,0)
+      -Object.entries(state.lifetimeStats.ingredientPurchases).reduce((sum,[id,n])=>sum+ingredients.find(i=>i.id===id).price*n,0)-360-450;
+    assert.equal(state.currency,expected,'no hidden subsidies, repeat rewards, or free supplies');
+    t.diagnostic(`guided play: first development ${firstDevelopmentAt/1000}s, all missions ${elapsed/1000}s, ${state.lifetimeStats.totalOrders} dishes, ${state.currency} coins remaining`);
+  }finally{Math.random=random;}
 });
 
 test('incoming orders account for waiting orders so an exhausted menu cannot block other dishes',()=>{
@@ -389,7 +539,7 @@ test('legacy weather and trend fields no longer affect orders, prices or rotate 
         const condition = conditionForDay(day);
         const changed = { ...state, dailyWeatherId: condition.weatherId, dailyCustomerGroupId: condition.customerGroupId, dailyEventId: condition.dailyEventId };
         assert.equal(pickWeightedRecipe(changed), expected);
-        assert.equal(salePrice('coffee', changed), recipes.find(item => item.id === 'coffee').price);
+        assert.equal(salePrice('coffee', changed), 36);
       }
     }
   } finally { Math.random = originalRandom; }
@@ -448,7 +598,7 @@ test('a v5 save keeps all possessions and cooking progress when upgraded to deli
   const restored = migrateSavedState(JSON.parse(JSON.stringify(old)), 1000000);
   for (const key of ['currency', 'ingredients', 'orders', 'stations', 'staff', 'inventory', 'characterProgress', 'lifetimeStats', 'unlockedRecipes']) assert.deepEqual(restored[key], JSON.parse(JSON.stringify(old[key])));
   assert.deepEqual(restored.deliveries, []);
-  assert.equal(restored.saveVersion, 6);
+  assert.equal(restored.saveVersion, GAME_CONFIG.saveVersion);
 });
 
 test('requests are attainable, limited to one, and cannot reveal locked story or secret recipes', () => {
@@ -490,7 +640,7 @@ test('a request waits for delivery, cooks serially, earns its bonus only on serv
   state = tick(state, 30000);
   const coins = state.currency;
   const served = reducer(state, { type: 'COLLECT_ORDER', orderId: 'request' });
-  assert.equal(served.currency - coins, 325);
+  assert.equal(served.currency - coins, 84);
   assert.equal(served.lifetimeStats.totalOrders, 1);
   assert.equal(reducer(served, { type: 'COLLECT_ORDER', orderId: 'request' }), served);
 });

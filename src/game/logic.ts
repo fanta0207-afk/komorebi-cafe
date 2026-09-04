@@ -5,6 +5,7 @@ import { ingredients } from "../data/ingredients";
 import { recipes } from "../data/recipes";
 import { growthEvents } from "../data/growthEvents";
 import { hiddenUnlocks } from "../data/hiddenUnlocks";
+import { tutorialRecipe } from "./missions";
 import type { Character, Gift, GiftReaction, GameState, GrowthEvent, GrowthStatRequirement, RelationshipEvent, Order } from "../types/game";
 
 export const initialRecipeIds = recipes.filter(item => item.initiallyUnlocked).map(item => item.id);
@@ -84,7 +85,12 @@ export function bestSeller(recipeSales:Record<string,number>) {
 export function salePrice(recipeId:string) {
   const recipe=recipes.find(item=>item.id===recipeId);
   if(!recipe)return 0;
-  return recipe.price;
+  const cost=ingredientCost(recipeId);
+  return cost+Math.max(1,Math.round((recipe.price-cost)*GAME_CONFIG.profitMultiplier));
+}
+
+export function ingredientCost(recipeId:string) {
+  return (recipes.find(item=>item.id===recipeId)?.requiredIngredients||[]).reduce((sum,id)=>sum+(ingredients.find(item=>item.id===id)?.price||0)/GAME_CONFIG.ingredientPackSize,0);
 }
 
 export function isRecipeUsable(recipeId:string,state:GameState) {
@@ -106,7 +112,15 @@ export function orderSalePrice(order: Order) {
 
 /** Occasional attainable requests: one at a time, no unrevealed story/secret recipes. */
 export function pickIncomingOrder(state: GameState): { recipeId: string; request?: boolean } | undefined {
-  if (state.lifetimeStats.totalOrders >= 3 && !state.orders.some(order => order.request)
+  const guided=tutorialRecipe(state);
+  if(guided&&isRecipeUsable(guided,state)) {
+    const recipe=recipes.find(r=>r.id===guided)!;
+    const reserved={...state.ingredients};
+    for(const order of state.orders.filter(o=>o.status==="queued"))for(const id of recipes.find(r=>r.id===order.recipeId)?.requiredIngredients||[])reserved[id]=(reserved[id]||0)-1;
+    if(recipe.requiredIngredients.every(id=>(reserved[id]||0)>0))return {recipeId:guided};
+  }
+  const introFinished=state.missions.claimed.includes("serve-mocha")||(state.lifetimeStats.recipeSales.cafeMocha||0)>0;
+  if (introFinished && state.lifetimeStats.totalOrders >= 3 && !state.orders.some(order => order.request)
     && Math.random() < GAME_CONFIG.requestOrderChance) {
     const available = { ...state.ingredients };
     for (const order of state.orders.filter(item => item.status === "queued")) {

@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import "../src/components/cafe/cafe-scene.css";
+@import "../src/components/missions.css";
 
 :root { --ink:#49372f; --cream:#fffaf0; --rose:#d8786d; --green:#66806d; --gold:#e8b65f; --line:#decbb2; }
+:root { --mission-green:#304c3f; --mission-paper:#fffaf0; --mission-border:#c1a778; }
 * { box-sizing:border-box; }
 html { background:#e8dfd0; }
 body { margin:0; color:var(--ink); background:radial-gradient(circle at 50% 0,#fbf5e9,#e7ded0 75%); font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif; -webkit-tap-highlight-color:transparent; }

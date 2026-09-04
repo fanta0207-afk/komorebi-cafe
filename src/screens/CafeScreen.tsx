@@ -20,6 +20,9 @@ import { cafeAsset } from "../components/cafe/sceneModel";
 import { managerPending, type ManagerFrame, type ManagerModel } from "../components/cafe/managerModel";
 
 interface CafeProps {
+  storyOpen?:boolean;
+  panelRequest?:{page:"orders"|"inventory";nonce:number};
+  onInventory:()=>void;
   state: GameState;
   manager: ManagerModel;
   managerFrame: ManagerFrame;
@@ -33,10 +36,16 @@ interface CafeProps {
 }
 type Notebook = { page: "orders" | "shop"; selected?: string };
 
-export function CafeScreen({ state, manager, managerFrame, onCollect, onDecline, onStart, onCharacter, onTown, onEquipment, onDev }: CafeProps) {
+export function CafeScreen({ storyOpen, panelRequest, onInventory, state, manager, managerFrame, onCollect, onDecline, onStart, onCharacter, onTown, onEquipment, onDev }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
   const [menuOpen, setMenuOpen] = useState(false);
   const [inventoryOpen, setInventoryOpen] = useState(false);
+  useEffect(()=>{
+    if(panelRequest?.page==="orders")setNotebook({page:"orders"});
+    if(panelRequest?.page==="inventory")setInventoryOpen(true);
+  },[panelRequest]);
+  useEffect(()=>{if(inventoryOpen)onInventory();},[inventoryOpen,onInventory]);
+  useEffect(()=>{if(storyOpen){setNotebook(undefined);setInventoryOpen(false);setMenuOpen(false);}},[storyOpen]);
   const stocked = recipes.some(recipe => isRecipeUsable(recipe.id, state) && hasIngredients(state, recipe));
   const actOnOrder = (id: string) => {
     const order = state.orders.find(item => item.id === id);

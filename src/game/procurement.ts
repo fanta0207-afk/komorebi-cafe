@@ -47,10 +47,12 @@ export function receiveSupplies(state: GameState, now: number): GameState {
   const arrived = state.deliveries.filter(item => item.arrivesAt <= now);
   if (!arrived.length) return state;
   const stock = { ...state.ingredients };
+  const receivedPacks={...state.missions.receivedPacks};
+  for(const delivery of arrived)receivedPacks[delivery.ingredientId]=(receivedPacks[delivery.ingredientId]||0)+delivery.packs;
   for (const delivery of arrived) stock[delivery.ingredientId] = (stock[delivery.ingredientId] || 0) + delivery.packs * GAME_CONFIG.ingredientPackSize;
   const newRecipes = findNewRecipes(stock, state.unlockedRecipes);
   const names = [...new Set(arrived.map(item => getIngredient(item.ingredientId)?.name))].join("・");
-  return { ...state, ingredients: stock, deliveries: state.deliveries.filter(item => item.arrivesAt > now),
+  return { ...state, missions:{...state.missions,receivedPacks},ingredients: stock, deliveries: state.deliveries.filter(item => item.arrivesAt > now),
     unlockedRecipes: [...state.unlockedRecipes, ...newRecipes],
     dayNews: [...state.dayNews, ...newRecipes.map(id => `${getRecipe(id)?.name}を解放しました`)],
     notice: { id: now, type: newRecipes.length ? "unlock" : "info", text: `${names}が入荷しました${newRecipes.length ? `！ ${newRecipes.map(id => getRecipe(id)?.name).join("・")}を解放` : ""}` } };

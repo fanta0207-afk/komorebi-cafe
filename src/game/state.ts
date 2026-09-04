@@ -6,7 +6,8 @@ import { baseEquipmentIds, equipment, getEquipment } from "../data/equipment";
 import { getGrowthEvent } from "../data/growthEvents";
 import { getRelationshipEvent, relationshipEvents } from "../data/events";
 import { conditionForDay } from "../data/dailyConditions";
-import type { CharacterProgress, EventReward, GameState, GiftReaction, Order, RelationshipRoute, StaffRole } from "../types/game";
+import type { CharacterProgress, EventReward, GameState, GiftReaction, MissionPlace, Order, RelationshipRoute, StaffRole } from "../types/game";
+import { claimMission, emptyMissions, missions, updateMissions } from "./missions";
 import { startCooking, serveOrder, equipmentPrice, upgradePrice } from "./operations";
 import { advanceGame } from "./simulation";
 import { orderSupplies, receiveSupplies } from "./procurement";
@@ -15,6 +16,8 @@ import { GAME_CONFIG, relationshipLabel } from "./config";
 import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction } from "./logic";
 
 export type Action =
+  | {type:"MISSION_VIEW"; place:MissionPlace}
+  | {type:"CLAIM_MISSION"; missionId:string}
   | {type:"HYDRATE"; state:GameState}
   | {type:"VISIT"; characterId:string}
   | {type:"BUY_INGREDIENT"; ingredientId:string; packs?:number; now?:number}
@@ -48,6 +51,7 @@ const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSale
 export function createInitialState():GameState {
   const condition=conditionForDay(1);
   return {
+    missions:emptyMissions(),
     saveVersion:GAME_CONFIG.saveVersion, season:"春", day:1, currency:GAME_CONFIG.initialCurrency,
     stations:baseEquipmentIds.map(id=>({id:`${id}-1`,equipmentId:id,level:1})),staff:[],activeMs:0,spawnRemainingMs:1000,nextOrderNumber:1,
     deliveries:[], ingredients:{coffeeBeans:10,bread:10}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
@@ -100,6 +104,12 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
     }));
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
+      missions:{...emptyMissions(),...saved.missions,
+        completed:[...new Set((saved.missions?.completed||[]).filter(id=>missions.some(m=>m.id===id)))],
+        claimed:[...new Set((saved.missions?.claimed||[]).filter(id=>missions.some(m=>m.id===id)))],
+        visited:(saved.missions?.visited||[]).filter(id=>["town","inventory","gifts","ren","recipes","equipment"].includes(id)),
+        receivedPacks:saved.missions?.receivedPacks||{},
+      },
       characterProgress,
       dailyStats:{ ...emptyStats(), ...(saved.dailyStats || {}) },
       lifetimeStats:{...emptyLifetimeStats(),...(saved.lifetimeStats || {}),recipeSales:saved.lifetimeStats?.recipeSales || {},ingredientPurchases:saved.lifetimeStats?.ingredientPurchases || {},tagSales:saved.lifetimeStats?.tagSales || {}},
@@ -132,13 +142,27 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       migrated.staff=[];
       migrated.orders=migrated.orders.map(order=>({...order,status:"queued",remainingMs:0,totalMs:0}));
     }
-    return receiveSupplies(migrated, now);
+    if((saved.saveVersion||1)<7) {
+      // Paid purchases minus pending packs are evidence of already completed deliveries.
+      migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
+    }
+    return updateMissions(receiveSupplies(migrated, now));
 }
 
 const notice = (type:NonNullable<GameState["notice"]>["type"], text:string) => ({ id:Date.now()+Math.random(), type, text });
 
 export function reducer(state:GameState, action:Action):GameState {
+  const next=reduceAction(state,action);
+  return next===state||action.type==="RESET"?next:updateMissions(next);
+}
+
+function reduceAction(state:GameState, action:Action):GameState {
   switch(action.type) {
+    case "CLAIM_MISSION": return claimMission(state,action.missionId);
+    case "MISSION_VIEW": {
+      if(!["town","inventory","gifts","ren","recipes","equipment"].includes(action.place)||state.missions.visited.includes(action.place))return state;
+      return {...state,missions:{...state.missions,visited:[...state.missions.visited,action.place]}};
+    }
     case "HYDRATE": return action.state;
     case "VISIT": {
       const current=state.characterProgress[action.characterId];
@@ -155,7 +179,7 @@ export function reducer(state:GameState, action:Action):GameState {
     case "BUY_GIFT": {
       const item=getGift(action.giftId);
       if (!item || state.currency<item.price) return { ...state, notice:notice("info","コインが足りません") };
-      return { ...state, currency:state.currency-item.price, inventory:{ ...state.inventory,[item.id]:(state.inventory[item.id]||0)+1 }, notice:notice("info",`${item.name}を購入しました`) };
+      return { ...state, missions:{...state.missions,boughtBook:state.missions.boughtBook||item.id==="book"},currency:state.currency-item.price, inventory:{ ...state.inventory,[item.id]:(state.inventory[item.id]||0)+1 }, notice:notice("info",`${item.name}を購入しました`) };
     }
     case "GIVE_GIFT": {
       const item=getGift(action.giftId); const current=state.characterProgress[action.characterId];
@@ -164,7 +188,7 @@ export function reducer(state:GameState, action:Action):GameState {
       const nextCount=state.inventory[item.id]-1;
       const nextInventory={ ...state.inventory, [item.id]:nextCount };
       return {
-        ...state, inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
+        ...state, missions:{...state.missions,gaveBook:state.missions.gaveBook||(action.characterId==="ren"&&item.id==="book")},inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
         characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,affection:Math.max(0,current.affection+amount) } },
         notice:notice("heart",amount>0?`気持ちが少し近づきました ♡`:`少し好みと違ったようです`),
       };
@@ -185,7 +209,7 @@ export function reducer(state:GameState, action:Action):GameState {
       return next===state?state:{...next,lastPlayedAt:now};
     }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);
-    case "REFRESH_SHOP": return {...state,giftShopItems:action.items,giftShopRefreshAt:Date.now(),notice:notice("info","贈物が入れ替わりました")};
+    case "REFRESH_SHOP": return {...state,giftShopItems:state.characterProgress.ren.relationshipStage<2?[...new Set(["book",...action.items])].slice(0,10):action.items,giftShopRefreshAt:Date.now(),notice:notice("info","贈物が入れ替わりました")};
     case "COMPLETE_EVENT": {
       const event=getRelationshipEvent(action.eventId);
       if (!event || !availableEvent(state,[event])) return state;

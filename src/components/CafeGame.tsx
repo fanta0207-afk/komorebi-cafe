@@ -22,6 +22,8 @@ import { CharacterDetail, PeopleScreen } from "../screens/PeopleScreen";
 import { MenuScreen } from "../screens/MenuScreen";
 import { StaffScreen } from "../screens/StaffScreen";
 import { useCafeManager } from "./cafe/useCafeManager";
+import { MissionGuide } from "./MissionGuide";
+import type { MissionDestination } from "../game/missions";
 
 type Screen="cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
@@ -33,6 +35,8 @@ function GameContent() {
   const [screen,setScreen]=useState<Screen>("cafe");
   const [supplierId,setSupplierId]=useState<string>();
   const [characterId,setCharacterId]=useState<string>();
+  const [cafePanel,setCafePanel]=useState<{page:"orders"|"inventory";nonce:number}>();
+  const [menuTab,setMenuTab]=useState<"equipment"|"recipes">("equipment");
   const [devOpen,setDevOpen]=useState(false);
   const [devCharacter,setDevCharacter]=useState(characters[0].id);
   const [event,setEvent]=useState<RelationshipEvent>();
@@ -60,20 +64,34 @@ function GameContent() {
     if(growth){setGrowthEvent(growth);setEventPage(0);}
   },[state,event,growthEvent,replay,devOpen]);
 
-  const navigate=(id:string)=>{setScreen(id as Screen);setSupplierId(undefined);setCharacterId(undefined);};
+  const navigate=(id:string)=>{setScreen(id as Screen);setSupplierId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
   const openSupplier=(id:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});setSupplierId(id);setScreen("supplier");};
   const active=["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen==="menu"?"cafe":screen;
+  useEffect(()=>{
+    if(screen==="town"||screen==="gifts")dispatch({type:"MISSION_VIEW",place:screen});
+    if(screen==="character"&&characterId==="ren")dispatch({type:"MISSION_VIEW",place:"ren"});
+  },[screen,characterId,dispatch]);
+  const missionGo=(destination:MissionDestination)=>{
+    if(destination==="orders"||destination==="inventory"){navigate("cafe");setCafePanel({page:destination,nonce:Date.now()});}
+    else if(destination==="coffee"||destination==="ranch"||destination==="patisserie")openSupplier(destination);
+    else if(destination==="ren"){
+      if(!state.characterProgress.ren.met){openSupplier("coffee");return;}
+      setCharacterId("ren");setScreen("character");
+    }else if(destination==="recipes"||destination==="equipment"){setMenuTab(destination);navigate("menu");}
+    else navigate(destination);
+  };
 
-  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
+  return <main className={`game-shell guided-shell ${screen==="cafe"?"cafe-shell":""}`}>
     {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)}/>}
+    {!event&&!growthEvent&&!replay&&<MissionGuide onGo={missionGo}/>}
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>navigate("menu")} onDev={()=>setDevOpen(true)}/>}
+      {screen==="cafe"&&<CafeScreen storyOpen={!!(event||growthEvent||replay)} panelRequest={cafePanel} onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}} onDev={()=>setDevOpen(true)}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
       {screen==="gifts"&&<GiftShopScreen/>}
       {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
-      {screen==="menu"&&<MenuScreen/>}
+      {screen==="menu"&&<MenuScreen tab={menuTab} onTabChange={setMenuTab}/>}
       {screen==="staff"&&<StaffScreen/>}
     </div>
     <BottomNav active={active} onChange={navigate}/>

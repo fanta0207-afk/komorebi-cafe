@@ -11,12 +11,13 @@ export function equipmentLayout(state: GameState) {
   return visible.map((item, index) => {
     const row = Math.floor(index / 5);
     const count = Math.min(5, visible.length - row * 5);
-    const position = { x: 40 + (index % 5 + .5) * 43 / count, y: visible.length > 5 ? 27.5 + row * 6 : 33.5 };
+    // The wider counter leaves the grinder/entrance clear on the left.
+    const position = { x: 30 + (index % 5 + .5) * 65 / count, y: visible.length > 5 ? 32.2 + row * 3.5 : 35.7 };
     const stations = state.stations.filter(station => station.equipmentId === item.id);
     const activities = stations.map(station => ({ station, ...stationActivity(state, station.id) }));
     const activity = activities.find(entry => entry.status === "cooking") ?? activities.find(entry => entry.status === "waiting")
       ?? activities.find(entry => entry.status === "ready") ?? activities.find(() => true);
-    return { item, position, workPosition: { x: position.x - 3, y: 43.5 }, stations, activities,
+    return { item, position, workPosition: { x: position.x - 3, y: 44.5 }, stations, activities,
       status: activity?.status ?? "uninstalled", label: activity?.label ?? "未設置", order: activity?.order };
   });
 }

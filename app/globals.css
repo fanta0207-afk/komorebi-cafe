@@ -125,7 +125,8 @@ body { background:#241c16; }
 .photo-cafe .scene-staff { width:10%; height:15cqw; }
 .photo-cafe .manager-name { font-size:12px; bottom:-15px; padding:1px 5px; background:#513a26d9; border-color:#c3a875; }
 .photo-cafe .manager-name small,.photo-cafe .staff-name,.photo-cafe .staff-talk { display:none; }
-.photo-cafe .equipment-layout .scene-equipment { width:8%; height:8cqw; }
+.photo-cafe .equipment-layout .scene-equipment { width:10%; height:8cqw; }
+.photo-cafe.has-expanded-kitchen .equipment-layout .scene-equipment { height:6cqw; }
 .photo-cafe .equipment-layout .equipment-prop i { font-size:3cqw; }
 .photo-cafe .equipment-state-label { display:none; }
 .photo-cafe .equipment-cooking .equipment-state-label,.photo-cafe .equipment-uninstalled .equipment-state-label { display:block; font-size:12px; top:-17px; }

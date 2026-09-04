@@ -13,13 +13,13 @@ export function procurementRate(state: GameState, ingredientId: string) {
   return { level, perPackMs: GAME_CONFIG.procurementMs - (GAME_CONFIG.procurementMs - GAME_CONFIG.minProcurementMs) * level / 10 };
 }
 
-/** One procurement lane for the whole cafe; identical items can be appended. */
+/** One outstanding purchase for the whole cafe; choose all packs before ordering. */
 export function procurementQuote(state: GameState, ingredientId: string, packs: number, now: number) {
   const pending = state.deliveries.filter(delivery => delivery.arrivesAt > now);
-  const blocking = pending.find(delivery => delivery.ingredientId !== ingredientId);
-  const startsAt = Math.max(now, ...pending.map(delivery => delivery.arrivesAt));
+  const blocking = pending[0];
+  const availableAt = Math.max(now, ...pending.map(delivery => delivery.arrivesAt));
   const rate = procurementRate(state, ingredientId);
-  return { ...rate, blocking, startsAt, durationMs: rate.perPackMs * packs, arrivesAt: startsAt + rate.perPackMs * packs };
+  return { ...rate, blocking, availableAt, durationMs: rate.perPackMs * packs, arrivesAt: now + rate.perPackMs * packs };
 }
 
 export function orderSupplies(state: GameState, ingredientId: string, packs = 1, now = Date.now()): GameState {
@@ -29,7 +29,7 @@ export function orderSupplies(state: GameState, ingredientId: string, packs = 1,
   // Settle overdue paid orders before checking the lane, including after a hidden tab.
   state = receiveSupplies(state, now);
   const quote = procurementQuote(state, ingredientId, packs, now);
-  if (quote.blocking) return { ...state, notice: { id: now, type: "info", text: `${getIngredient(quote.blocking.ingredientId)?.name}の入荷待ちです。別の食材は、入荷がすべて終わってから発注できます` } };
+  if (quote.blocking) return { ...state, notice: { id: now, type: "info", text: `${getIngredient(quote.blocking.ingredientId)?.name}の入荷待ちです。同じ食材も追加発注できません。すべて入荷してから次の数量を指定してください` } };
   const cost = item.price * packs;
   if (state.currency < cost) return { ...state, notice: { id: now, type: "info", text: "コインが足りません" } };
   const delivery: IngredientDelivery = { id: `supply-${now}-${state.deliveries.length}-${ingredientId}`, ingredientId, packs, orderedAt: now, arrivesAt: quote.arrivesAt };

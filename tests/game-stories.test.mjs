@@ -53,7 +53,7 @@ function play(id,route='romance',until=10) {
   state=reducer(state,{type:'VISIT',characterId:id});
   const character=characters.find(c=>c.id===id);
   const supply=ingredients.find(item=>item.supplierId===character.supplierId&&!item.unlockEventId);
-  for(let i=0;i<8;i++)state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:supply.id});
+  state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:supply.id,packs:8});
   state=receiveAll(state);
   const gift=gifts.filter(item=>state.giftShopItems.includes(item.id)).sort((a,b)=>a.price/GAME_CONFIG.giftAffection[giftReaction(character,a)]-b.price/GAME_CONFIG.giftAffection[giftReaction(character,b)]).find(item=>GAME_CONFIG.giftAffection[giftReaction(character,item)]>0);
   for(const event of routeEvents(id).filter(event=>event.toStage<=until)) {
@@ -397,18 +397,25 @@ test('legacy weather and trend fields no longer affect orders, prices or rotate 
   for (const key of ["dailyWeatherId", "dailyCustomerGroupId", "dailyEventId"]) assert.equal(later[key], state[key]);
 });
 
-test('bulk procurement charges once and scales with quantity and serializes identical-item batches', () => {
+test('bulk procurement scales with quantity and rejects further purchases until the complete batch arrives', () => {
   let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 1000 });
   assert.equal(state.currency, 2700);
   assert.equal(state.ingredients.coffeeBeans, 10);
   assert.equal(state.deliveries[0].arrivesAt, 541000);
-  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now: 31000 });
-  assert.equal(state.deliveries.length, 2);
-  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [541000, 901000]);
+  for (const now of [1000, 31000, 540999]) {
+    const rejected = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now });
+    for (const key of ['currency', 'ingredients', 'deliveries', 'characterProgress', 'lifetimeStats']) assert.deepEqual(rejected[key], state[key]);
+    assert.match(rejected.notice.text, /追加発注できません/);
+  }
+  state = migrateSavedState(JSON.parse(JSON.stringify(state)), 31000);
+  assert.equal(procurementQuote(state, 'coffeeBeans', 2, 31000).blocking.id, state.deliveries[0].id);
   assert.equal(receiveSupplies(state, 540999), state);
   state = receiveSupplies(state, 541000);
   assert.equal(state.ingredients.coffeeBeans, 25);
+  assert.equal(state.deliveries.length, 0);
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now: 541000 });
   assert.equal(state.deliveries.length, 1);
+  assert.equal(state.deliveries[0].arrivesAt, 901000);
   const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 901000);
   assert.equal(restored.ingredients.coffeeBeans, 35);
   assert.equal(restored.currency, 2500);
@@ -491,7 +498,7 @@ test('a request waits for delivery, cooks serially, earns its bonus only on serv
 
 test('one global procurement lane blocks different items without charging or granting affection', () => {
   const state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'bread', packs: 2, now: 1000 });
-  for (const ingredientId of ['flour', 'milk']) {
+  for (const ingredientId of ['bread', 'flour', 'milk']) {
     const quote = procurementQuote(state, ingredientId, 1, 1001);
     assert.equal(quote.blocking.ingredientId, 'bread');
     const rejected = reducer(state, { type: 'BUY_INGREDIENT', ingredientId, now: 1001 });
@@ -526,7 +533,9 @@ test('each supplier speeds up from 180 to 30 seconds per pack on both routes, wi
   let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', now: 1000 });
   state = { ...state, characterProgress: { ...state.characterProgress, ren: { ...state.characterProgress.ren, relationshipStage: 10 } } };
   state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 2000 });
-  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [181000, 271000]);
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [181000]);
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 181000 });
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [271000]);
   const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 270999);
   assert.equal(restored.ingredients.coffeeBeans, 15);
   assert.equal(restored.deliveries[0].arrivesAt, 271000);
@@ -548,6 +557,11 @@ test('previously paid parallel deliveries preserve their deadlines and settle ex
   assert.equal(arrived.ingredients.milk, 10);
   assert.equal(arrived.currency, initial.currency);
   assert.equal(receiveSupplies(arrived, 999999), arrived);
+  const queuedLegacy = { ...initial, deliveries: old.deliveries.map(item => ({ ...item, ingredientId: 'coffeeBeans' })) };
+  const partial = receiveSupplies(migrateSavedState(JSON.parse(JSON.stringify(queuedLegacy)), 100000), 181000);
+  assert.equal(partial.deliveries.length, 1);
+  assert.ok(procurementQuote(partial, 'coffeeBeans', 1, 181000).blocking, 'last legacy batch must arrive before another purchase');
+  assert.deepEqual(reducer(partial, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', now: 181000 }).deliveries, partial.deliveries);
 });
 
 const { orderRequirements } = require(join(output, 'game/orderRequirements.js'));

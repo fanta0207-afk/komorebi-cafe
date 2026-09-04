@@ -10,7 +10,6 @@ import { equipmentLayout } from "../components/cafe/equipmentLayout";
 import { hasIngredients, startProblem } from "../game/operations";
 import { isRecipeUsable, salePrice } from "../game/logic";
 import type { GameState } from "../types/game";
-import { navItems } from "../components/GameUI";
 import { CafeScene } from "../components/cafe/CafeScene";
 import { CafeAsset } from "../components/cafe/CafeAsset";
 import { cafeAsset } from "../components/cafe/sceneModel";
@@ -25,12 +24,11 @@ interface CafeProps {
   onCharacter: (id: string) => void;
   onTown: () => void;
   onEquipment: () => void;
-  onNavigate: (id: string) => void;
   onDev: () => void;
 }
 type Notebook = { page: "orders" | "shop"; selected?: string };
 
-export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, onCharacter, onTown, onEquipment, onNavigate, onDev }: CafeProps) {
+export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, onCharacter, onTown, onEquipment, onDev }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
   const [menuOpen, setMenuOpen] = useState(false);
   const stocked = recipes.some(recipe => isRecipeUsable(recipe.id, state) && hasIngredients(state, recipe));
@@ -47,11 +45,11 @@ export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, o
     <h1 className="sr-only">こもれび喫茶</h1>
     <header className="cafe-hud">
       <div className="cafe-wallet" aria-label={`所持コイン ${state.currency.toLocaleString()}`}><span aria-hidden="true">●</span>{state.currency.toLocaleString()}</div>
-      <button className="cafe-menu-toggle" type="button" onClick={() => setMenuOpen(true)} aria-label="メニューを開く"><span aria-hidden="true">☰</span><small>メニュー</small></button>
+      <button className="cafe-menu-toggle" type="button" onClick={() => setMenuOpen(true)} aria-label="注文ノートと店の情報を開く"><span aria-hidden="true">☷</span><small>ノート</small></button>
     </header>
     <CafeScene state={state} manager={manager} managerPose={managerFrame} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={() => setNotebook({ page: "shop" })}/>
     {!stocked && <button className="cafe-restock-hint" type="button" onClick={onTown}>食材を仕入れる →</button>}
-    {menuOpen && <CafeMenu onClose={() => setMenuOpen(false)} onNavigate={id => { setMenuOpen(false); onNavigate(id); }}
+    {menuOpen && <CafeMenu onClose={() => setMenuOpen(false)}
       onNotebook={page => { setMenuOpen(false); setNotebook({ page }); }} onDev={() => { setMenuOpen(false); onDev(); }}/>}
     {notebook && <CafeNotebook state={state} manager={manager} notebook={notebook} onClose={() => setNotebook(undefined)}
       onStart={id => { onStart(id); setNotebook(undefined); }} onCollect={id => { onCollect(id); setNotebook(undefined); }} stocked={stocked} onTown={onTown} onEquipment={onEquipment}/>}
@@ -109,8 +107,8 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, s
   </dialog>;
 }
 
-function CafeMenu({ onClose, onNavigate, onNotebook, onDev }: {
-  onClose: () => void; onNavigate: (id: string) => void; onNotebook: (page: Notebook["page"]) => void; onDev: () => void;
+function CafeMenu({ onClose, onNotebook, onDev }: {
+  onClose: () => void; onNotebook: (page: Notebook["page"]) => void; onDev: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -121,11 +119,10 @@ function CafeMenu({ onClose, onNavigate, onNotebook, onDev }: {
   return <dialog ref={dialogRef} className="cafe-notebook cafe-menu" aria-labelledby="cafe-menu-title" onClose={onClose}>
     <div className="notebook-handle"/>
     <header className="notebook-header"><h2 id="cafe-menu-title">こもれび喫茶</h2><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
-    <nav className="cafe-menu-grid" aria-label="メインメニュー">
-      {navItems.filter(item => item.id !== "cafe").map(item => <button key={item.id} type="button" onClick={() => onNavigate(item.id)}><span aria-hidden="true">{item.icon}</span>{item.label}</button>)}
+    <nav className="cafe-menu-grid" aria-label="お店のノート">
       <button type="button" onClick={() => onNotebook("orders")}><span aria-hidden="true">☷</span>注文ノート</button>
+      <button type="button" onClick={() => onNotebook("shop")}><span aria-hidden="true">♧</span>店のようす・思い出</button>
     </nav>
-    <button className="cafe-menu-details" type="button" onClick={() => onNotebook("shop")}>店のようす・思い出 <span>→</span></button>
     <details className="cafe-settings"><summary>設定</summary><button type="button" onClick={onDev}>開発メニュー</button></details>
   </dialog>;
 }

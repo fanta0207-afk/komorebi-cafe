@@ -110,7 +110,7 @@ button { font:inherit; color:inherit; }
 /* Supplied room artwork fills one portrait phone surface. */
 body { background:#241c16; }
 .game-shell.cafe-shell { width:min(100%,430px); height:100dvh; padding:0; background:#684522; }
-.cafe-shell .screen-wrap { height:100%; overflow:hidden; }
+.cafe-shell .screen-wrap { height:calc(100% - 66px - env(safe-area-inset-bottom)); overflow:hidden; }
 .cafe-shell .cafe-screen { position:relative; display:block; min-height:0; height:100%; overflow:hidden; container-type:size; }
 .cafe-screen .photo-cafe { position:absolute; left:50%; top:0; transform:translateX(-50%); width:max(100%,56.28cqh); height:max(100%,177.68cqw); min-height:0; border:0; }
 .room-art>img { object-fit:fill; }
@@ -144,7 +144,7 @@ body { background:#241c16; }
 .cafe-menu-toggle { pointer-events:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; width:54px; height:54px; border:1px solid #e1c89a; border-radius:16px; background:#fff0d3ed; color:#634326; box-shadow:0 3px 10px #2d1b1840; cursor:pointer; }
 .cafe-menu-toggle>span { font-size:22px; line-height:1; }
 .cafe-menu-toggle>small { font-size:10px; margin-top:3px; }
-.cafe-menu-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:22px 0; }
+.cafe-menu-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:22px 0; }
 .cafe-menu-grid button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; min-height:88px; border:1px solid #dbc7a7; border-radius:12px; background:#f5e8ce; color:#69492e; font-size:14px; cursor:pointer; }
 .cafe-menu-grid button>span { font-size:25px; color:#79532f; }
 .cafe-menu-details { display:flex; justify-content:space-between; width:100%; padding:17px 4px; font-size:14px; background:transparent; border:0; border-top:1px solid #dfceb0; cursor:pointer; }
@@ -154,3 +154,7 @@ body { background:#241c16; }
 .cafe-restock-hint { position:absolute; bottom:calc(28px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:80; border:1px solid #d5b683; background:#fff0d3ed; color:#634326; border-radius:20px; padding:12px 18px; white-space:nowrap; font-size:14px; cursor:pointer; }
 .cafe-shell .notice { top:calc(80px + env(safe-area-inset-top)); bottom:auto; font-size:13px; padding:8px 14px; }
 .cafe-notebook { width:min(100%,430px); }
+
+.cafe-shell .bottom-nav { height:calc(66px + env(safe-area-inset-bottom)); padding:3px 6px env(safe-area-inset-bottom); background:#fff1dbeF; border-top:1px solid #c9aa7c; }
+.cafe-shell .bottom-nav button { min-height:48px; margin:2px 0; gap:4px; color:#785538; font-size:10px; }
+.cafe-shell .bottom-nav button.active { background:#e6d5b4; color:#52391e; }

@@ -279,3 +279,24 @@ test('equipment and scene track idle, countdown, ready and served from the same 
   state = reducer(state, { type: 'COLLECT_ORDER', orderId: 'one' });
   assert.equal(stationActivity(state, station.id).status, 'idle');
 });
+
+test('the three supplied guests retain their artwork and turn with the entrance and exit route', () => {
+  const { CustomerSprite } = require(join(output, 'components/cafe/CustomerSprite.js'));
+  const { CUSTOMER_LOOKS, customerFacing } = require(join(output, 'components/cafe/sceneModel.js'));
+  assert.equal(CUSTOMER_LOOKS.length, 3);
+  for (const [index, look] of CUSTOMER_LOOKS.entries()) {
+    const html = renderToStaticMarkup(React.createElement(CustomerSprite, { look, phase: 'entering' }));
+    assert.match(html, /src="\/assets\/customers\/cafe-guests\.png"/);
+    assert.ok(html.includes(`--customer-column:${index}`));
+    assert.ok(html.includes(`look-${look}`)); // CSS fallback remains available.
+  }
+  const left = makeVisit(order('left-seat', 0), 0);
+  const right = makeVisit(order('right-seat', 1), 0);
+  assert.equal(customerFacing(left, 0), 1);
+  assert.equal(customerFacing(left, VISIT_TIMING.enter * .9), -1);
+  assert.equal(customerFacing(right, VISIT_TIMING.enter * .9), 1);
+  assert.equal(customerFacing(left, VISIT_TIMING.enter), 1);
+  const departing = { ...left, servedAt: 5000 };
+  assert.equal(customerFacing(departing, 5000 + VISIT_TIMING.enjoy + 10), 1);
+  assert.equal(customerFacing(departing, 5000 + VISIT_TIMING.enjoy + VISIT_TIMING.leave * .9), -1);
+});

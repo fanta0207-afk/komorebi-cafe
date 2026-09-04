@@ -5,7 +5,7 @@ export const TABLE_POSITIONS = [
   { x: 29, y: 52 }, { x: 71, y: 52 },
   { x: 29, y: 73 }, { x: 71, y: 73 },
 ] as const;
-export const VISIT_TIMING = { enter: 1400, enjoy: 1500, leave: 1700 };
+export const VISIT_TIMING = { enter: 3200, enjoy: 1800, leave: 2800 };
 export type VisitPhase = "entering" | "seated" | "enjoying" | "leaving";
 export interface CafeVisit {
   id: string;
@@ -15,7 +15,7 @@ export interface CafeVisit {
   arrivedAt: number;
   servedAt?: number;
 }
-export const CUSTOMER_LOOKS = ["moss", "rose", "navy", "ochre"];
+export const CUSTOMER_LOOKS = ["moss", "rose", "navy"];
 
 export function makeVisit(order: Order, now: number): CafeVisit {
   // Stable across reloads, without changing the game's recipe/customer random draws.
@@ -55,3 +55,12 @@ export const cafeAsset = {
   food: (id: string) => `/assets/foods/${id}.png`,
   effect: (id: string) => `/assets/effects/${id}.png`,
 };
+
+/** Facing follows the aisle route, while a seated guest faces their table. */
+export function customerFacing(visit: CafeVisit, now: number): 1 | -1 {
+  const phase = visitPhase(visit, now);
+  const seatX = TABLE_POSITIONS[visit.slot].x - 12;
+  if (phase === "entering") return (now - visit.arrivedAt) / VISIT_TIMING.enter < .75 || seatX > 49 ? 1 : -1;
+  if (phase === "leaving") return (now - visit.servedAt! - VISIT_TIMING.enjoy) / VISIT_TIMING.leave < .25 && seatX < 49 ? 1 : -1;
+  return 1;
+}

@@ -9,7 +9,8 @@ import { activeCookingOrder } from "../../game/kitchen";
 import { equipmentLayout, equipmentWorkPosition } from "./equipmentLayout";
 import type { GameState, Order } from "../../types/game";
 import { CafeAsset } from "./CafeAsset";
-import { cafeAsset, makeVisit, reconcileVisits, TABLE_POSITIONS, visitPhase, VISIT_TIMING } from "./sceneModel";
+import { cafeAsset, customerFacing, makeVisit, reconcileVisits, TABLE_POSITIONS, visitPhase, VISIT_TIMING } from "./sceneModel";
+import { CustomerSprite } from "./CustomerSprite";
 import { CafeManager } from "./CafeManager";
 import { createManager, managerFrame, managerPending, type ManagerModel, type ManagerFrame } from "./managerModel";
 import { PersonFallback } from "./PersonFallback";
@@ -38,7 +39,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
   const activeOrder = activeCookingOrder(state);
   const memories = state.unlockedDecorations.flatMap(id => { const item = getDecoration(id); return item ? [item] : []; });
   const serving = workingStaff.some(person => person.servingOrderId);
-  return <div className={`cafe-scene photo-cafe ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
+  return <div className={`cafe-scene photo-cafe ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} style={{ "--guest-enter-duration": `${VISIT_TIMING.enter}ms`, "--guest-leave-duration": `${VISIT_TIMING.leave}ms` } as CSSProperties} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
     <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
       <CafeAsset src={cafeAsset.background("room")} className="room-art"><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
       <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div></CafeAsset>
@@ -95,10 +96,9 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       {activeVisits.map(visit => {
         const { x, y } = TABLE_POSITIONS[visit.slot];
         const elapsed = visit.phase === "leaving" ? state.activeMs - visit.servedAt! - VISIT_TIMING.enjoy : state.activeMs - visit.arrivedAt;
-        const style = { ...place(x - 12, y + 10), "--door-x": `${18 - (x - 12)}cqw`, "--door-y": `${37 - (y + 10)}cqh`, "--visit-delay": `${-elapsed}ms` } as CSSProperties;
+        const style = { ...place(x - 12, y + 10), "--door-x": `${18 - (x - 12)}cqw`, "--door-y": `${37 - (y + 10)}cqh`, "--aisle-x": `${49 - (x - 12)}cqw`, "--foyer-y": `${44 - (y + 10)}cqh`, "--visit-delay": `${-elapsed}ms`, "--guest-step": `${-(elapsed % 640)}ms`, "--guest-breath": `${-((state.activeMs + visit.slot * 730) % 3600)}ms`, "--guest-facing": customerFacing(visit, state.activeMs) } as CSSProperties;
         return <div key={visit.id} className={`scene-guest guest-${visit.phase}`} style={style} data-visit-phase={visit.phase}>
-          <div className="guest-motion"><CafeAsset src={cafeAsset.customer(visit.look, visit.phase)} alternatives={[cafeAsset.customer(visit.look)]}>
-            <PersonFallback look={visit.look}/></CafeAsset></div>
+          <div className="guest-motion"><span className="guest-ground-shadow"/><CustomerSprite look={visit.look} phase={visit.phase}/></div>
           {visit.phase === "enjoying" && <span className="served-food"><CafeAsset src={cafeAsset.food(visit.recipeId)}>{getRecipe(visit.recipeId)?.icon}</CafeAsset></span>}
         </div>;
       })}

@@ -161,3 +161,36 @@ body { background:#241c16; }
 
 .scene-kitchen-entry { position:absolute; transform:translate(-50%,-50%); min-width:110px; min-height:44px; padding:8px 12px; border:1px solid #dab47b; border-radius:5px; background:#51371deb; color:#fff0ce; font-size:14px; font-weight:700; box-shadow:0 2px 5px #33201344,inset 0 0 0 3px #bd99602e; cursor:pointer; }
 .scene-kitchen-entry span { margin-left:5px; color:#e6c795; }
+
+/* Original customer artwork: three transparent portraits, selected without editing the PNG. */
+.photo-cafe .scene-guest { width:13%; height:22.35cqw; }
+.guest-motion { position:relative; }
+.customer-facing,.customer-sway { width:100%; height:100%; transform-origin:50% 92%; }
+.customer-facing { transform:scaleX(var(--guest-facing,1)); }
+.customer-atlas { width:100%; height:100%; overflow:hidden; }
+.customer-atlas>.cafe-asset>img { inset:auto; left:calc(var(--customer-column) * -100%); top:-9.1%; width:300%; max-width:none; height:auto; object-fit:contain; }
+.guest-ground-shadow { position:absolute; left:18%; bottom:1%; width:65%; height:5%; border-radius:50%; background:#432d1e32; filter:blur(1px); }
+.guest-entering .guest-motion { animation-name:customer-arrive; animation-duration:var(--guest-enter-duration); }
+.guest-leaving .guest-motion { animation-name:customer-depart; animation-duration:var(--guest-leave-duration); }
+.guest-entering .customer-sway,.guest-leaving .customer-sway { animation:customer-footstep 640ms linear infinite; animation-play-state:paused; animation-delay:var(--guest-step); }
+.guest-seated .customer-sway { animation:customer-breathe 3.6s ease-in-out infinite; animation-play-state:paused; animation-delay:var(--guest-breath); }
+.guest-enjoying .customer-sway { animation:customer-thanks 3.6s ease-in-out infinite; animation-play-state:paused; animation-delay:var(--guest-breath); }
+.photo-cafe .bubble-entering { animation-duration:var(--guest-enter-duration); }
+@keyframes customer-arrive {
+  0% { transform:translate(var(--door-x),var(--door-y)); opacity:0; }
+  15% { transform:translate(var(--door-x),var(--foyer-y)); opacity:1; }
+  40% { transform:translate(var(--aisle-x),var(--foyer-y)); opacity:1; }
+  75% { transform:translate(var(--aisle-x),0); opacity:1; }
+  100% { transform:translate(0,0); opacity:1; }
+}
+@keyframes customer-depart {
+  0% { transform:translate(0,0); opacity:1; }
+  25% { transform:translate(var(--aisle-x),0); opacity:1; }
+  60% { transform:translate(var(--aisle-x),var(--foyer-y)); opacity:1; }
+  85% { transform:translate(var(--door-x),var(--foyer-y)); opacity:1; }
+  100% { transform:translate(var(--door-x),var(--door-y)); opacity:0; }
+}
+@keyframes customer-footstep { 0%,50%,100%{translate:0 0;rotate:-1deg}25%{translate:0 -2px;rotate:1deg}75%{translate:0 -2px;rotate:1deg} }
+@keyframes customer-breathe { 0%,100%{scale:1 1;translate:0 0}50%{scale:1.012 1.016;translate:0 -1px} }
+@keyframes customer-thanks { 0%,100%{rotate:0deg;translate:0 0}35%{rotate:3deg;translate:0 1px}65%{rotate:0deg;translate:0 -1px} }
+@media(prefers-reduced-motion:reduce) { .customer-facing { transform:none; } .customer-sway,.guest-motion { animation:none!important; } }

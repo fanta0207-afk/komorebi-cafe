@@ -95,6 +95,8 @@ test('a fully developed cafe renders all equipment, memories, staff and 4 usable
   for (const character of characters) assert.ok(html.includes(`aria-label="${character.name}・`));
   assert.match(html, /aria-label="店長（あなた）・いらっしゃいませ"/);
   assert.equal((html.match(/class="scene-order /g) || []).length, 4);
+  assert.match(html, /src="\/assets\/cafe\/backgrounds\/room\.png"/);
+  assert.equal((html.match(/src="\/assets\/cafe\/furniture\/table-set\.png"/g) || []).length, 4);
   assert.match(html, /あと5秒/);
   assert.match(html, /提供する/);
   assert.equal(JSON.stringify(state), before);
@@ -163,7 +165,7 @@ test('the manager carries a ready dish to its exact table before the existing re
   assert.equal(state.orders.length, 0);
   assert.ok(state.currency > coins);
   assert.equal(managerFrame(manager, state).phase, 'serving');
-  assert.deepEqual(managerFrame(manager, state).position, { x: 57, y: 65 });
+  assert.deepEqual(managerFrame(manager, state).position, { x: 56, y: 60 });
 });
 
 test('the manager queues separate valid orders without changing save data itself', () => {

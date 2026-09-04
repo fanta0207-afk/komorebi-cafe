@@ -10,6 +10,7 @@ import { equipmentLayout } from "../components/cafe/equipmentLayout";
 import { hasIngredients, startProblem } from "../game/operations";
 import { isRecipeUsable, salePrice } from "../game/logic";
 import type { GameState } from "../types/game";
+import { navItems } from "../components/GameUI";
 import { CafeScene } from "../components/cafe/CafeScene";
 import { CafeAsset } from "../components/cafe/CafeAsset";
 import { cafeAsset } from "../components/cafe/sceneModel";
@@ -24,13 +25,14 @@ interface CafeProps {
   onCharacter: (id: string) => void;
   onTown: () => void;
   onEquipment: () => void;
+  onNavigate: (id: string) => void;
+  onDev: () => void;
 }
 type Notebook = { page: "orders" | "shop"; selected?: string };
 
-export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, onCharacter, onTown, onEquipment }: CafeProps) {
+export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, onCharacter, onTown, onEquipment, onNavigate, onDev }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
-  const ready = state.orders.filter(order => order.status === "ready").length;
-  const cooking = activeCookingOrder(state) ? 1 : 0;
+  const [menuOpen, setMenuOpen] = useState(false);
   const stocked = recipes.some(recipe => isRecipeUsable(recipe.id, state) && hasIngredients(state, recipe));
   const actOnOrder = (id: string) => {
     const order = state.orders.find(item => item.id === id);
@@ -42,18 +44,15 @@ export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, o
     else setNotebook({ page: "orders", selected: id });
   };
   return <section className="cafe-screen" aria-label="カフェ">
-    <div className="cafe-scene-heading">
-      <div><span className="cafe-heading-kicker"><i/> のんびり営業中</span><h1>こもれび喫茶</h1></div>
-      <div className="cafe-kitchen-rule"><span>一杯ずつ、ていねいに</span><small>基本30秒で調理</small></div>
-    </div>
+    <h1 className="sr-only">こもれび喫茶</h1>
+    <header className="cafe-hud">
+      <div className="cafe-wallet" aria-label={`所持コイン ${state.currency.toLocaleString()}`}><span aria-hidden="true">●</span>{state.currency.toLocaleString()}</div>
+      <button className="cafe-menu-toggle" type="button" onClick={() => setMenuOpen(true)} aria-label="メニューを開く"><span aria-hidden="true">☰</span><small>メニュー</small></button>
+    </header>
     <CafeScene state={state} manager={manager} managerPose={managerFrame} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={() => setNotebook({ page: "shop" })}/>
-    <div className="cafe-action-dock">
-      <div className="cafe-live-line"><span className={ready ? "ready-indicator" : ""}/><p>{manager.current ? `店長：${managerFrame.label}${manager.queue.length ? ` · 次の仕事 ${manager.queue.length}件` : ""}` : ready ? `できたてが${ready}品。タップすると店長が提供します` : cooking ? `${cooking}品を調理中。ゆっくりお待ちください` : state.orders.length ? "吹き出しをタップすると、店長がマシンへ" : stocked ? "窓辺にひと息。まもなくお客さまが来店します" : "食材を仕入れて、お客さまを迎えましょう"}</p></div>
-      <div className="cafe-dock-buttons">
-        <button type="button" onClick={() => setNotebook({ page: "orders" })}><span className="dock-icon">☷</span><span>注文とキッチン</span><b className={ready ? "has-ready" : ""}>{state.orders.length}<small>/4</small></b><span className="dock-chevron">⌃</span></button>
-        <button type="button" className="cafe-journal-button" onClick={() => setNotebook({ page: "shop" })}><span>♧</span> 店のようす</button>
-      </div>
-    </div>
+    {!stocked && <button className="cafe-restock-hint" type="button" onClick={onTown}>食材を仕入れる →</button>}
+    {menuOpen && <CafeMenu onClose={() => setMenuOpen(false)} onNavigate={id => { setMenuOpen(false); onNavigate(id); }}
+      onNotebook={page => { setMenuOpen(false); setNotebook({ page }); }} onDev={() => { setMenuOpen(false); onDev(); }}/>}
     {notebook && <CafeNotebook state={state} manager={manager} notebook={notebook} onClose={() => setNotebook(undefined)}
       onStart={id => { onStart(id); setNotebook(undefined); }} onCollect={id => { onCollect(id); setNotebook(undefined); }} stocked={stocked} onTown={onTown} onEquipment={onEquipment}/>}
   </section>;
@@ -107,5 +106,26 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, s
     <button className="notebook-equipment-link" type="button" onClick={onEquipment}>設備の設置・強化へ →</button></section>
     {state.staff.some(person => person.role !== "rest") && <section className="notebook-crew"><h3>お手伝い中</h3>{state.staff.filter(person => person.role !== "rest").map(person => <p key={person.characterId}>♡ {getCharacter(person.characterId)?.shortName} · {person.role === "cook" ? "調理担当" : "提供担当"}</p>)}</section>}
     {notebook.page === "shop" && state.unlockedDecorations.length > 0 && <section className="notebook-memories"><h3>店に残った思い出 <small>{state.unlockedDecorations.length}</small></h3>{state.unlockedDecorations.map(id => { const item = getDecoration(id); return item && <span key={id}>{item.icon} {item.name}</span>; })}</section>}
+  </dialog>;
+}
+
+function CafeMenu({ onClose, onNavigate, onNotebook, onDev }: {
+  onClose: () => void; onNavigate: (id: string) => void; onNotebook: (page: Notebook["page"]) => void; onDev: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    return () => dialog?.close();
+  }, []);
+  return <dialog ref={dialogRef} className="cafe-notebook cafe-menu" aria-labelledby="cafe-menu-title" onClose={onClose}>
+    <div className="notebook-handle"/>
+    <header className="notebook-header"><h2 id="cafe-menu-title">こもれび喫茶</h2><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
+    <nav className="cafe-menu-grid" aria-label="メインメニュー">
+      {navItems.filter(item => item.id !== "cafe").map(item => <button key={item.id} type="button" onClick={() => onNavigate(item.id)}><span aria-hidden="true">{item.icon}</span>{item.label}</button>)}
+      <button type="button" onClick={() => onNotebook("orders")}><span aria-hidden="true">☷</span>注文ノート</button>
+    </nav>
+    <button className="cafe-menu-details" type="button" onClick={() => onNotebook("shop")}>店のようす・思い出 <span>→</span></button>
+    <details className="cafe-settings"><summary>設定</summary><button type="button" onClick={onDev}>開発メニュー</button></details>
   </dialog>;
 }

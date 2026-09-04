@@ -11,12 +11,12 @@ export function equipmentLayout(state: GameState) {
   return visible.map((item, index) => {
     const row = Math.floor(index / 5);
     const count = Math.min(5, visible.length - row * 5);
-    const position = { x: 6 + (index % 5 + .5) * 72 / count, y: visible.length > 5 ? 36 + row * 10 : 39 };
+    const position = { x: 40 + (index % 5 + .5) * 43 / count, y: visible.length > 5 ? 27.5 + row * 6 : 33.5 };
     const stations = state.stations.filter(station => station.equipmentId === item.id);
     const activities = stations.map(station => ({ station, ...stationActivity(state, station.id) }));
     const activity = activities.find(entry => entry.status === "cooking") ?? activities.find(entry => entry.status === "waiting")
       ?? activities.find(entry => entry.status === "ready") ?? activities.find(() => true);
-    return { item, position, workPosition: { x: position.x - 6, y: position.y + 10 }, stations, activities,
+    return { item, position, workPosition: { x: position.x - 3, y: 43.5 }, stations, activities,
       status: activity?.status ?? "uninstalled", label: activity?.label ?? "未設置", order: activity?.order };
   });
 }
@@ -25,5 +25,5 @@ export function equipmentWorkPosition(state: GameState, order: Order) {
   const recipe = getRecipe(order.recipeId);
   const id = state.stations.find(station => station.id === order.stationId)?.equipmentId
     ?? (recipe ? preparation(recipe).equipmentId : "coffeeCounter");
-  return equipmentLayout(state).find(entry => entry.item.id === id)?.workPosition ?? { x: 30, y: 49 };
+  return equipmentLayout(state).find(entry => entry.item.id === id)?.workPosition ?? { x: 40, y: 44 };
 }

@@ -38,13 +38,13 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
   const activeOrder = activeCookingOrder(state);
   const memories = state.unlockedDecorations.flatMap(id => { const item = getDecoration(id); return item ? [item] : []; });
   const serving = workingStaff.some(person => person.servingOrderId);
-  return <div className={`cafe-scene ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
+  return <div className={`cafe-scene photo-cafe ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
     <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
-      <div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
-      <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div>
+      <CafeAsset src={cafeAsset.background("room")} className="room-art"><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
+      <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div></CafeAsset>
     </div>
     <div className="scene-layer layer-furniture" data-layer="furniture" aria-hidden="true">
-      <div className="room-window"><CafeAsset src={cafeAsset.furniture("window")}><span className="window-outside"><i/><i/><i/></span><span className="window-frame"/><span className="window-curtain curtain-left"/><span className="window-curtain curtain-right"/></CafeAsset></div>
+      <div className="room-fallback-furniture"><div className="room-window"><CafeAsset src={cafeAsset.furniture("window")}><span className="window-outside"><i/><i/><i/></span><span className="window-frame"/><span className="window-curtain curtain-left"/><span className="window-curtain curtain-right"/></CafeAsset></div>
       <div className="room-door"><CafeAsset src={cafeAsset.furniture("door")}><span className="door-glass"/><span className="door-open">OPEN</span><i className="door-knob"/></CafeAsset></div>
       <div className="room-sign"><span>自家焙煎珈琲</span><b>こもれび</b><small>COFFEE &amp; GOOD DAYS</small></div>
       <div className="room-shelf"><CafeAsset src={cafeAsset.furniture("shelf")}><span>☕ ▥ ☕ 🫖</span></CafeAsset></div>
@@ -54,7 +54,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       <div className="room-lamp lamp-right"><CafeAsset src={cafeAsset.furniture("pendant")}><i/><b/></CafeAsset></div>
       <div className="room-plant plant-left"><CafeAsset src={cafeAsset.furniture("plant")}><span>🪴</span></CafeAsset></div>
       <div className="room-plant plant-right"><CafeAsset src={cafeAsset.furniture("plant")}><span>🪴</span></CafeAsset></div>
-      <div className="door-mat">WELCOME</div>
+      <div className="door-mat">WELCOME</div></div>
       {memories.map((item, index) => {
         const group = memories.filter(memory => memory.placement === item.placement);
         const offset = group.findIndex(memory => memory.id === item.id);
@@ -84,17 +84,17 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
     </div>
     <div className="scene-layer layer-seating" data-layer="seating" aria-hidden="true">
       {TABLE_POSITIONS.map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>
-        <span className="table-chair chair-left"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
+        <CafeAsset src={cafeAsset.furniture("table-set")} className="table-set"><span className="table-chair chair-left"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
         <span className="table-chair chair-right"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
         <CafeAsset src={cafeAsset.furniture("table")}><i className="table-foot"/><i className="table-top"/><span className="table-cloth"/></CafeAsset>
-        <span className="table-number">{String(slot + 1).padStart(2, "0")}</span><span className="table-flower">✿</span>
+        <span className="table-number">{String(slot + 1).padStart(2, "0")}</span><span className="table-flower">✿</span></CafeAsset>
       </div>)}
     </div>
     <div className="scene-layer layer-customers" data-layer="customers" aria-hidden="true">
       {activeVisits.map(visit => {
         const { x, y } = TABLE_POSITIONS[visit.slot];
         const elapsed = visit.phase === "leaving" ? state.activeMs - visit.servedAt! - VISIT_TIMING.enjoy : state.activeMs - visit.arrivedAt;
-        const style = { ...place(x - 7, y + 5), "--door-x": `${87 - (x - 7)}cqw`, "--door-y": `${48 - (y + 5)}cqh`, "--visit-delay": `${-elapsed}ms` } as CSSProperties;
+        const style = { ...place(x - 12, y + 10), "--door-x": `${18 - (x - 12)}cqw`, "--door-y": `${37 - (y + 10)}cqh`, "--visit-delay": `${-elapsed}ms` } as CSSProperties;
         return <div key={visit.id} className={`scene-guest guest-${visit.phase}`} style={style} data-visit-phase={visit.phase}>
           <div className="guest-motion"><CafeAsset src={cafeAsset.customer(visit.look, visit.phase)} alternatives={[cafeAsset.customer(visit.look)]}>
             <PersonFallback look={visit.look}/></CafeAsset></div>
@@ -108,7 +108,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
         const cooking = activeOrder?.cookId === person.characterId;
         const workPosition = cooking && activeOrder ? equipmentWorkPosition(state, activeOrder) : undefined;
         const target = person.servingOrderId && state.orders.find(order => order.id === person.servingOrderId);
-        const position = target ? place(TABLE_POSITIONS[target.customerSlot].x + (target.customerSlot % 2 ? -15 : 15), TABLE_POSITIONS[target.customerSlot].y + 7) : workPosition ? place(workPosition.x, workPosition.y) : place(33 + index * 8, 52);
+        const position = target ? place(TABLE_POSITIONS[target.customerSlot].x + (target.customerSlot % 2 ? -15 : 15), TABLE_POSITIONS[target.customerSlot].y + 7) : workPosition ? place(workPosition.x, workPosition.y) : place(36 + index * 7, 44);
         return <button className={`scene-staff ${target ? "staff-serving" : ""} ${cooking ? "staff-cooking" : ""}`} type="button"
           key={person.characterId} style={position} onClick={() => onCharacter(person.characterId)}
           aria-label={`${character.name}・${person.role === "cook" ? "調理担当" : "提供担当"}。人物の詳細を開く`}>
@@ -120,7 +120,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       <CafeManager frame={managerView} now={state.activeMs}/>
     </div>
     <div className="scene-layer layer-bubbles" data-layer="bubbles">
-      {managerView.phase !== "idle" && <span className={`manager-bubble manager-bubble-${managerView.phase}`} style={place(managerView.position.x, managerView.position.y)}>
+      {["cooking", "ready"].includes(managerView.phase) && <span className={`manager-bubble manager-bubble-${managerView.phase}`} style={place(managerView.position.x, managerView.position.y)}>
         {managerView.label}{managerView.phase === "cooking" && <progress max={1} value={managerView.progress ?? 0} aria-label="店長の調理進捗"/>}
       </span>}
       {state.orders.map(order => {
@@ -132,7 +132,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
         return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
-          style={{ ...place(x + 5, y - 6), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
+          style={{ ...place(x + 1, y - 2), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
           aria-label={`テーブル${order.customerSlot + 1}、${recipe.name}、${problem || label}`}>
           <span className="bubble-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
           <span className="bubble-label">{label}</span>
@@ -140,7 +140,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
           {order.status === "ready" && <i className="ready-star">✦</i>}
         </button>;
       })}
-      {activeVisits.filter(visit => visit.phase === "enjoying").map(visit => <span key={visit.id} className="thanks-bubble" style={place(TABLE_POSITIONS[visit.slot].x, TABLE_POSITIONS[visit.slot].y - 13)}>ごちそうさま ♡</span>)}
+      {activeVisits.filter(visit => visit.phase === "enjoying").map(visit => <span key={visit.id} className="thanks-bubble" style={place(TABLE_POSITIONS[visit.slot].x, TABLE_POSITIONS[visit.slot].y - 3)}>ごちそうさま ♡</span>)}
       {serving && <span className="staff-talk">お待たせしました</span>}
     </div>
     <div className="scene-layer layer-effects" data-layer="effects" aria-hidden="true">

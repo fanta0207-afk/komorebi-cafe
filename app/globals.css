@@ -106,3 +106,51 @@ button { font:inherit; color:inherit; }
 .bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))}.bottom-nav button{min-width:0;font-size:10px}.staff-list{display:grid;gap:16px}.staff-card{margin:16px 0;padding:18px;border:1px solid #d8cebb;border-radius:14px;background:#fffdf7;text-align:left}.staff-heading{display:flex;gap:14px;align-items:center}.staff-heading h3{font-size:17px;margin:4px 0}.staff-heading small,.staff-heading span,.staff-card>small{font-size:12px;color:#766b59}.staff-card p,.staff-guide p{font-size:13px;line-height:1.9}.staff-cost{display:block;font-size:12px;margin:12px 0}.staff-roles{display:flex;gap:8px;margin-top:12px}.staff-roles button{flex:1;border:1px solid #c7c3ac;border-radius:8px;padding:12px 6px;background:#f4f1e7;color:#494d37;font-size:12px}.staff-roles button.active{background:#52664a;color:white}.staff-guide{background:#e9eddf;padding:20px;border-radius:14px}.staff-guide small{font-size:11px;color:#656b53}.equipment-group{border:1px solid #d8cebb;border-radius:14px;overflow:hidden;background:#fffdf7}.equipment-group .equipment-card{border:0;background:transparent;margin:0}.station-list{padding:0 16px 16px}.station-row{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px dashed #ded6c5}.station-row b{font-size:13px}.station-row small{display:block;font-size:11px;color:#71695a;margin-top:5px}.station-row button{font-size:11px;border:1px solid #cacbb9;background:#e9eddf;padding:10px;border-radius:7px}.add-station{margin-top:8px;font-size:12px}.kitchen-status{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.kitchen-status span{padding:7px 10px;background:#edf0e5;border-radius:8px;font-size:11px}.kitchen-status .busy{background:#f5e6c7}.crew-at-work{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.crew-at-work span{font-size:12px;color:#52664a}.save-warning{position:sticky;top:0;padding:12px;background:#ffe3b0;color:#603814;z-index:100;text-align:center;font-size:13px}.empty-stock{padding:12px;background:#f8ead6;border-radius:8px;font-size:12px;line-height:1.8}@media(prefers-reduced-motion:reduce){.order-ready .order-food{animation:none}}
 
 .gift-card>div{flex-wrap:wrap;gap:6px}.recipe-card{grid-template-columns:42px minmax(0,1fr);align-items:start}.recipe-card .recipe-icon{width:38px;height:42px;font-size:25px}.recipe-card em{grid-column:2;justify-self:start}.equipment-group .equipment-card{grid-template-columns:50px minmax(0,1fr)}.staff-roles button:disabled,.station-row button:disabled{opacity:.45;cursor:default}@media(max-width:380px){.date-lockup strong{font-size:14px}.date-lockup .eyebrow{font-size:8px}.coin-pill{font-size:12px;padding:8px}.status-actions{gap:5px}.staff-heading h3{font-size:15px}}
+
+/* Supplied room artwork fills one portrait phone surface. */
+body { background:#241c16; }
+.game-shell.cafe-shell { width:min(100%,430px); height:100dvh; padding:0; background:#684522; }
+.cafe-shell .screen-wrap { height:100%; overflow:hidden; }
+.cafe-shell .cafe-screen { position:relative; display:block; min-height:0; height:100%; overflow:hidden; container-type:size; }
+.cafe-screen .photo-cafe { position:absolute; left:50%; top:0; transform:translateX(-50%); width:max(100%,56.28cqh); height:max(100%,177.68cqw); min-height:0; border:0; }
+.room-art>img { object-fit:fill; }
+.photo-cafe:has(.room-art[data-asset-state="image"]) .room-fallback-furniture { display:none; }
+.photo-cafe .room-table { width:40%; height:23cqw; }
+.table-set { overflow:hidden; }
+.table-set>img { inset:auto; left:0; top:-38.5%; width:100%; height:auto; object-fit:contain; }
+.photo-cafe .scene-light { opacity:.13; }
+.photo-cafe .scene-vignette { box-shadow:none; }
+.photo-cafe .scene-guest { width:12%; height:17cqw; }
+.photo-cafe .scene-manager { width:11%; height:16cqw; }
+.photo-cafe .scene-staff { width:10%; height:15cqw; }
+.photo-cafe .manager-name { font-size:12px; bottom:-15px; padding:1px 5px; background:#513a26d9; border-color:#c3a875; }
+.photo-cafe .manager-name small,.photo-cafe .staff-name,.photo-cafe .staff-talk { display:none; }
+.photo-cafe .equipment-layout .scene-equipment { width:8%; height:8cqw; }
+.photo-cafe .equipment-layout .equipment-prop i { font-size:3cqw; }
+.photo-cafe .equipment-state-label { display:none; }
+.photo-cafe .equipment-cooking .equipment-state-label,.photo-cafe .equipment-uninstalled .equipment-state-label { display:block; font-size:12px; top:-17px; }
+.photo-cafe .equipment-uninstalled .equipment-state-label { font-size:10px; }
+.photo-cafe .equipment-done { width:17px; height:17px; font-size:12px; }
+.photo-cafe .equipment-uninstalled { opacity:.65; }
+.photo-cafe .manager-bubble { transform:translate(-50%,calc(-100% - 17cqw)); padding:4px 7px; font-size:12px; }
+.photo-cafe .manager-bubble progress { display:none; }
+.photo-cafe .scene-order { min-width:66px; min-height:54px; padding:6px 10px; border-radius:13px; background:#fff4daf2; box-shadow:0 3px 8px #4e311733; }
+.photo-cafe .bubble-ready { background:#eff6d8; }
+.photo-cafe .bubble-label { font-size:12px; }
+.photo-cafe .served-food { left:125%; top:58%; width:6cqw; height:6cqw; font-size:5cqw; }
+.cafe-hud { position:absolute; z-index:80; top:max(14px,env(safe-area-inset-top)); left:16px; right:16px; display:flex; align-items:flex-start; justify-content:space-between; pointer-events:none; }
+.cafe-wallet { display:flex; align-items:center; gap:8px; min-height:38px; padding:5px 13px; border:1px solid #e6c88f88; border-radius:22px; background:#3e2a1bdc; color:#fff0cc; font-size:16px; font-weight:700; box-shadow:0 2px 8px #2d1b1833; font-variant-numeric:tabular-nums; }
+.cafe-wallet>span { color:#e7b85c; font-size:18px; }
+.cafe-menu-toggle { pointer-events:auto; display:flex; flex-direction:column; align-items:center; justify-content:center; width:54px; height:54px; border:1px solid #e1c89a; border-radius:16px; background:#fff0d3ed; color:#634326; box-shadow:0 3px 10px #2d1b1840; cursor:pointer; }
+.cafe-menu-toggle>span { font-size:22px; line-height:1; }
+.cafe-menu-toggle>small { font-size:10px; margin-top:3px; }
+.cafe-menu-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:22px 0; }
+.cafe-menu-grid button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; min-height:88px; border:1px solid #dbc7a7; border-radius:12px; background:#f5e8ce; color:#69492e; font-size:14px; cursor:pointer; }
+.cafe-menu-grid button>span { font-size:25px; color:#79532f; }
+.cafe-menu-details { display:flex; justify-content:space-between; width:100%; padding:17px 4px; font-size:14px; background:transparent; border:0; border-top:1px solid #dfceb0; cursor:pointer; }
+.cafe-settings { border-top:1px solid #dfceb0; font-size:12px; color:#8a785e; }
+.cafe-settings summary { padding:16px 4px; cursor:pointer; }
+.cafe-settings button { padding:12px; border:1px solid #dfceb0; background:transparent; border-radius:6px; }
+.cafe-restock-hint { position:absolute; bottom:calc(28px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:80; border:1px solid #d5b683; background:#fff0d3ed; color:#634326; border-radius:20px; padding:12px 18px; white-space:nowrap; font-size:14px; cursor:pointer; }
+.cafe-shell .notice { top:calc(80px + env(safe-area-inset-top)); bottom:auto; font-size:13px; padding:8px 14px; }
+.cafe-notebook { width:min(100%,430px); }

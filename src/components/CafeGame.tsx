@@ -65,9 +65,9 @@ function GameContent() {
   const active=["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen;
 
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
-    <StatusBar state={state} onDev={()=>setDevOpen(true)}/>
+    {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)}/>}
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>navigate("menu")}/>}
+      {screen==="cafe"&&<CafeScreen state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>navigate("menu")} onNavigate={navigate} onDev={()=>setDevOpen(true)}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
       {screen==="gifts"&&<GiftShopScreen/>}
@@ -76,7 +76,7 @@ function GameContent() {
       {screen==="menu"&&<MenuScreen/>}
       {screen==="staff"&&<StaffScreen/>}
     </div>
-    <BottomNav active={active} onChange={navigate}/>
+    {screen!=="cafe"&&<BottomNav active={active} onChange={navigate}/>}
     {state.notice&&<div key={state.notice.id} className={`notice notice-${state.notice.type}`}>{state.notice.text}</div>}
     {event&&<StoryModal
       key={event.id}

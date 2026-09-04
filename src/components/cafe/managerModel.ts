@@ -25,7 +25,7 @@ export interface ManagerFrame {
   orderId?: string;
   progress?: number;
 }
-export const MANAGER_HOME: Point = { x: 30, y: 49 };
+export const MANAGER_HOME: Point = { x: 40, y: 44 };
 export const MANAGER_TIMING = { toMachine: 900, startWork: 450, pickup: 350, toTable: 1100, handoff: 450, return: 900 };
 const HANDOFF_AT = MANAGER_TIMING.toMachine + MANAGER_TIMING.pickup + MANAGER_TIMING.toTable;
 

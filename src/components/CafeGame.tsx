@@ -62,7 +62,7 @@ function GameContent() {
 
   const navigate=(id:string)=>{setScreen(id as Screen);setSupplierId(undefined);setCharacterId(undefined);};
   const openSupplier=(id:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});setSupplierId(id);setScreen("supplier");};
-  const active=["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen;
+  const active=["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen==="menu"?"cafe":screen;
 
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
     {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)}/>}

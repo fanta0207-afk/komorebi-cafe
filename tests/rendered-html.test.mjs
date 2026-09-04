@@ -14,6 +14,10 @@ test('the production Worker renders the cafe game instead of the starter',async(
   assert.match(html,/<title>こもれび喫茶/);
   assert.match(html,/注文ノートと店の情報を開く/);
   assert.match(html,/<nav class="bottom-nav" aria-label="メインメニュー">/);
+  const bottomNav = html.match(/<nav class="bottom-nav"[^>]*>([\s\S]*?)<\/nav>/)?.[1];
+  assert.equal((bottomNav?.match(/<button /g) || []).length, 5);
+  assert.doesNotMatch(bottomNav || '', /設備・料理/);
+  assert.match(html, /class="scene-kitchen-entry"[^>]*aria-label="設備・料理を開く"/);
   assert.match(html,/所持コイン/);
   assert.match(html,/name="viewport"[^>]*device-width/);
   assert.doesNotMatch(html,/class="(?:topbar|cafe-scene-heading|cafe-action-dock)"/);

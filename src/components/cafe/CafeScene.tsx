@@ -72,7 +72,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
           const busy = status === "cooking";
           return <button key={item.id} type="button" className={`scene-equipment equipment-${status}`} data-equipment={item.id} data-equipment-status={status}
             style={place(position.x, position.y)} onClick={onEquipment}
-            aria-label={`${item.name} ${stations.length}台・${label}${busy && order ? `・あと${Math.ceil(order.remainingMs / 1000)}秒` : ""}。設備の詳細を開く`}>
+            aria-label={`${item.name} ${stations.length}台・${label}${busy && order ? `・あと${Math.ceil(order.remainingMs / 1000)}秒` : ""}。設備・料理を開く`}>
             <CafeAsset src={cafeAsset.equipment(item.id)}><span className={`equipment-prop prop-${item.id}`}><i>{item.icon}</i></span></CafeAsset>
             {stations.length > 1 && <small>×{stations.length}</small>}
             <span className="equipment-state-label">{busy && order ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : label}</span>
@@ -81,6 +81,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
           </button>;
         })}
       </div>
+      <button type="button" className="scene-kitchen-entry" style={place(64, 38)} onClick={onEquipment} aria-label="設備・料理を開く">設備・料理 <span aria-hidden="true">›</span></button>
     </div>
     <div className="scene-layer layer-seating" data-layer="seating" aria-hidden="true">
       {TABLE_POSITIONS.map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>

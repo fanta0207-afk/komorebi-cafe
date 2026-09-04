@@ -12,7 +12,7 @@ export function StatusBar({state,onDev}:{state:GameState;onDev:()=>void}) {
 }
 
 export const navItems = [
-  {id:"cafe",icon:"▣",label:"店"},{id:"town",icon:"⌂",label:"街"},{id:"gifts",icon:"♧",label:"贈物"},{id:"people",icon:"♡",label:"人物"},{id:"menu",icon:"☰",label:"設備・料理"},{id:"staff",icon:"♧",label:"スタッフ"},
+  {id:"cafe",icon:"▣",label:"店"},{id:"town",icon:"⌂",label:"街"},{id:"gifts",icon:"♧",label:"贈物"},{id:"people",icon:"♡",label:"人物"},{id:"staff",icon:"♧",label:"スタッフ"},
 ] as const;
 
 export function BottomNav({active,onChange}:{active:string;onChange:(id:string)=>void}) {

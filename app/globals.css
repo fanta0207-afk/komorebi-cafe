@@ -195,3 +195,32 @@ body { background:#241c16; }
 @keyframes customer-breathe { 0%,100%{scale:1 1;translate:0 0}50%{scale:1.012 1.016;translate:0 -1px} }
 @keyframes customer-thanks { 0%,100%{rotate:0deg;translate:0 0}35%{rotate:3deg;translate:0 1px}65%{rotate:0deg;translate:0 -1px} }
 @media(prefers-reduced-motion:reduce) { .customer-facing { transform:none; } .customer-sway,.guest-motion { animation:none!important; } }
+
+.bubble-recipe-name { display:block; max-width:100%; font-size:12px; font-weight:700; line-height:1.35; overflow-wrap:anywhere; margin-top:3px; }
+.photo-cafe .scene-order { width:24%; max-width:125px; padding:6px 7px; }
+.photo-cafe .bubble-label { font-weight:400; font-size:11px; }
+.manager-bubble strong { display:block; max-width:180px; white-space:normal; font-size:13px; }
+.procurement-guide { font-size:14px; line-height:1.8; color:#79654d; }
+.supply-item { padding:15px 0; border-bottom:1px solid #ddceb5; }
+.supply-item-heading { display:flex; align-items:center; gap:12px; }
+.supply-item-heading .item-icon { font-size:30px; }
+.supply-item h3 { margin:0 0 5px; font-size:16px; }
+.supply-item small,.supply-item em { color:#817157; font-size:12px; }
+.supply-order-controls { display:flex; gap:12px; margin-top:13px; align-items:center; }
+.supply-quantity { display:flex; align-items:center; gap:7px; }
+.supply-quantity button { width:36px; height:44px; border:1px solid #cbb894; border-radius:7px; background:#f4e8d3; }
+.supply-quantity>span { min-width:35px; text-align:center; font-size:16px; }
+.supply-quantity small { display:block; font-size:10px; }
+.supply-order-button { flex:1; min-height:44px; border:1px solid #49603b; border-radius:8px; background:#526749; color:#fff3d8; font-size:13px; padding:8px; }
+.supply-order-button b { display:block; margin-top:3px; }
+.supply-quantity button:disabled,.supply-order-button:disabled { opacity:.45; }
+.supply-delivery { display:flex; justify-content:space-between; gap:6px; border-radius:7px; background:#f0e4cc; padding:9px 11px; margin:9px 0 0; font-size:12px; }
+.supply-delivery b { font-variant-numeric:tabular-nums; color:#836331; }
+.cafe-delivery-status { pointer-events:auto; border:1px solid #d2b981; border-radius:8px; background:#fff0d6eb; color:#634628; min-height:32px; padding:4px 10px; font-size:12px; font-variant-numeric:tabular-nums; }
+.bubble-request { font-size:10px; color:#97702c; margin-top:3px; }
+.notebook-order .notebook-action { grid-column:3; grid-row:1; }
+.decline-order { grid-column:2 / 4; justify-self:start; border:0; background:transparent; color:#8b765e; text-decoration:underline; padding:8px 0; min-height:36px; font-size:12px; }
+.notebook-deliveries { margin-top:22px; }
+.notebook-order-tools { grid-column:2 / 4; display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; }
+.notebook-order-tools>button { border:0; background:transparent; padding:8px 0; min-height:36px; font-size:12px; color:#6a7144; text-decoration:underline; cursor:pointer; }
+.notebook-order-tools>.decline-order { color:#8b765e; }

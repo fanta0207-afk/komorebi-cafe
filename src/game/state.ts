@@ -1,5 +1,5 @@
 import { getGift } from "../data/gifts";
-import { characters, getCharacter } from "../data/characters";
+import { getCharacter } from "../data/characters";
 import { getIngredient } from "../data/ingredients";
 import { getRecipe, recipes } from "../data/recipes";
 import { baseEquipmentIds, equipment, getEquipment } from "../data/equipment";
@@ -9,20 +9,22 @@ import { conditionForDay } from "../data/dailyConditions";
 import type { CharacterProgress, EventReward, GameState, GiftReaction, Order, RelationshipRoute, StaffRole } from "../types/game";
 import { startCooking, serveOrder, equipmentPrice, upgradePrice } from "./operations";
 import { advanceGame } from "./simulation";
+import { orderSupplies, receiveSupplies } from "./procurement";
 import { stationOccupied } from "./kitchen";
 import { GAME_CONFIG, relationshipLabel } from "./config";
-import { availableEvent, createCharacterProgress, findNewRecipes, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction } from "./logic";
+import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction } from "./logic";
 
 export type Action =
   | {type:"HYDRATE"; state:GameState}
   | {type:"VISIT"; characterId:string}
-  | {type:"BUY_INGREDIENT"; ingredientId:string}
+  | {type:"BUY_INGREDIENT"; ingredientId:string; packs?:number; now?:number}
   | {type:"BUY_GIFT"; giftId:string}
   | {type:"GIVE_GIFT"; characterId:string; giftId:string; reaction:GiftReaction}
   | {type:"SPAWN_ORDER"; order:Order}
+  | {type:"DECLINE_ORDER"; orderId:string}
   | {type:"COLLECT_ORDER"; orderId:string}
   | {type:"START_COOKING"; orderId:string}
-  | {type:"TICK"; deltaMs:number}
+  | {type:"TICK"; deltaMs:number; now?:number}
   | {type:"REFRESH_SHOP"; items:string[]; costAction:boolean}
   | {type:"COMPLETE_EVENT"; eventId:string; route?:Exclude<RelationshipRoute,"undecided">; choiceId?:string}
   | {type:"COMPLETE_GROWTH_EVENT"; eventId:string}
@@ -48,7 +50,7 @@ export function createInitialState():GameState {
   return {
     saveVersion:GAME_CONFIG.saveVersion, season:"春", day:1, currency:GAME_CONFIG.initialCurrency,
     stations:baseEquipmentIds.map(id=>({id:`${id}-1`,equipmentId:id,level:1})),staff:[],activeMs:0,spawnRemainingMs:1000,nextOrderNumber:1,
-    ingredients:{coffeeBeans:10,bread:10}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
+    deliveries:[], ingredients:{coffeeBeans:10,bread:10}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
     giftShopItems:giftsForFirstDay(), giftShopRefreshAt:Date.now(), dailyTalkStatus:{}, dailyGiftStatus:{},
     lastPlayedAt:Date.now(), dailyStats:emptyStats(), dayNews:[], orders:[], offlineOffer:0,
     maxActions:0, actionsRemaining:0,
@@ -109,6 +111,9 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       dailyWeatherId:saved.dailyWeatherId || condition.weatherId,
       dailyCustomerGroupId:saved.dailyCustomerGroupId || condition.customerGroupId,
       dailyEventId:saved.dailyEventId || condition.dailyEventId,
+      deliveries:Array.isArray(saved.deliveries) ? saved.deliveries.filter(item => item && getIngredient(item.ingredientId)
+        && typeof item.id === "string" && Number.isInteger(item.packs) && item.packs > 0 && item.packs <= GAME_CONFIG.maxProcurementPacks
+        && Number.isFinite(item.orderedAt) && Number.isFinite(item.arrivesAt) && item.arrivesAt >= item.orderedAt) : [],
       orders:saved.orders || [], lastPlayedAt:now,
       offlineOffer:0, notice:undefined,
     };
@@ -127,7 +132,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       migrated.staff=[];
       migrated.orders=migrated.orders.map(order=>({...order,status:"queued",remainingMs:0,totalMs:0}));
     }
-    return migrated;
+    return receiveSupplies(migrated, now);
 }
 
 const notice = (type:NonNullable<GameState["notice"]>["type"], text:string) => ({ id:Date.now()+Math.random(), type, text });
@@ -146,21 +151,7 @@ export function reducer(state:GameState, action:Action):GameState {
         notice:firstToday?notice("heart","新しい会話で気持ちが近づきました ♡"):notice("info","いつでも仕入れに来てくださいね"),
       };
     }
-    case "BUY_INGREDIENT": {
-      const item=getIngredient(action.ingredientId);
-      if (!item || (item.unlockEventId && !state.unlockedIngredients.includes(item.id))) return state;
-      if (!item || state.currency<item.price) return { ...state, notice:notice("info","コインが足りません") };
-      const nextIngredients={ ...state.ingredients, [item.id]:(state.ingredients[item.id]||0)+GAME_CONFIG.ingredientPackSize };
-      const newRecipes=findNewRecipes(nextIngredients,state.unlockedRecipes);
-      return {
-        ...state, currency:state.currency-item.price, ingredients:nextIngredients,
-        unlockedRecipes:[...state.unlockedRecipes,...newRecipes],
-        characterProgress:Object.fromEntries(Object.entries(state.characterProgress).map(([id,progress])=>[id,characters.find(person=>person.id===id)?.supplierId===item.supplierId&&progress.met?{...progress,affection:progress.affection+2}:progress])),
-        dayNews:newRecipes.length?[...state.dayNews,...newRecipes.map(id=>`${getRecipe(id)?.name}を解放しました`)].flat():state.dayNews,
-        lifetimeStats:{...state.lifetimeStats,ingredientPurchases:{...state.lifetimeStats.ingredientPurchases,[item.id]:(state.lifetimeStats.ingredientPurchases[item.id]||0)+1}},
-        notice:newRecipes.length?notice("unlock",`新メニュー解放！ ${newRecipes.map(id=>getRecipe(id)?.name).join("・")}`):notice("info",`${item.name}を5食分仕入れました ♡ +2`),
-      };
-    }
+    case "BUY_INGREDIENT": return orderSupplies(state, action.ingredientId, action.packs, action.now);
     case "BUY_GIFT": {
       const item=getGift(action.giftId);
       if (!item || state.currency<item.price) return { ...state, notice:notice("info","コインが足りません") };
@@ -182,8 +173,17 @@ export function reducer(state:GameState, action:Action):GameState {
       if (state.orders.length>=GAME_CONFIG.maxOrders || state.orders.some(order=>order.customerSlot===action.order.customerSlot||order.id===action.order.id)||!getRecipe(action.order.recipeId)||action.order.customerSlot<0||action.order.customerSlot>3) return state;
       return { ...state, orders:[...state.orders,{...action.order,status:"queued",remainingMs:0,totalMs:0,stationId:undefined,cookId:undefined}] };
     }
+    case "DECLINE_ORDER": {
+      const order=state.orders.find(item=>item.id===action.orderId);
+      if(!order || order.status!=="queued")return state;
+      return {...state,orders:state.orders.filter(item=>item.id!==order.id),notice:notice("info","またお待ちしています。注文をお断りしました")};
+    }
     case "START_COOKING": return startCooking(state,action.orderId);
-    case "TICK": return advanceGame(state,action.deltaMs);
+    case "TICK": {
+      const now=action.now ?? Date.now();
+      const next=advanceGame(receiveSupplies(state,now),action.deltaMs);
+      return next===state?state:{...next,lastPlayedAt:now};
+    }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);
     case "REFRESH_SHOP": return {...state,giftShopItems:action.items,giftShopRefreshAt:Date.now(),notice:notice("info","贈物が入れ替わりました")};
     case "COMPLETE_EVENT": {

@@ -39,7 +39,8 @@ export interface CharacterProgress { affection:number; relationshipStage:number;
 export interface Station { id:string; equipmentId:string; level:number; }
 export type StaffRole = "cook"|"server"|"rest";
 export interface Staff { characterId:string; role:StaffRole; servingOrderId?:string; remainingMs:number; }
-export interface Order { id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
+export interface Order { request?:boolean; id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
+export interface IngredientDelivery { id:string; ingredientId:string; packs:number; orderedAt:number; arrivesAt:number; }
 export interface DailyStats { sales:number; orders:number; recipeSales:Record<string,number>; }
 export interface LifetimeStats { recipeSales:Record<string,number>; ingredientPurchases:Record<string,number>; tagSales:Record<string,number>; totalOrders:number; totalRevenue:number; }
 export interface DaySummary extends DailyStats { day:number; topRecipeId?:string; news:string[]; weatherId:string; customerGroupId:string; dailyEventId:string; actionsUsed:number; }
@@ -53,6 +54,7 @@ export interface DailyCondition { weatherId:string; customerGroupId:string; dail
 export interface GameState {
   stations:Station[]; staff:Staff[]; activeMs:number; spawnRemainingMs:number; nextOrderNumber:number;
   saveVersion:number; season:Season; day:number; currency:number;
+  deliveries:IngredientDelivery[];
   ingredients:Record<string,number>; unlockedRecipes:string[]; unlockedIngredients:string[];
   characterProgress:Record<string,CharacterProgress>; inventory:Record<string,number>;
   giftShopItems:string[]; giftShopRefreshAt:number;

@@ -31,6 +31,8 @@ const {createInitialState,reducer,migrateSavedState}=require(join(output,'game/s
 const {availableEvent,isRecipeUsable,giftReaction,pickWeightedRecipe}=require(join(output,'game/logic.js'));
 const {relationshipLabel,GAME_CONFIG}=require(join(output,'game/config.js'));
 
+const {receiveSupplies}=require(join(output,'game/procurement.js'));
+const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;
 const routeEvents=id=>relationshipEvents.filter(event=>event.characterId===id);
 function complete(state,event,route='romance') {
   return reducer(state,{type:'COMPLETE_EVENT',eventId:event.id,choiceId:event.choices?.[0]?.id,route:event.toStage===9?route:undefined});
@@ -39,7 +41,7 @@ function tick(state,ms){while(ms>0){const deltaMs=Math.min(1000,ms);state=reduce
 function order(id='manual',recipeId='coffee',customerSlot=0){return {id,recipeId,customerSlot,status:'queued',remainingMs:0,totalMs:0};}
 function trade(state,count){
   for(let i=0;i<count;i++){
-    if(!(state.ingredients.coffeeBeans>0))state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});
+    if(!(state.ingredients.coffeeBeans>0))state=receiveAll(reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'}));
     state=reducer(state,{type:'SPAWN_ORDER',order:order()});
     state=reducer(state,{type:'START_COOKING',orderId:'manual'});
     state=tick(state,30000);state=reducer(state,{type:'COLLECT_ORDER',orderId:'manual'});
@@ -52,6 +54,7 @@ function play(id,route='romance',until=10) {
   const character=characters.find(c=>c.id===id);
   const supply=ingredients.find(item=>item.supplierId===character.supplierId&&!item.unlockEventId);
   for(let i=0;i<8;i++)state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:supply.id});
+  state=receiveAll(state);
   const gift=gifts.filter(item=>state.giftShopItems.includes(item.id)).sort((a,b)=>a.price/GAME_CONFIG.giftAffection[giftReaction(character,a)]-b.price/GAME_CONFIG.giftAffection[giftReaction(character,b)]).find(item=>GAME_CONFIG.giftAffection[giftReaction(character,item)]>0);
   for(const event of routeEvents(id).filter(event=>event.toStage<=until)) {
     let attempts=0;
@@ -173,7 +176,9 @@ test('locked ingredients and equipment cannot be bought; a reward unlocks purcha
   const purchased=reducer(funded,{type:'BUY_EQUIPMENT',equipmentId:'espressoMachine'});
   assert.equal(purchased.currency,4800);assert.equal(isRecipeUsable('espresso',purchased),true);
   assert.equal(reducer(purchased,{type:'BUY_EQUIPMENT',equipmentId:'espressoMachine'}).currency,purchased.currency);
-  const stocked=reducer(purchased,{type:'BUY_INGREDIENT',ingredientId:'espressoBlend'});
+  const ordered=reducer(purchased,{type:'BUY_INGREDIENT',ingredientId:'espressoBlend'});
+  assert.equal(ordered.ingredients.espressoBlend,undefined);
+  const stocked=receiveAll(ordered);
   assert.equal(stocked.ingredients.espressoBlend,5);assert.equal(stocked.currency,4560);
 });
 
@@ -234,7 +239,7 @@ test('insufficient food, locked recipes and missing equipment cannot consume sto
   let state=addOrder({...isolated(),ingredients:{coffeeBeans:0,bread:1}});assert.equal(start(state),state);
   state=addOrder({...isolated(),unlockedRecipes:['coffee']},'toast','toast');assert.equal(start(state,'toast'),state);
   state=addOrder({...isolated(),unlockedRecipes:['espresso'],ingredients:{espressoBlend:5}},'espresso','espresso');assert.equal(start(state,'espresso'),state);
-  const purchased=reducer(isolated(),{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});assert.equal(purchased.ingredients.coffeeBeans,15);assert.equal(purchased.currency,2900);
+  const purchased=reducer(isolated(),{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});assert.equal(purchased.ingredients.coffeeBeans,10);assert.equal(purchased.deliveries[0].packs,1);assert.equal(purchased.currency,2900);
 });
 
 test('all 51 recipes have real ingredients, a valid station, finite cooking time and positive ingredient margin',()=>{
@@ -323,7 +328,7 @@ test('automatic order generation respects stock, slots and capacity during susta
   let state=hired(hired(createInitialState(),'ren','cook'),'haru','server');state=tick(state,700000);
   assert.ok(state.lifetimeStats.totalOrders>=19);assert.ok(state.orders.length<=4);assert.ok(Object.values(state.ingredients).every(count=>count>=0));
   const coins=state.currency;state=tick(state,60000);assert.equal(state.currency,coins);
-  state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});state=tick(state,120000);assert.ok(state.currency>coins);
+  state=receiveAll(reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'}));state=tick(state,120000);assert.ok(state.currency>coins);
 });
 
 test('incoming orders account for waiting orders so an exhausted menu cannot block other dishes',()=>{
@@ -390,4 +395,95 @@ test('legacy weather and trend fields no longer affect orders, prices or rotate 
   } finally { Math.random = originalRandom; }
   const later = tick(state, 301000);
   for (const key of ["dailyWeatherId", "dailyCustomerGroupId", "dailyEventId"]) assert.equal(later[key], state[key]);
+});
+
+test('bulk procurement charges once and delivers exactly three minutes later, independently per batch', () => {
+  let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 1000 });
+  assert.equal(state.currency, 2700);
+  assert.equal(state.ingredients.coffeeBeans, 10);
+  assert.equal(state.deliveries[0].arrivesAt, 181000);
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now: 31000 });
+  assert.equal(state.deliveries.length, 2);
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [181000, 211000]);
+  assert.equal(receiveSupplies(state, 180999), state);
+  state = receiveSupplies(state, 181000);
+  assert.equal(state.ingredients.coffeeBeans, 25);
+  assert.equal(state.deliveries.length, 1);
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 211000);
+  assert.equal(restored.ingredients.coffeeBeans, 35);
+  assert.equal(restored.currency, 2500);
+  assert.equal(restored.deliveries.length, 0);
+  assert.equal(restored.lifetimeStats.ingredientPurchases.coffeeBeans, 5);
+  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(restored)), 211000).ingredients, restored.ingredients);
+  assert.equal(restored.lifetimeStats.totalRevenue, 0);
+});
+
+test('invalid or unaffordable procurement cannot create deliveries, and new recipes unlock on arrival', () => {
+  const state = isolated();
+  for (const packs of [0, -1, 1.5, 21, NaN, Infinity]) assert.equal(reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', packs }), state);
+  assert.equal(reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'espressoBlend', packs: 2 }), state);
+  const broke = { ...state, currency: 0 };
+  const rejected = reducer(broke, { type: 'BUY_INGREDIENT', ingredientId: 'milk' });
+  assert.equal(rejected.currency, 0);
+  assert.equal(rejected.deliveries.length, 0);
+  const ordered = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 1000 });
+  assert.equal(ordered.unlockedRecipes.includes('latte'), false);
+  const arrived = receiveSupplies(ordered, 181000);
+  assert.equal(arrived.unlockedRecipes.includes('latte'), true);
+  assert.equal(arrived.ingredients.milk, 5);
+});
+
+test('a v5 save keeps all possessions and cooking progress when upgraded to deliveries', () => {
+  let state = start(addOrder(isolated()));
+  state = tick(state, 1000);
+  const old = { ...state, saveVersion: 5 };
+  delete old.deliveries;
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(old)), 1000000);
+  for (const key of ['currency', 'ingredients', 'orders', 'stations', 'staff', 'inventory', 'characterProgress', 'lifetimeStats', 'unlockedRecipes']) assert.deepEqual(restored[key], JSON.parse(JSON.stringify(old[key])));
+  assert.deepEqual(restored.deliveries, []);
+  assert.equal(restored.saveVersion, 6);
+});
+
+test('requests are attainable, limited to one, and cannot reveal locked story or secret recipes', () => {
+  const { pickIncomingOrder } = require(join(output, 'game/logic.js'));
+  const originalRandom = Math.random;
+  let state = { ...isolated(), lifetimeStats: { ...isolated().lifetimeStats, totalOrders: 3 } };
+  try {
+    Math.random = () => 0;
+    assert.deepEqual(pickIncomingOrder(state), { recipeId: 'latte', request: true });
+    const waiting = { ...state, orders: [{ ...order('request', 'latte'), request: true }] };
+    assert.equal(pickIncomingOrder(waiting)?.request, undefined);
+    for (let i = 0; i < 20; i++) {
+      let calls = 0;
+      Math.random = () => calls++ % 2 ? i / 20 : 0;
+      const picked = pickIncomingOrder(state);
+      const recipe = recipes.find(item => item.id === picked.recipeId);
+      assert.ok(state.unlockedRecipes.includes(recipe.id) || (!recipe.unlockEventId && !recipe.hidden && !recipe.limited));
+    }
+    Math.random = () => 0;
+    assert.equal(pickIncomingOrder(isolated())?.request, undefined, 'the first three trades remain simple');
+    assert.equal(pickIncomingOrder({ ...state, currency: 0, ingredients: {} }), undefined, 'do not ask for supplies the player cannot afford');
+    state = { ...state, ingredients: { bread: 10 } };
+    assert.deepEqual(pickIncomingOrder(state), { recipeId: 'coffee', request: true });
+  } finally { Math.random = originalRandom; }
+});
+
+test('a request waits for delivery, cooks serially, earns its bonus only on serving, and can be declined beforehand', () => {
+  let state = { ...isolated(), orders: [{ ...order('request', 'latte'), request: true }] };
+  assert.equal(start(state, 'request'), state);
+  const cancelled = reducer(state, { type: 'DECLINE_ORDER', orderId: 'request' });
+  assert.equal(cancelled.orders.length, 0);
+  assert.equal(cancelled.currency, state.currency);
+  assert.equal(cancelled.lifetimeStats.totalOrders, 0);
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 1000 });
+  state = reducer(state, { type: 'TICK', deltaMs: 100, now: 181000 });
+  state = start(state, 'request');
+  assert.equal(state.orders[0].status, 'cooking');
+  assert.equal(reducer(state, { type: 'DECLINE_ORDER', orderId: 'request' }), state);
+  state = tick(state, 30000);
+  const coins = state.currency;
+  const served = reducer(state, { type: 'COLLECT_ORDER', orderId: 'request' });
+  assert.equal(served.currency - coins, 325);
+  assert.equal(served.lifetimeStats.totalOrders, 1);
+  assert.equal(reducer(served, { type: 'COLLECT_ORDER', orderId: 'request' }), served);
 });

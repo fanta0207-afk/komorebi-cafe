@@ -4,11 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { getCharacter } from "../data/characters";
 import { getRecipe, recipes } from "../data/recipes";
 import { getDecoration } from "../data/decorations";
+import { deliveryCountdown } from "../game/procurement";
+import { getIngredient } from "../data/ingredients";
 import { getEquipment } from "../data/equipment";
 import { activeCookingOrder, stationActivity } from "../game/kitchen";
 import { equipmentLayout } from "../components/cafe/equipmentLayout";
 import { hasIngredients, startProblem } from "../game/operations";
-import { isRecipeUsable, salePrice } from "../game/logic";
+import { isRecipeUsable, orderSalePrice } from "../game/logic";
 import type { GameState } from "../types/game";
 import { CafeScene } from "../components/cafe/CafeScene";
 import { CafeAsset } from "../components/cafe/CafeAsset";
@@ -20,6 +22,7 @@ interface CafeProps {
   manager: ManagerModel;
   managerFrame: ManagerFrame;
   onStart: (id: string) => void;
+  onDecline: (id: string) => void;
   onCollect: (id: string) => void;
   onCharacter: (id: string) => void;
   onTown: () => void;
@@ -28,7 +31,7 @@ interface CafeProps {
 }
 type Notebook = { page: "orders" | "shop"; selected?: string };
 
-export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, onCharacter, onTown, onEquipment, onDev }: CafeProps) {
+export function CafeScreen({ state, manager, managerFrame, onCollect, onDecline, onStart, onCharacter, onTown, onEquipment, onDev }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
   const [menuOpen, setMenuOpen] = useState(false);
   const stocked = recipes.some(recipe => isRecipeUsable(recipe.id, state) && hasIngredients(state, recipe));
@@ -47,6 +50,7 @@ export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, o
       <div className="cafe-hud-left">
         <div className="cafe-wallet" aria-label={`所持コイン ${state.currency.toLocaleString()}`}><span aria-hidden="true">●</span>{state.currency.toLocaleString()}</div>
         <button type="button" className="scene-kitchen-entry" onClick={onEquipment} aria-label="設備・料理を開く">設備・料理 <span aria-hidden="true">›</span></button>
+        {state.deliveries.length > 0 && <button type="button" className="cafe-delivery-status" onClick={() => setNotebook({ page: "orders" })}>入荷まで {deliveryCountdown(Math.min(...state.deliveries.map(item => item.arrivesAt)), state.lastPlayedAt)}</button>}
       </div>
       <button className="cafe-menu-toggle" type="button" onClick={() => setMenuOpen(true)} aria-label="注文ノートと店の情報を開く"><span aria-hidden="true">☷</span><small>ノート</small></button>
     </header>
@@ -55,13 +59,13 @@ export function CafeScreen({ state, manager, managerFrame, onCollect, onStart, o
     {menuOpen && <CafeMenu onClose={() => setMenuOpen(false)}
       onNotebook={page => { setMenuOpen(false); setNotebook({ page }); }} onDev={() => { setMenuOpen(false); onDev(); }}/>}
     {notebook && <CafeNotebook state={state} manager={manager} notebook={notebook} onClose={() => setNotebook(undefined)}
-      onStart={id => { onStart(id); setNotebook(undefined); }} onCollect={id => { onCollect(id); setNotebook(undefined); }} stocked={stocked} onTown={onTown} onEquipment={onEquipment}/>}
+      onStart={id => { onStart(id); setNotebook(undefined); }} onCollect={id => { onCollect(id); setNotebook(undefined); }} onDecline={onDecline} stocked={stocked} onTown={onTown} onEquipment={onEquipment}/>}
   </section>;
 }
 
-function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, stocked, onTown, onEquipment }: {
+function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, onDecline, stocked, onTown, onEquipment }: {
   state: GameState; manager: ManagerModel; notebook: Notebook; onClose: () => void; onStart: (id: string) => void;
-  onCollect: (id: string) => void; stocked: boolean; onTown: () => void; onEquipment: () => void;
+  onDecline: (id: string) => void; onCollect: (id: string) => void; stocked: boolean; onTown: () => void; onEquipment: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const selectedRef = useRef<HTMLElement>(null);
@@ -75,7 +79,7 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, s
     <div className="notebook-handle"/>
     <header className="notebook-header"><div><span>CAFE NOTEBOOK</span><h2 id="notebook-title">{notebook.page === "orders" ? "注文とキッチン" : "店のようす"}</h2></div><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
     {notebook.page === "orders" ? <>
-      <p className="notebook-intro">調理開始で店長がマシンへ。完成後に提供を選ぶと、お盆で客席まで運びます。お客さまは時間を気にせず待ってくれます。</p>
+      <p className="notebook-intro">調理開始で店長がマシンへ。完成後に提供を選ぶと、お盆で客席まで運びます。リクエストは材料をそろえて応えると売上25%増。難しい注文はお断りできます。</p>
       {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "お湯を沸かして、次のお客さまを待ちましょう。" : "食材を仕入れると、注文の受付を再開します。"}</p></div>}
       <div className="notebook-orders">{state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
@@ -83,10 +87,12 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, s
         const pending = managerPending(manager, order.id);
         return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>
           <span className="notebook-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
-          <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {salePrice(recipe.id)}コイン</small><h3>{recipe.name}</h3>
+          <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {orderSalePrice(order)}コイン{order.request ? " · リクエスト報酬25%増" : ""}</small><h3>{recipe.name}</h3>
+            {order.status === "queued" && <small>必要な食材：{recipe.requiredIngredients.map(id => `${getIngredient(id)?.name}（在庫${state.ingredients[id] || 0}）`).join("・")}</small>}
             {order.stationId && <small>{getEquipment(state.stations.find(station => station.id === order.stationId)?.equipmentId || "")?.name}{order.cookId ? ` · ${getCharacter(order.cookId)?.shortName}` : ""}</small>}
             {order.status === "cooking" ? <><progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/><p>{activeCookingOrder(state)?.id === order.id ? `調理中 · あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち・調理の続きから再開します"}</p></> : <p>{order.status === "ready" ? state.staff.some(person => person.servingOrderId === order.id) ? "スタッフが提供中です。タップでも提供できます" : "できたてです！" : problem || "注文が入りました"}</p>}
           </div>
+          {order.status === "queued" && <div className="notebook-order-tools">{(!state.unlockedRecipes.includes(recipe.id) || !hasIngredients(state, recipe)) && <button type="button" onClick={onTown}>食材を仕入れる →</button>}<button type="button" className="decline-order" onClick={() => onDecline(order.id)}>お断りする</button></div>}
           <button type="button" className="notebook-action" disabled={!!pending || order.status === "cooking" || (order.status === "queued" && !!problem)} onClick={() => order.status === "ready" ? onCollect(order.id) : onStart(order.id)}>{pending === "serve" ? "お届け待ち" : pending === "start" ? "準備待ち" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeCookingOrder(state)?.id === order.id ? "調理中" : "順番待ち" : "調理開始"}</button>
         </article>;
       })}</div>
@@ -95,6 +101,7 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, s
       <p className="notebook-intro">調理は店全体で1品ずつ。設備の強化やスタッフの得意料理で、基本30秒から短くなります。</p>
       <dl className="notebook-stats"><div><dt>累計の売上</dt><dd>{state.lifetimeStats.totalRevenue.toLocaleString()}<small>コイン</small></dd></div><div><dt>注文件数</dt><dd>{state.lifetimeStats.totalOrders}<small>件</small></dd></div></dl>
     </>}
+    {state.deliveries.length > 0 && <section className="notebook-deliveries"><h3>入荷待ち</h3>{state.deliveries.map(delivery => <p className="supply-delivery" key={delivery.id}><span>{getIngredient(delivery.ingredientId)?.name} {delivery.packs * 5}食分</span><b>あと {deliveryCountdown(delivery.arrivesAt, state.lastPlayedAt)}</b></p>)}</section>}
     <section className="notebook-equipment"><h3>設備の使用状況 <small>{state.stations.length}台</small></h3>{state.stations.map(station => {
       const activity = stationActivity(state, station.id);
       const recipe = activity.order && getRecipe(activity.order.recipeId);

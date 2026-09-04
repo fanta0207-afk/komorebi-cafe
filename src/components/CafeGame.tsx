@@ -67,7 +67,7 @@ function GameContent() {
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
     {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)}/>}
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>navigate("menu")} onDev={()=>setDevOpen(true)}/>}
+      {screen==="cafe"&&<CafeScreen state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>navigate("menu")} onDev={()=>setDevOpen(true)}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
       {screen==="gifts"&&<GiftShopScreen/>}

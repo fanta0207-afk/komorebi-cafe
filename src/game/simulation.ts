@@ -1,6 +1,6 @@
 import { getRecipe } from "../data/recipes";
 import { GAME_CONFIG } from "./config";
-import { pickWeightedRecipe } from "./logic";
+import { pickIncomingOrder } from "./logic";
 import { serveDuration, serveOrder, startCooking } from "./operations";
 import type { GameState } from "../types/game";
 import { activeCookingOrder } from "./kitchen";
@@ -19,9 +19,9 @@ export function advanceGame(state:GameState,deltaMs:number):GameState {
     for(const person of next.staff)if(person.servingOrderId&&person.remainingMs<=0)next=serveOrder(next,person.servingOrderId);
     next=assignWork(next);
     if(next.spawnRemainingMs<=0) {
-      const recipeId=pickWeightedRecipe(next);
+      const incoming=pickIncomingOrder(next);
       const customerSlot=[0,1,2,3].find(slot=>!next.orders.some(order=>order.customerSlot===slot));
-      if(recipeId&&customerSlot!==undefined&&next.orders.length<GAME_CONFIG.maxOrders)next={...next,nextOrderNumber:next.nextOrderNumber+1,orders:[...next.orders,{id:`order-${next.nextOrderNumber}`,customerSlot,recipeId,status:"queued",remainingMs:0,totalMs:0}]};
+      if(incoming&&customerSlot!==undefined&&next.orders.length<GAME_CONFIG.maxOrders)next={...next,nextOrderNumber:next.nextOrderNumber+1,orders:[...next.orders,{id:`order-${next.nextOrderNumber}`,customerSlot,...incoming,status:"queued",remainingMs:0,totalMs:0}]};
       next={...next,spawnRemainingMs:GAME_CONFIG.orderSpawnMinMs+Math.random()*(GAME_CONFIG.orderSpawnMaxMs-GAME_CONFIG.orderSpawnMinMs)};
     }
   }

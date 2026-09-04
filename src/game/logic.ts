@@ -1,10 +1,11 @@
+import { GAME_CONFIG } from "./config";
 import { characters } from "../data/characters";
 import { gifts } from "../data/gifts";
 import { ingredients } from "../data/ingredients";
 import { recipes } from "../data/recipes";
 import { growthEvents } from "../data/growthEvents";
 import { hiddenUnlocks } from "../data/hiddenUnlocks";
-import type { Character, Gift, GiftReaction, GameState, GrowthEvent, GrowthStatRequirement, RelationshipEvent } from "../types/game";
+import type { Character, Gift, GiftReaction, GameState, GrowthEvent, GrowthStatRequirement, RelationshipEvent, Order } from "../types/game";
 
 export const initialRecipeIds = recipes.filter(item => item.initiallyUnlocked).map(item => item.id);
 
@@ -97,4 +98,42 @@ export function pickWeightedRecipe(state:GameState) {
   for(const order of state.orders.filter(item=>item.status==="queued"))for(const id of recipes.find(item=>item.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
   const options=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)&&recipe.requiredIngredients.every(id=>(remaining[id]||0)>0));
   return options[Math.floor(Math.random()*options.length)]?.id;
+}
+
+export function orderSalePrice(order: Order) {
+  return Math.round(salePrice(order.recipeId) * (order.request ? GAME_CONFIG.requestOrderBonus : 1));
+}
+
+/** Occasional attainable requests: one at a time, no unrevealed story/secret recipes. */
+export function pickIncomingOrder(state: GameState): { recipeId: string; request?: boolean } | undefined {
+  if (state.lifetimeStats.totalOrders >= 3 && !state.orders.some(order => order.request)
+    && Math.random() < GAME_CONFIG.requestOrderChance) {
+    const available = { ...state.ingredients };
+    for (const order of state.orders.filter(item => item.status === "queued")) {
+      for (const id of recipes.find(item => item.id === order.recipeId)?.requiredIngredients || []) available[id] = (available[id] || 0) - 1;
+    }
+    const options = recipes.filter(recipe => {
+      const unlocked = state.unlockedRecipes.includes(recipe.id);
+      if (!unlocked && (recipe.unlockEventId || recipe.hidden || recipe.limited)) return false;
+      if (!(recipe.requiredEquipmentIds || []).every(id => state.ownedEquipment.includes(id))) return false;
+      if (unlocked && recipe.requiredIngredients.every(id => (available[id] || 0) > 0)) return false;
+      let cost = 0;
+      for (const id of recipe.requiredIngredients) {
+        const ingredient = ingredients.find(item => item.id === id);
+        if (!ingredient || (ingredient.unlockEventId && !state.unlockedIngredients.includes(id))) return false;
+        const incoming = state.deliveries.filter(item => item.ingredientId === id).reduce((sum, item) => sum + item.packs * GAME_CONFIG.ingredientPackSize, 0);
+        if ((available[id] || 0) + incoming <= 0) cost += ingredient.price;
+      }
+      // A legacy save may hold all ingredients without having discovered this basic recipe.
+      // Reserve enough budget for one delivery that will run recipe discovery.
+      if (!unlocked && cost === 0 && !state.deliveries.length) {
+        cost = Math.min(...recipe.requiredIngredients.map(id => ingredients.find(item => item.id === id)!.price));
+      }
+      return cost <= state.currency;
+    });
+    const recipe = options[Math.floor(Math.random() * options.length)];
+    if (recipe) return { recipeId: recipe.id, request: true };
+  }
+  const recipeId = pickWeightedRecipe(state);
+  return recipeId ? { recipeId } : undefined;
 }

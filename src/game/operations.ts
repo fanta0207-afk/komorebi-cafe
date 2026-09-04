@@ -2,7 +2,7 @@ import { getRecipe } from "../data/recipes";
 import { getEquipment } from "../data/equipment";
 import { getIngredient } from "../data/ingredients";
 import { GAME_CONFIG } from "./config";
-import { isRecipeUsable, salePrice } from "./logic";
+import { isRecipeUsable, orderSalePrice } from "./logic";
 import type { GameState, Recipe, Station } from "../types/game";
 import { activeCookingOrder, stationOccupied } from "./kitchen";
 
@@ -28,6 +28,7 @@ export function stationFor(state:GameState,recipe:Recipe,cookId?:string) {
     .sort((a,b)=>cookingMs(state,recipe,a,cookId)-cookingMs(state,recipe,b,cookId))[0];
 }
 export function startProblem(state:GameState,recipe:Recipe) {
+  if(!state.unlockedRecipes.includes(recipe.id))return `未解放：${recipe.unlockHint}`;
   if(!isRecipeUsable(recipe.id,state))return "必要な設備を設置してください";
   if(!hasIngredients(state,recipe))return `食材待ち：${recipe.requiredIngredients.filter(id=>!(state.ingredients[id]>0)).map(id=>getIngredient(id)?.name).join("・")}`;
   if(activeCookingOrder(state))return "前の料理を調理中です。1品ずつ作ります";
@@ -45,7 +46,7 @@ export function startCooking(state:GameState,orderId:string,cookId?:string):Game
 export function serveOrder(state:GameState,orderId:string):GameState {
   const order=state.orders.find(item=>item.id===orderId),recipe=order&&getRecipe(order.recipeId);
   if(!order||order.status!=="ready"||!recipe)return state;
-  const price=salePrice(recipe.id),tagSales={...state.lifetimeStats.tagSales};
+  const price=orderSalePrice(order),tagSales={...state.lifetimeStats.tagSales};
   recipe.tags.forEach(tag=>{tagSales[tag]=(tagSales[tag]||0)+1;});
   return {...state,currency:state.currency+price,orders:state.orders.filter(item=>item.id!==orderId),
     staff:state.staff.map(person=>person.servingOrderId===orderId?{...person,servingOrderId:undefined,remainingMs:0}:person),

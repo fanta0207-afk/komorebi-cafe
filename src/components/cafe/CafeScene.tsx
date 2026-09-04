@@ -4,7 +4,7 @@ import { useState, type CSSProperties } from "react";
 import { getCharacter } from "../../data/characters";
 import { getDecoration } from "../../data/decorations";
 import { getRecipe } from "../../data/recipes";
-import { startProblem } from "../../game/operations";
+import { hasIngredients, startProblem } from "../../game/operations";
 import { activeCookingOrder } from "../../game/kitchen";
 import { equipmentLayout, equipmentWorkPosition } from "./equipmentLayout";
 import type { GameState, Order } from "../../types/game";
@@ -120,22 +120,22 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       <CafeManager frame={managerView} now={state.activeMs}/>
     </div>
     <div className="scene-layer layer-bubbles" data-layer="bubbles">
-      {["cooking", "ready"].includes(managerView.phase) && <span className={`manager-bubble manager-bubble-${managerView.phase}`} style={place(managerView.position.x, managerView.position.y)}>
-        {managerView.label}{managerView.phase === "cooking" && <progress max={1} value={managerView.progress ?? 0} aria-label="店長の調理進捗"/>}
+      {["cooking", "ready", "pickup", "carrying", "serving"].includes(managerView.phase) && <span className={`manager-bubble manager-bubble-${managerView.phase}`} style={place(managerView.position.x, managerView.position.y)}>
+        <strong>{getRecipe(managerView.recipeId || "")?.name}</strong>{managerView.label}{managerView.phase === "cooking" && <progress max={1} value={managerView.progress ?? 0} aria-label="店長の調理進捗"/>}
       </span>}
       {state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
         const { x, y } = TABLE_POSITIONS[order.customerSlot];
         const problem = order.status === "queued" ? startProblem(state, recipe) : "";
         const pending = manager && managerPending(manager, order.id);
-        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeOrder?.id === order.id ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち" : problem ? "確認する" : "調理開始";
+        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeOrder?.id === order.id ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち" : !state.unlockedRecipes.includes(recipe.id) ? "解放待ち" : !hasIngredients(state, recipe) ? "食材待ち" : problem ? "順番待ち" : "調理開始";
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
         return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
           style={{ ...place(x + 1, y - 2), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
           aria-label={`テーブル${order.customerSlot + 1}、${recipe.name}、${problem || label}`}>
           <span className="bubble-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
-          <span className="bubble-label">{label}</span>
+          {order.request && <span className="bubble-request">リクエスト +25%</span>}<span className="bubble-recipe-name">{recipe.name}</span><span className="bubble-label">{label}</span>
           {order.status === "cooking" && <progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/>}
           {order.status === "ready" && <i className="ready-star">✦</i>}
         </button>;

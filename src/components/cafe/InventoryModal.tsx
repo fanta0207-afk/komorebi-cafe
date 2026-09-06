@@ -21,7 +21,6 @@ export function InventoryModal({ state, onClose, onTown }: {
   return <dialog ref={dialogRef} className="cafe-notebook cafe-inventory" aria-labelledby="inventory-title" onClose={onClose}>
     <div className="notebook-handle"/>
     <header className="notebook-header"><div><span>CAFE STOCK</span><h2 id="inventory-title">いまの在庫</h2></div><button type="button" onClick={onClose} aria-label="在庫を閉じて店内に戻る">×</button></header>
-    <p className="notebook-intro">いま使える食材の残り食数です。調理を始めると減り、仕入れた食材が届くと増えます。</p>
     {suppliers.map(supplier => {
       const items = visible.filter(item => item.supplierId === supplier.id);
       if (!items.length) return null;

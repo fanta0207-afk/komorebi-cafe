@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "../src/components/cafe/cafe-scene.css";
 @import "../src/components/missions.css";
+@import "../src/components/bottom-nav.css";
 
 :root { --ink:#49372f; --cream:#fffaf0; --rose:#d8786d; --green:#66806d; --gold:#e8b65f; --line:#decbb2; }
 :root { --mission-green:#304c3f; --mission-paper:#fffaf0; --mission-border:#c1a778; }
@@ -8,7 +9,7 @@
 html { background:#e8dfd0; }
 body { margin:0; color:var(--ink); background:radial-gradient(circle at 50% 0,#fbf5e9,#e7ded0 75%); font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif; -webkit-tap-highlight-color:transparent; }
 button { font:inherit; color:inherit; }
-.game-shell { width:min(100%,430px); height:100dvh; margin:0 auto; padding:env(safe-area-inset-top) 16px calc(74px + env(safe-area-inset-bottom)); background:var(--cream); box-shadow:0 0 48px #6e5d4730; position:relative; overflow:hidden; }
+.game-shell { width:min(100%,430px); height:100dvh; margin:0 auto; padding:env(safe-area-inset-top) 16px var(--bottom-nav-height); background:var(--cream); box-shadow:0 0 48px #6e5d4730; position:relative; overflow:hidden; }
 .topbar { height:70px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
 .date-lockup { display:flex; align-items:baseline; gap:10px; }
 .status-actions { display:flex; align-items:center; gap:7px; }
@@ -17,7 +18,7 @@ button { font:inherit; color:inherit; }
 .topbar strong { font:700 18px/1.2 Georgia,"Yu Mincho",serif; }
 .coin-pill { border:1px solid #cda76c; border-radius:999px; padding:8px 13px; background:#fff8df; font-weight:800; font-size:14px; box-shadow:0 3px 0 #ead6ad; }
 .coin-pill span { color:var(--gold); }
-.screen-wrap { height:calc(100dvh - 70px - 74px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y:auto; overflow-x:hidden; scrollbar-width:none; }
+.screen-wrap { height:calc(100dvh - 70px - var(--bottom-nav-height) - env(safe-area-inset-top)); overflow-y:auto; overflow-x:hidden; scrollbar-width:none; }
 .screen-wrap::-webkit-scrollbar { display:none; }
 .screen { padding:20px 0 32px; min-height:100%; }
 .screen-title { display:flex; justify-content:space-between; align-items:center; min-height:56px; }
@@ -50,10 +51,6 @@ button { font:inherit; color:inherit; }
 .counter em{position:absolute;bottom:14px;left:45px;color:#dbe1d6;font:700 9px Georgia;letter-spacing:.18em}.close-day { width:100%; min-height:48px; margin-top:16px; border:1px solid #bfa88e; border-radius:9px; background:#fffdf8; font-weight:700; font-size:13px; box-shadow:0 4px 0 #eadccb; cursor:pointer; }
 .close-day span { float:right; margin-right:8px; }
 .today-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:19px}.today-stats div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#f9f0e2}.today-stats span{display:block;font-size:9px;color:#8b7769}.today-stats strong{display:block;margin-top:2px;font:800 17px Georgia}
-.bottom-nav { position:absolute; z-index:10; left:0; right:0; bottom:0; height:74px; padding-bottom:env(safe-area-inset-bottom); display:grid; grid-template-columns:repeat(5,1fr); background:#fffdf8eb; backdrop-filter:blur(12px); border-top:1px solid var(--line); }
-.bottom-nav button { border:0; background:transparent; font-size:10px; display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center; cursor:pointer; }
-.bottom-nav button span { font-size:21px; line-height:1; }
-.bottom-nav button.active { color:var(--rose); font-weight:800; }
 .notice{position:absolute;z-index:50;top:84px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);padding:11px 16px;border-radius:999px;background:#fffdf7;border:1px solid #bca58a;box-shadow:0 8px 26px #4f3c2830;font-size:12px;font-weight:800;white-space:nowrap;animation:notice-float 2.2s ease both}.notice-coin{color:#a46926}.notice-unlock{background:#fff2cb;color:#945d25}.notice-heart{background:#fff0ed;color:#b85d58}@keyframes notice-float{0%{opacity:0;transform:translate(-50%,12px)}12%,78%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-14px)}}
 
 /* 街と仕入れ */
@@ -105,19 +102,20 @@ button { font:inherit; color:inherit; }
 /* Continuous kitchen */
 .order-board{margin:22px 0;padding:20px;border:1px solid #d8cebb;border-radius:16px;background:#fffdf7}.order-board h2{display:flex;justify-content:space-between;margin:0 0 14px;font-size:19px}.order-board h2 small{font-size:13px;color:#777}.order-card{display:flex;align-items:center;gap:12px;padding:16px 0;border-top:1px dashed #dfd7c6}.order-food{font-size:32px}.order-info{flex:1;min-width:0}.order-info h3{margin:5px 0;font-size:15px}.order-info small,.order-info p{font-size:12px;color:#746959;margin:4px 0}.order-info progress{width:100%;height:8px;accent-color:#526f48}.order-card .primary-button{width:auto;min-width:78px;padding:12px 10px;margin:0;font-size:12px}.order-ready .order-info p{color:#4b7043;font-weight:700}.order-ready .order-food{animation:readyPulse 2s infinite}@keyframes readyPulse{50%{transform:translateY(-4px)}}@media(max-width:420px){.order-board{padding:14px}.order-card{gap:8px}.order-food{font-size:25px}}
 
-.bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr))}.bottom-nav button{min-width:0;font-size:10px}.staff-list{display:grid;gap:16px}.staff-card{margin:16px 0;padding:18px;border:1px solid #d8cebb;border-radius:14px;background:#fffdf7;text-align:left}.staff-heading{display:flex;gap:14px;align-items:center}.staff-heading h3{font-size:17px;margin:4px 0}.staff-heading small,.staff-heading span,.staff-card>small{font-size:12px;color:#766b59}.staff-card p,.staff-guide p{font-size:13px;line-height:1.9}.staff-cost{display:block;font-size:12px;margin:12px 0}.staff-roles{display:flex;gap:8px;margin-top:12px}.staff-roles button{flex:1;border:1px solid #c7c3ac;border-radius:8px;padding:12px 6px;background:#f4f1e7;color:#494d37;font-size:12px}.staff-roles button.active{background:#52664a;color:white}.staff-guide{background:#e9eddf;padding:20px;border-radius:14px}.staff-guide small{font-size:11px;color:#656b53}.equipment-group{border:1px solid #d8cebb;border-radius:14px;overflow:hidden;background:#fffdf7}.equipment-group .equipment-card{border:0;background:transparent;margin:0}.station-list{padding:0 16px 16px}.station-row{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px dashed #ded6c5}.station-row b{font-size:13px}.station-row small{display:block;font-size:11px;color:#71695a;margin-top:5px}.station-row button{font-size:11px;border:1px solid #cacbb9;background:#e9eddf;padding:10px;border-radius:7px}.add-station{margin-top:8px;font-size:12px}.kitchen-status{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.kitchen-status span{padding:7px 10px;background:#edf0e5;border-radius:8px;font-size:11px}.kitchen-status .busy{background:#f5e6c7}.crew-at-work{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.crew-at-work span{font-size:12px;color:#52664a}.save-warning{position:sticky;top:0;padding:12px;background:#ffe3b0;color:#603814;z-index:100;text-align:center;font-size:13px}.empty-stock{padding:12px;background:#f8ead6;border-radius:8px;font-size:12px;line-height:1.8}@media(prefers-reduced-motion:reduce){.order-ready .order-food{animation:none}}
+.staff-list{display:grid;gap:16px}.staff-card{margin:16px 0;padding:18px;border:1px solid #d8cebb;border-radius:14px;background:#fffdf7;text-align:left}.staff-heading{display:flex;gap:14px;align-items:center}.staff-heading h3{font-size:17px;margin:4px 0}.staff-heading small,.staff-heading span,.staff-card>small{font-size:12px;color:#766b59}.staff-card p,.staff-guide p{font-size:13px;line-height:1.9}.staff-cost{display:block;font-size:12px;margin:12px 0}.staff-roles{display:flex;gap:8px;margin-top:12px}.staff-roles button{flex:1;border:1px solid #c7c3ac;border-radius:8px;padding:12px 6px;background:#f4f1e7;color:#494d37;font-size:12px}.staff-roles button.active{background:#52664a;color:white}.staff-guide{background:#e9eddf;padding:20px;border-radius:14px}.staff-guide small{font-size:11px;color:#656b53}.equipment-group{border:1px solid #d8cebb;border-radius:14px;overflow:hidden;background:#fffdf7}.equipment-group .equipment-card{border:0;background:transparent;margin:0}.station-list{padding:0 16px 16px}.station-row{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px dashed #ded6c5}.station-row b{font-size:13px}.station-row small{display:block;font-size:11px;color:#71695a;margin-top:5px}.station-row button{font-size:11px;border:1px solid #cacbb9;background:#e9eddf;padding:10px;border-radius:7px}.add-station{margin-top:8px;font-size:12px}.kitchen-status{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.kitchen-status span{padding:7px 10px;background:#edf0e5;border-radius:8px;font-size:11px}.kitchen-status .busy{background:#f5e6c7}.crew-at-work{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.crew-at-work span{font-size:12px;color:#52664a}.save-warning{position:sticky;top:0;padding:12px;background:#ffe3b0;color:#603814;z-index:100;text-align:center;font-size:13px}.empty-stock{padding:12px;background:#f8ead6;border-radius:8px;font-size:12px;line-height:1.8}@media(prefers-reduced-motion:reduce){.order-ready .order-food{animation:none}}
 
 .gift-card>div{flex-wrap:wrap;gap:6px}.recipe-card{grid-template-columns:42px minmax(0,1fr);align-items:start}.recipe-card .recipe-icon{width:38px;height:42px;font-size:25px}.recipe-card em{grid-column:2;justify-self:start}.equipment-group .equipment-card{grid-template-columns:50px minmax(0,1fr)}.staff-roles button:disabled,.station-row button:disabled{opacity:.45;cursor:default}@media(max-width:380px){.date-lockup strong{font-size:14px}.date-lockup .eyebrow{font-size:8px}.coin-pill{font-size:12px;padding:8px}.status-actions{gap:5px}.staff-heading h3{font-size:15px}}
 
 /* Supplied room artwork fills one portrait phone surface. */
 body { background:#241c16; }
 .game-shell.cafe-shell { width:min(100%,430px); height:100dvh; padding:0; background:#684522; }
-.cafe-shell .screen-wrap { height:calc(100% - 66px - env(safe-area-inset-bottom)); overflow:hidden; }
+.cafe-shell .screen-wrap { height:calc(100% - var(--bottom-nav-height)); overflow:hidden; }
 .cafe-shell .cafe-screen { position:relative; display:block; min-height:0; height:100%; overflow:hidden; container-type:size; }
 .cafe-screen .photo-cafe { position:absolute; left:50%; top:0; transform:translateX(-50%); width:max(100%,56.28cqh); height:max(100%,177.68cqw); min-height:0; border:0; }
 .room-art>img { object-fit:fill; }
 .photo-cafe:has(.room-art[data-asset-state="image"]) .room-fallback-furniture { display:none; }
-.photo-cafe .room-table { width:40%; height:23cqw; }
+.photo-cafe .room-table { width:40%; height:23cqw; max-height:15%; }
+.seating-upgrade { margin-bottom:16px; }
 .table-set { overflow:hidden; }
 .table-set>img { inset:auto; left:0; top:-38.5%; width:100%; height:auto; object-fit:contain; }
 .photo-cafe .scene-light { opacity:.13; }
@@ -158,9 +156,6 @@ body { background:#241c16; }
 .cafe-shell .notice { top:calc(80px + env(safe-area-inset-top)); bottom:auto; font-size:13px; padding:8px 14px; }
 .cafe-notebook { width:min(100%,430px); }
 
-.cafe-shell .bottom-nav { height:calc(66px + env(safe-area-inset-bottom)); padding:3px 6px env(safe-area-inset-bottom); background:#fff1dbeF; border-top:1px solid #c9aa7c; }
-.cafe-shell .bottom-nav button { min-height:48px; margin:2px 0; gap:4px; color:#785538; font-size:10px; }
-.cafe-shell .bottom-nav button.active { background:#e6d5b4; color:#52391e; }
 
 .cafe-hud-left { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
 .scene-kitchen-entry { pointer-events:auto; min-width:110px; min-height:44px; padding:8px 12px; border:1px solid #dab47b; border-radius:5px; background:#51371deb; color:#fff0ce; font-size:14px; font-weight:700; box-shadow:0 2px 5px #33201344,inset 0 0 0 3px #bd99602e; cursor:pointer; }
@@ -173,6 +168,9 @@ body { background:#241c16; }
 .customer-facing { transform:scaleX(var(--guest-facing,1)); }
 .customer-atlas { width:100%; height:100%; overflow:hidden; }
 .customer-atlas>.cafe-asset>img { inset:auto; left:calc(var(--customer-column) * -100%); top:-9.1%; width:300%; max-width:none; height:auto; object-fit:contain; }
+/* Size the standalone portrait by height, not its transparent canvas width.
+   Match the sheet portraits' head-to-toe height and ground line without stretching. */
+.customer-standalone>img { inset:auto; left:50%; bottom:3%; width:auto; max-width:none; height:95%; transform:translateX(-50%); }
 .guest-ground-shadow { position:absolute; left:18%; bottom:1%; width:65%; height:5%; border-radius:50%; background:#432d1e32; filter:blur(1px); }
 .guest-entering .guest-motion { animation-name:customer-arrive; animation-duration:var(--guest-enter-duration); }
 .guest-leaving .guest-motion { animation-name:customer-depart; animation-duration:var(--guest-leave-duration); }

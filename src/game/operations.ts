@@ -1,4 +1,4 @@
-import { getRecipe } from "../data/recipes";
+import { getRecipe, recipeEquipmentId } from "../data/recipes";
 import { getEquipment } from "../data/equipment";
 import { getIngredient } from "../data/ingredients";
 import { GAME_CONFIG } from "./config";
@@ -12,7 +12,7 @@ export const specialties:Record<string,{label:string;tags:string[]}>= {
   haru:{label:"パン料理",tags:["bread"]},nagisa:{label:"紅茶・ハーブ",tags:["tea"]},
 };
 export function preparation(recipe:Recipe) {
-  const equipmentId=recipe.requiredEquipmentIds?.[0] || (recipe.tags.includes("drink")?"coffeeCounter":recipe.tags.includes("bread")?"toastGrill":"prepTable");
+  const equipmentId=recipeEquipmentId(recipe);
   const seconds=GAME_CONFIG.baseCookingSeconds;
   return {equipmentId,seconds};
 }

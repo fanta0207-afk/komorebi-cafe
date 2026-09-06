@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Character, GameState } from "../types/game";
 import { relationshipLabel } from "../game/config";
 
-export function StatusBar({state,onDev}:{state:GameState;onDev:()=>void}) {
+export function StatusBar({state,onDev,missionControl}:{state:GameState;onDev:()=>void;missionControl?:ReactNode}) {
   return <header className="topbar">
-    <div className="date-lockup"><span className="eyebrow">KOMOREBI CAFE</span><strong>のんびり営業中</strong></div>
+    <div className={`date-lockup ${missionControl?"with-mission":""}`}><span className="eyebrow">KOMOREBI CAFE</span>{missionControl||<strong>のんびり営業中</strong>}</div>
     <div className="status-actions"><div className="action-pill" title="お手伝い中のスタッフ"><span>♧</span><b>{state.staff.filter(person=>person.role!=="rest").length}</b><small>人</small></div><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
   </header>;
 }
@@ -30,8 +30,8 @@ export function Hearts({stage,route="undecided"}:{stage:number;route?:string}) {
   return <span className="hearts" aria-label={`好感度${stage}/10・${relationshipLabel(stage,route)}`}>{Array.from({length:10},(_,i)=><i key={i}>{i<stage?"♥":"♡"}</i>)}</span>;
 }
 
-export function ScreenTitle({kicker,title,children}:{kicker:string;title:string;children?:React.ReactNode}) {
-  return <div className="screen-title"><div><span className="tiny-label">{kicker}</span><h1>{title}</h1></div>{children}</div>;
+export function ScreenTitle({title,children}:{title:string;children?:React.ReactNode}) {
+  return <div className="screen-title"><div><h1>{title}</h1></div>{children}</div>;
 }
 
 export function EmptyState({icon,title,text}:{icon:string;title:string;text:string}) {

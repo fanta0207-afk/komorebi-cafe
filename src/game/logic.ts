@@ -2,7 +2,7 @@ import { GAME_CONFIG } from "./config";
 import { characters } from "../data/characters";
 import { gifts } from "../data/gifts";
 import { ingredients } from "../data/ingredients";
-import { recipes } from "../data/recipes";
+import { recipes, recipeEquipmentId } from "../data/recipes";
 import { growthEvents } from "../data/growthEvents";
 import { hiddenUnlocks } from "../data/hiddenUnlocks";
 import { tutorialRecipe } from "./missions";
@@ -95,14 +95,16 @@ export function ingredientCost(recipeId:string) {
 
 export function isRecipeUsable(recipeId:string,state:GameState) {
   const recipe=recipes.find(item=>item.id===recipeId);
-  return !!recipe&&state.unlockedRecipes.includes(recipe.id)&&(recipe.requiredEquipmentIds || []).every(id=>state.ownedEquipment.includes(id));
+  return !!recipe&&state.unlockedRecipes.includes(recipe.id)&&state.stations.some(station=>station.equipmentId===recipeEquipmentId(recipe))&&(recipe.requiredEquipmentIds || []).every(id=>state.ownedEquipment.includes(id));
 }
 
 export function pickWeightedRecipe(state:GameState) {
-  // Pending orders commit stock for admission only; the inventory is debited at cooking start.
+  // Prefer unreserved stock, but guests can wait for supplies when everything is out.
   const remaining={...state.ingredients};
   for(const order of state.orders.filter(item=>item.status==="queued"))for(const id of recipes.find(item=>item.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
-  const options=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)&&recipe.requiredIngredients.every(id=>(remaining[id]||0)>0));
+  const usable=recipes.filter(recipe=>isRecipeUsable(recipe.id,state));
+  const stocked=usable.filter(recipe=>recipe.requiredIngredients.every(id=>(remaining[id]||0)>0));
+  const options=stocked.length?stocked:usable;
   return options[Math.floor(Math.random()*options.length)]?.id;
 }
 
@@ -114,10 +116,12 @@ export function orderSalePrice(order: Order) {
 export function pickIncomingOrder(state: GameState): { recipeId: string; request?: boolean } | undefined {
   const guided=tutorialRecipe(state);
   if(guided&&isRecipeUsable(guided,state)) {
-    const recipe=recipes.find(r=>r.id===guided)!;
-    const reserved={...state.ingredients};
-    for(const order of state.orders.filter(o=>o.status==="queued"))for(const id of recipes.find(r=>r.id===order.recipeId)?.requiredIngredients||[])reserved[id]=(reserved[id]||0)-1;
-    if(recipe.requiredIngredients.every(id=>(reserved[id]||0)>0))return {recipeId:guided};
+    const remaining={...state.ingredients};
+    for(const order of state.orders.filter(o=>o.status==="queued"))for(const id of recipes.find(r=>r.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
+    const ready=recipes.find(recipe=>recipe.id===guided)!.requiredIngredients.every(id=>(remaining[id]||0)>0);
+    // Keep earning on simple coffee until all ingredients for the tutorial's new dish arrive.
+    if(ready||guided==="coffee")return {recipeId:guided};
+    if(isRecipeUsable("coffee",state))return {recipeId:"coffee"};
   }
   const introFinished=state.missions.claimed.includes("serve-mocha")||(state.lifetimeStats.recipeSales.cafeMocha||0)>0;
   if (introFinished && state.lifetimeStats.totalOrders >= 3 && !state.orders.some(order => order.request)
@@ -129,6 +133,7 @@ export function pickIncomingOrder(state: GameState): { recipeId: string; request
     const options = recipes.filter(recipe => {
       const unlocked = state.unlockedRecipes.includes(recipe.id);
       if (!unlocked && (recipe.unlockEventId || recipe.hidden || recipe.limited)) return false;
+      if (!state.stations.some(station=>station.equipmentId===recipeEquipmentId(recipe))) return false;
       if (!(recipe.requiredEquipmentIds || []).every(id => state.ownedEquipment.includes(id))) return false;
       if (unlocked && recipe.requiredIngredients.every(id => (available[id] || 0) > 0)) return false;
       let cost = 0;

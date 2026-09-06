@@ -52,6 +52,7 @@ export interface TownDailyEvent { id:string; name:string; icon:string; descripti
 export interface DailyCondition { weatherId:string; customerGroupId:string; dailyEventId:string; }
 
 export interface GameState {
+  tableCount:number;
   missions:MissionProgress;
   stations:Station[]; staff:Staff[]; activeMs:number; spawnRemainingMs:number; nextOrderNumber:number;
   saveVersion:number; season:Season; day:number; currency:number;
@@ -68,7 +69,15 @@ export interface GameState {
 }
 
 export type MissionPlace = "town" | "inventory" | "gifts" | "ren" | "recipes" | "equipment";
+export interface OngoingMission {
+  id:string;
+  kind:"service"|"special"|"supply";
+  round:number;
+  start:number;
+  tag?:string;
+}
 export interface MissionProgress {
+  ongoing:OngoingMission[];
   completed:string[];
   claimed:string[];
   visited:MissionPlace[];

@@ -2,8 +2,9 @@ import type { Order } from "../../types/game";
 
 // Presentation only. These coordinates and visits are never written to the save.
 export const TABLE_POSITIONS = [
-  { x: 29, y: 52 }, { x: 71, y: 52 },
-  { x: 29, y: 73 }, { x: 71, y: 73 },
+  { x: 29, y: 51 }, { x: 71, y: 51 },
+  { x: 29, y: 68 }, { x: 71, y: 68 },
+  { x: 29, y: 85 }, { x: 71, y: 85 },
 ] as const;
 export const VISIT_TIMING = { enter: 3200, enjoy: 1800, leave: 2800 };
 export type VisitPhase = "entering" | "seated" | "enjoying" | "leaving";
@@ -15,7 +16,7 @@ export interface CafeVisit {
   arrivedAt: number;
   servedAt?: number;
 }
-export const CUSTOMER_LOOKS = ["moss", "rose", "navy"];
+export const CUSTOMER_LOOKS = ["moss", "rose", "navy", "glasses"];
 
 export function makeVisit(order: Order, now: number): CafeVisit {
   // Stable across reloads, without changing the game's recipe/customer random draws.
@@ -49,7 +50,7 @@ export function visitPhase(visit: CafeVisit, now: number): VisitPhase | undefine
 export const cafeAsset = {
   background: (id: string) => `/assets/cafe/backgrounds/${id}.png`,
   furniture: (id: string) => `/assets/cafe/furniture/${id}.png`,
-  equipment: (id: string) => `/assets/cafe/equipment/${id}.png`,
+  equipment: (id: string) => `/assets/cafe/equipment/${id}.png${id === "coffeeCounter" ? "?v=dc73b59a" : ""}`,
   customer: (look: string, phase?: VisitPhase) => `/assets/customers/${look}${phase ? `-${phase}` : ""}.png`,
   character: (id: string, role?: string) => `/assets/characters/${id}${role ? `-${role}` : ""}.png`,
   food: (id: string) => `/assets/foods/${id}.png`,

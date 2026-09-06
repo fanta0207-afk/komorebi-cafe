@@ -4,6 +4,7 @@ import { pickIncomingOrder } from "./logic";
 import { serveDuration, serveOrder, startCooking } from "./operations";
 import type { GameState } from "../types/game";
 import { activeCookingOrder } from "./kitchen";
+import { tableCapacity, tableSlots } from "./seating";
 
 // Only foreground elapsed time is supplied. Long gaps (sleep / suspended tabs) are ignored.
 export function advanceGame(state:GameState,deltaMs:number):GameState {
@@ -20,8 +21,8 @@ export function advanceGame(state:GameState,deltaMs:number):GameState {
     next=assignWork(next);
     if(next.spawnRemainingMs<=0) {
       const incoming=pickIncomingOrder(next);
-      const customerSlot=[0,1,2,3].find(slot=>!next.orders.some(order=>order.customerSlot===slot));
-      if(incoming&&customerSlot!==undefined&&next.orders.length<GAME_CONFIG.maxOrders)next={...next,nextOrderNumber:next.nextOrderNumber+1,orders:[...next.orders,{id:`order-${next.nextOrderNumber}`,customerSlot,...incoming,status:"queued",remainingMs:0,totalMs:0}]};
+      const customerSlot=tableSlots(next).find(slot=>!next.orders.some(order=>order.customerSlot===slot));
+      if(incoming&&customerSlot!==undefined&&next.orders.length<tableCapacity(next))next={...next,nextOrderNumber:next.nextOrderNumber+1,orders:[...next.orders,{id:`order-${next.nextOrderNumber}`,customerSlot,...incoming,status:"queued",remainingMs:0,totalMs:0}]};
       next={...next,spawnRemainingMs:GAME_CONFIG.orderSpawnMinMs+Math.random()*(GAME_CONFIG.orderSpawnMaxMs-GAME_CONFIG.orderSpawnMinMs)};
     }
   }

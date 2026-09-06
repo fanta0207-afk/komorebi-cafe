@@ -13,7 +13,7 @@ import { EmptyState, Hearts, Portrait, ScreenTitle } from "../components/GameUI"
 
 export function PeopleScreen({onOpen}:{onOpen:(id:string)=>void}) {
   const {state}=useGame();
-  return <section className="screen fade-in"><ScreenTitle kicker="TOWN PEOPLE" title="出会った人々"/><p className="intro-copy">仕入れ先での出会いから、少しずつ知っていく10の物語。</p>
+  return <section className="screen fade-in"><ScreenTitle title="出会った人々"/>
     <div className="people-list">{characters.map(character=>{
       const p=state.characterProgress[character.id];
       return <button key={character.id} className={`person-row ${!p.met?"locked":""}`} disabled={!p.met} onClick={()=>onOpen(character.id)}>
@@ -45,9 +45,8 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
       <p className="occupation">{character.age}歳 · {character.occupation}</p><Hearts stage={p.relationshipStage} route={p.route}/><strong>好感度 {p.relationshipStage}/10 · {relationshipLabel(p.relationshipStage,p.route)}</strong>
       <p className="route-theme">{character.routeTheme}</p><p className="profile-copy">{character.profile}</p>
       <div className="profile-notes">
-        <details><summary>話し方</summary><p>{character.voice.replaceAll("［主人公名］","あなたの名前")}</p><blockquote>「{character.greetings.familiar}」</blockquote></details>
-        {p.relationshipStage>=5?<details><summary>話してくれた過去</summary><p>{character.backstory}</p></details>:<p className="locked-note">過去の話は、好感度5で。</p>}
-        {p.relationshipStage>=7?<details><summary>分かち合った悩み</summary><p>{character.concern}</p></details>:<p className="locked-note">心の悩みは、好感度7で。</p>}
+        {p.relationshipStage>=5&&<details><summary>話してくれた過去</summary><p>{character.backstory}</p></details>}
+        {p.relationshipStage>=7&&<details><summary>分かち合った悩み</summary><p>{character.concern}</p></details>}
         {p.relationshipStage>=9&&<details><summary>{p.route==="romance"?"あなたに惹かれた理由":"あなたを信頼する理由"}</summary><p>{character.attraction}</p></details>}
       </div>
       <div className="hint-box"><b>好きなもののヒント</b><p>仕事にまつわるものや、{character.favoriteGiftTags.includes("nature")?"自然を感じるもの":"丁寧に作られたもの"}が好きそう。</p></div>
@@ -58,7 +57,7 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
         <h2>ふたりの物語 <span>{p.relationshipStage}/10</span></h2>
         {nextStory?<div className="next-story"><strong>次は好感度{nextStory.toStage}「{nextStory.title}」</strong>
           <progress max={Math.max(1,nextStory.requiredAffection)} value={Math.min(p.affection,nextStory.requiredAffection)} aria-label="次の物語までの交流ポイント"/>
-          <p>{p.affection>=nextStory.requiredAffection?"交流ポイントを満たしました。営業と仕入れの条件も確認しましょう。":`あと${nextStory.requiredAffection-p.affection}交流ポイント。新しい会話・仕入れ・贈り物で近づきます。`}</p>
+          <p>{p.affection>=nextStory.requiredAffection?"交流ポイント達成":`あと${nextStory.requiredAffection-p.affection}交流ポイント`}</p>
           {relationshipRequirements(nextStory,state).map(item=><p key={item.label}>{item.met?"✓":"○"} {item.label}：{item.current}/{item.target}</p>)}
         </div>:<p className="story-complete">10の思い出を重ねました。これからも、{p.route==="friendship"?"大切な仕事仲間":"恋人"}として。</p>}
         <ol className="memory-list">{stories.map(story=>{

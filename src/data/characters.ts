@@ -207,7 +207,7 @@ export const characters: Character[] = [
     "occupation": "花・ハーブ店 店主",
     "supplierId": "herb",
     "profile": "古い温室のある花・ハーブ店を営む。香りや光に敏感で、「雨の前は葉が少し急いでいる」など独特の表現をする。静かな観察力と、ふいに出る率直な一言が魅力。神秘的に見える場面も、植物や暮らしへの細やかな注意で説明でき、超常現象の有無は確定させない。",
-    "image": "",
+    "image": "/assets/characters/nagisa.png",
     "silhouette": "静",
     "favoriteGiftTags": [
       "flower",

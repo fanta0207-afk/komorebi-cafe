@@ -1,5 +1,7 @@
 import type { Recipe } from "../types/game";
 
+export const recipeEquipmentId=(recipe:Recipe)=>recipe.requiredEquipmentIds?.[0] || (recipe.tags.includes("drink")?"coffeeCounter":recipe.tags.includes("bread")?"toastGrill":"prepTable");
+
 export const recipes: Recipe[] = [
   { id:"coffee", name:"深煎りコーヒー", icon:"☕", price:180, requiredIngredients:["coffeeBeans"], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["coffee","drink","warm"] },
   { id:"toast", name:"バタートースト", icon:"🍞", price:150, requiredIngredients:["bread"], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["bread","breakfast","warm"] },

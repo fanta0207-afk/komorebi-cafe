@@ -2,20 +2,22 @@ import { getGift } from "../data/gifts";
 import { getCharacter } from "../data/characters";
 import { getIngredient } from "../data/ingredients";
 import { getRecipe, recipes } from "../data/recipes";
-import { baseEquipmentIds, equipment, getEquipment } from "../data/equipment";
+import { baseEquipmentIds, initialEquipmentIds, equipment, getEquipment } from "../data/equipment";
 import { getGrowthEvent } from "../data/growthEvents";
 import { getRelationshipEvent, relationshipEvents } from "../data/events";
 import { conditionForDay } from "../data/dailyConditions";
 import type { CharacterProgress, EventReward, GameState, GiftReaction, MissionPlace, Order, RelationshipRoute, StaffRole } from "../types/game";
-import { claimMission, emptyMissions, missions, updateMissions } from "./missions";
+import { claimMission, emptyMissions, missions, milestoneMissions, restoreOngoing, updateMissions } from "./missions";
 import { startCooking, serveOrder, equipmentPrice, upgradePrice } from "./operations";
 import { advanceGame } from "./simulation";
+import { nextTableUpgrade, tableCapacity, tableUpgradeUnlocked } from "./seating";
 import { orderSupplies, receiveSupplies } from "./procurement";
 import { stationOccupied } from "./kitchen";
 import { GAME_CONFIG, relationshipLabel } from "./config";
 import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction } from "./logic";
 
 export type Action =
+  | {type:"BUY_TABLE"; expectedCount:number}
   | {type:"MISSION_VIEW"; place:MissionPlace}
   | {type:"CLAIM_MISSION"; missionId:string}
   | {type:"HYDRATE"; state:GameState}
@@ -51,15 +53,16 @@ const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSale
 export function createInitialState():GameState {
   const condition=conditionForDay(1);
   return {
+    tableCount:1,
     missions:emptyMissions(),
     saveVersion:GAME_CONFIG.saveVersion, season:"春", day:1, currency:GAME_CONFIG.initialCurrency,
-    stations:baseEquipmentIds.map(id=>({id:`${id}-1`,equipmentId:id,level:1})),staff:[],activeMs:0,spawnRemainingMs:1000,nextOrderNumber:1,
-    deliveries:[], ingredients:{coffeeBeans:10,bread:10}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
+    stations:initialEquipmentIds.map(id=>({id:`${id}-1`,equipmentId:id,level:1})),staff:[],activeMs:0,spawnRemainingMs:1000,nextOrderNumber:1,
+    deliveries:[], ingredients:{}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
     giftShopItems:giftsForFirstDay(), giftShopRefreshAt:Date.now(), dailyTalkStatus:{}, dailyGiftStatus:{},
     lastPlayedAt:Date.now(), dailyStats:emptyStats(), dayNews:[], orders:[], offlineOffer:0,
     maxActions:0, actionsRemaining:0,
     dailyWeatherId:condition.weatherId,dailyCustomerGroupId:condition.customerGroupId,dailyEventId:condition.dailyEventId,
-    lifetimeStats:emptyLifetimeStats(),viewedGrowthEvents:[],unlockedEquipment:[...baseEquipmentIds],ownedEquipment:[...baseEquipmentIds],unlockedDecorations:[],
+    lifetimeStats:emptyLifetimeStats(),viewedGrowthEvents:[],unlockedEquipment:[...baseEquipmentIds],ownedEquipment:[...initialEquipmentIds],unlockedDecorations:[],
   };
 }
 
@@ -102,11 +105,17 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       const viewed=legacy?relationshipEvents.filter(event=>event.characterId===id && event.toStage<=stage).map(event=>event.id):(old.viewedEvents || []);
       return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,route:old.route || "undecided",eventChoices:old.eventChoices || {}}];
     }));
+    const ongoing=restoreOngoing(saved.missions?.ongoing);
+    const missionIds=new Set([...missions,...milestoneMissions,...ongoing].map(m=>m.id));
+    const savedOrders=(saved.orders||[]).filter(order=>Number.isInteger(order.customerSlot)&&order.customerSlot>=0&&order.customerSlot<GAME_CONFIG.maxOrders);
+    const previousTables=Number.isInteger(saved.tableCount)?Math.max(1,Math.min(GAME_CONFIG.maxOrders,saved.tableCount!)):(saved.saveVersion||1)<9?4:1;
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
+      tableCount:Math.max(previousTables,...savedOrders.map(order=>order.customerSlot+1)),
       missions:{...emptyMissions(),...saved.missions,
-        completed:[...new Set((saved.missions?.completed||[]).filter(id=>missions.some(m=>m.id===id)))],
-        claimed:[...new Set((saved.missions?.claimed||[]).filter(id=>missions.some(m=>m.id===id)))],
+        ongoing,
+        completed:[...new Set((saved.missions?.completed||[]).filter(id=>missionIds.has(id)))],
+        claimed:[...new Set((saved.missions?.claimed||[]).filter(id=>missionIds.has(id)))],
         visited:(saved.missions?.visited||[]).filter(id=>["town","inventory","gifts","ren","recipes","equipment"].includes(id)),
         receivedPacks:saved.missions?.receivedPacks||{},
       },
@@ -124,7 +133,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       deliveries:Array.isArray(saved.deliveries) ? saved.deliveries.filter(item => item && getIngredient(item.ingredientId)
         && typeof item.id === "string" && Number.isInteger(item.packs) && item.packs > 0 && item.packs <= GAME_CONFIG.maxProcurementPacks
         && Number.isFinite(item.orderedAt) && Number.isFinite(item.arrivesAt) && item.arrivesAt >= item.orderedAt) : [],
-      orders:saved.orders || [], lastPlayedAt:now,
+      orders:savedOrders, lastPlayedAt:now,
       offlineOffer:0, notice:undefined,
     };
     // Old saves retain their earned stages; make the newly authored memories and rewards available.
@@ -194,7 +203,7 @@ function reduceAction(state:GameState, action:Action):GameState {
       };
     }
     case "SPAWN_ORDER": {
-      if (state.orders.length>=GAME_CONFIG.maxOrders || state.orders.some(order=>order.customerSlot===action.order.customerSlot||order.id===action.order.id)||!getRecipe(action.order.recipeId)||action.order.customerSlot<0||action.order.customerSlot>3) return state;
+      if (state.orders.length>=tableCapacity(state) || state.orders.some(order=>order.customerSlot===action.order.customerSlot||order.id===action.order.id)||!getRecipe(action.order.recipeId)||!Number.isInteger(action.order.customerSlot)||action.order.customerSlot<0||action.order.customerSlot>=tableCapacity(state)) return state;
       return { ...state, orders:[...state.orders,{...action.order,status:"queued",remainingMs:0,totalMs:0,stationId:undefined,cookId:undefined}] };
     }
     case "DECLINE_ORDER": {
@@ -238,6 +247,11 @@ function reduceAction(state:GameState, action:Action):GameState {
         unlockedEquipment:[...new Set([...state.unlockedEquipment,...(event.rewards.equipmentIds || [])])],
         unlockedDecorations:[...new Set([...state.unlockedDecorations,...(event.rewards.decorationIds || [])])],
         dayNews:[...state.dayNews,...news],notice:notice("unlock",hidden[0]?.note || event.rewards.note)};
+    }
+    case "BUY_TABLE": {
+      const offer=nextTableUpgrade(state);
+      if(!offer||action.expectedCount!==tableCapacity(state)||!tableUpgradeUnlocked(state,offer.missionId)||state.currency<offer.price)return state;
+      return {...state,tableCount:offer.count,currency:state.currency-offer.price,notice:notice("unlock",`客席を${offer.count}セットに増設しました`)};
     }
     case "BUY_EQUIPMENT": {
       const item=getEquipment(action.equipmentId);

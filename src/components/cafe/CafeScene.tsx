@@ -6,6 +6,7 @@ import { getDecoration } from "../../data/decorations";
 import { getRecipe } from "../../data/recipes";
 import { hasIngredients, startProblem } from "../../game/operations";
 import { activeCookingOrder } from "../../game/kitchen";
+import { tableCapacity } from "../../game/seating";
 import { equipmentLayout, equipmentWorkPosition } from "./equipmentLayout";
 import type { GameState, Order } from "../../types/game";
 import { CafeAsset } from "./CafeAsset";
@@ -84,7 +85,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       </div>
     </div>
     <div className="scene-layer layer-seating" data-layer="seating" aria-hidden="true">
-      {TABLE_POSITIONS.map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>
+      {TABLE_POSITIONS.slice(0,tableCapacity(state)).map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>
         <CafeAsset src={cafeAsset.furniture("table-set")} className="table-set"><span className="table-chair chair-left"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
         <span className="table-chair chair-right"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
         <CafeAsset src={cafeAsset.furniture("table")}><i className="table-foot"/><i className="table-top"/><span className="table-cloth"/></CafeAsset>

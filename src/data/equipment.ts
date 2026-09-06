@@ -1,6 +1,7 @@
 import type { Equipment } from "../types/game";
 
 export const baseEquipmentIds=["coffeeCounter","toastGrill","prepTable"];
+export const initialEquipmentIds=["coffeeCounter"];
 export const equipment:Equipment[] = [
   {id:"coffeeCounter",name:"コーヒーカウンター",icon:"☕",price:900,characterId:"",description:"豆を挽いて、一杯ずつ淹れるカウンター。",effectText:"コーヒー・紅茶などの基本の飲み物を作れます"},
   {id:"toastGrill",name:"トースター",icon:"🍞",price:800,characterId:"",description:"小さな喫茶店の、頼れる焼き台。",effectText:"基本のパン料理を作れます"},

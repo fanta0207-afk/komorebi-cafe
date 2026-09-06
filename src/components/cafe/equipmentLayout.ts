@@ -1,4 +1,4 @@
-import { equipment } from "../../data/equipment";
+import { equipment, baseEquipmentIds } from "../../data/equipment";
 import { getRecipe } from "../../data/recipes";
 import { preparation } from "../../game/operations";
 import { stationActivity } from "../../game/kitchen";
@@ -6,7 +6,7 @@ import type { GameState, Order } from "../../types/game";
 
 /** One shared map owns both the drawn equipment and every worker's destination. */
 export function equipmentLayout(state: GameState) {
-  const visible = equipment.filter(item => state.unlockedEquipment.includes(item.id)
+  const visible = equipment.filter(item => (!baseEquipmentIds.includes(item.id) && state.unlockedEquipment.includes(item.id))
     || state.ownedEquipment.includes(item.id) || state.stations.some(station => station.equipmentId === item.id));
   return visible.map((item, index) => {
     const row = Math.floor(index / 5);

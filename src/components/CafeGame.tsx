@@ -9,6 +9,7 @@ import { getIngredient } from "../data/ingredients";
 import { getRecipe } from "../data/recipes";
 import { getSupplier } from "../data/suppliers";
 import { GAME_CONFIG } from "../game/config";
+import { tableCapacity, tableSlots } from "../game/seating";
 import { GameProvider, useGame } from "../game/GameContext";
 import { availableEvent, availableGrowthEvent, pickWeightedRecipe } from "../game/logic";
 import type { GrowthEvent, RelationshipEvent } from "../types/game";
@@ -47,8 +48,8 @@ function GameContent() {
 
   const spawnOrder=useCallback(()=>{
     const current=stateRef.current;
-    if(current.orders.length>=GAME_CONFIG.maxOrders)return;
-    const free=[0,1,2,3].filter(slot=>!current.orders.some(order=>order.customerSlot===slot));
+    if(current.orders.length>=tableCapacity(current))return;
+    const free=tableSlots(current).filter(slot=>!current.orders.some(order=>order.customerSlot===slot));
     if(!free.length||!current.unlockedRecipes.length)return;
     const customerSlot=free[Math.floor(Math.random()*free.length)];
     const recipeId=pickWeightedRecipe(current);
@@ -81,11 +82,11 @@ function GameContent() {
     else navigate(destination);
   };
 
-  return <main className={`game-shell guided-shell ${screen==="cafe"?"cafe-shell":""}`}>
-    {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)}/>}
-    {!event&&!growthEvent&&!replay&&<MissionGuide onGo={missionGo}/>}
+  const missionControl=!event&&!growthEvent&&!replay?<MissionGuide onGo={missionGo}/>:undefined;
+  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
+    {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen storyOpen={!!(event||growthEvent||replay)} panelRequest={cafePanel} onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}} onDev={()=>setDevOpen(true)}/>}
+      {screen==="cafe"&&<CafeScreen missionControl={missionControl} storyOpen={!!(event||growthEvent||replay)} panelRequest={cafePanel} onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
       {screen==="gifts"&&<GiftShopScreen/>}

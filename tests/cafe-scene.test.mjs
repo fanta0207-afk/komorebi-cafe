@@ -13,7 +13,7 @@ const output = mkdtempSync(join(tmpdir(), 'komorebi-scene-test-'));
 after(() => rmSync(output, { recursive: true, force: true }));
 writeFileSync(join(output, 'package.json'), JSON.stringify({ type: 'commonjs' }));
 symlinkSync(fileURLToPath(new URL('../node_modules', import.meta.url)), join(output, 'node_modules'), 'dir');
-for (const folder of ['data', 'game', 'components/cafe']) {
+for (const folder of ['data', 'game', 'components', 'components/cafe', 'screens']) {
   mkdirSync(join(output, folder), { recursive: true });
   const source = new URL(`../src/${folder}/`, import.meta.url);
   for (const file of readdirSync(source).filter(name => /\.tsx?$/.test(name))) {
@@ -28,10 +28,115 @@ const { makeVisit, reconcileVisits, visitPhase, VISIT_TIMING, cafeAsset } = requ
 const { CafeScene } = require(join(output, 'components/cafe/CafeScene.js'));
 const { CafeAsset } = require(join(output, 'components/cafe/CafeAsset.js'));
 const { createInitialState, reducer, migrateSavedState } = require(join(output, 'game/state.js'));
+// Explicit stocked fixture for movement/rendering tests, independent of new-game supplies.
+const stockedCafe=()=>{const state=createInitialState();const ids=['coffeeCounter','toastGrill','prepTable'];return {...state,tableCount:4,ingredients:{coffeeBeans:10,bread:10},ownedEquipment:ids,stations:ids.map(id=>({id:`${id}-1`,equipmentId:id,level:1}))};};
 const { equipment } = require(join(output, 'data/equipment.js'));
 const { decorations } = require(join(output, 'data/decorations.js'));
 const { characters } = require(join(output, 'data/characters.js'));
 const order = (id = 'one', slot = 0, status = 'queued') => ({ id, customerSlot: slot, recipeId: 'coffee', status, totalMs: 10000, remainingMs: status === 'ready' ? 0 : 5000 });
+
+test('the supplied coffee machine is used in idle, cooking and ready states without changing equipment',()=>{
+  const asset='/assets/cafe/equipment/coffeeCounter.png?v=dc73b59a';
+  assert.equal(cafeAsset.equipment('coffeeCounter'),asset);
+  const png=readFileSync(new URL('../public/assets/cafe/equipment/coffeeCounter.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),1254);assert.equal(png.readUInt32BE(20),1254);
+  for(const status of ['idle','cooking','ready']){
+    const state=createInitialState();
+    if(status!=='idle')state.orders=[{...order('coffee',0,status),stationId:'coffeeCounter-1'}];
+    const before=JSON.stringify(state);
+    const html=renderToStaticMarkup(React.createElement(CafeScene,{state,onOrder(){},onCharacter(){},onEquipment(){}}));
+    assert.ok(html.includes(`src="${asset}"`));
+    assert.match(html,new RegExp(`data-equipment="coffeeCounter" data-equipment-status="${status}"`));
+    assert.equal(JSON.stringify(state),before);
+  }
+});
+
+test('the room renders exactly the purchased table sets and all six guests remain addressable',()=>{
+  for(let tableCount=1;tableCount<=6;tableCount++){
+    const state={...createInitialState(),tableCount,orders:Array.from({length:tableCount},(_,slot)=>order(`seat-${slot}`,slot))};
+    const html=renderToStaticMarkup(React.createElement(CafeScene,{state,onOrder(){},onCharacter(){},onEquipment(){}}));
+    assert.equal((html.match(/data-table="/g)||[]).length,tableCount);
+    assert.equal((html.match(/class="scene-order /g)||[]).length,tableCount);
+    assert.doesNotMatch(html,/NaN|undefined%/);
+  }
+});
+
+test('seating purchase card shows mission gates, prices and the maximum',()=>{
+  const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+  const {MenuScreen}=require(join(output,'screens/MenuScreen.js'));
+  let state=createInitialState();
+  const render=()=>renderToStaticMarkup(React.createElement(MenuScreen,{tab:'equipment',onTabChange(){}}));
+  context.useGame=()=>({state,dispatch(){}});
+  try{
+    assert.match(render(),/最初の一皿を届ける/);assert.match(render(),/ミッションで解放.*300/);
+    state={...state,currency:300,missions:{...state.missions,completed:['first-serve']}};
+    assert.match(render(),/class="secondary-button add-station">増設する/);
+    state={...state,tableCount:6};assert.match(render(),/最大6セット/);
+    assert.doesNotMatch(render(),/増設する/);
+  }finally{context.useGame=original;}
+});
+
+test('the actual new-game scene shows only the coffee machine and reveals other basic stations on purchase',()=>{
+  const state=createInitialState();
+  const render=state=>renderToStaticMarkup(React.createElement(CafeScene,{state,onOrder(){},onCharacter(){},onEquipment(){}}));
+  const initial=render(state);
+  assert.match(initial,/data-equipment="coffeeCounter"/);
+  assert.doesNotMatch(initial,/data-equipment="toastGrill"|data-equipment="prepTable"/);
+  const purchased=reducer({...state,currency:1000},{type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});
+  assert.match(render(purchased),/data-equipment="toastGrill" data-equipment-status="idle"/);
+  assert.doesNotMatch(render(purchased),/data-equipment="prepTable"/);
+});
+
+test('screens omit explanatory prefaces and voice notes while keeping playable controls and requirements', () => {
+  const context = require(join(output, 'game/GameContext.js'));
+  const original = context.useGame;
+  const state = stockedCafe();
+  const saved = JSON.stringify(state);
+  context.useGame = () => ({ state, dispatch() {}, refreshGiftShop() {} });
+  const render = (module, component, props = {}) => renderToStaticMarkup(React.createElement(require(join(output, module))[component], props));
+  try {
+    const equipment = render('screens/MenuScreen.js', 'MenuScreen', { onTabChange() {} });
+    const recipes = render('screens/MenuScreen.js', 'MenuScreen', { tab: 'recipes', onTabChange() {} });
+    const staff = render('screens/StaffScreen.js', 'StaffScreen');
+    const people = render('screens/PeopleScreen.js', 'PeopleScreen', { onOpen() {} });
+    const profile = render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
+    const town = render('screens/TownScreen.js', 'TownScreen', { onOpen() {} });
+    const gifts = render('screens/GiftShopScreen.js', 'GiftShopScreen');
+    const { suppliers } = require(join(output, 'data/suppliers.js'));
+    const supplier = render('screens/SupplierScreen.js', 'SupplierScreen', { supplierId: suppliers[0].id, onBack() {} });
+    const inventory = render('components/cafe/InventoryModal.js', 'InventoryModal', { state, onClose() {}, onTown() {} });
+    for (const html of [equipment, recipes, staff, people, profile, town, gifts, supplier, inventory]) {
+      assert.doesNotMatch(html, /class="(?:intro-copy|investment-note|staff-guide|procurement-guide|procurement-bond|notebook-intro)"/);
+      assert.doesNotMatch(html, /売上を貯めて、お店に投資|調理担当 \+ 提供担当で、自動営業へ|<summary>話し方<\/summary>/);
+    }
+    assert.match(equipment, /設備と料理/);
+    assert.match(equipment, /強化 ●/);
+    assert.doesNotMatch(equipment, /CAFE GROWTH/);
+    assert.match(recipes, /食材代/);
+    assert.match(recipes, /在庫/);
+    assert.match(staff, /好感度3で雇用できます/);
+    assert.match(staff, /調理をお願いする/);
+    assert.match(staff, /初回のみ/);
+    assert.match(profile, /プレゼントを渡す/);
+    assert.match(profile, /ふたりの物語/);
+    assert.match(profile, /次の共同開発/);
+    assert.doesNotMatch(profile, /過去の話は、好感度5で|心の悩みは、好感度7で|話してくれた過去|分かち合った悩み/);
+    state.characterProgress.ren.relationshipStage=7;
+    const unlockedProfile=render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
+    assert.match(unlockedProfile,/話してくれた過去/);
+    assert.match(unlockedProfile,/分かち合った悩み/);
+    state.characterProgress.ren.relationshipStage=0;
+    assert.match(gifts, /品揃えを更新/);
+    assert.match(supplier, /1パック = 5食分/);
+    assert.match(supplier, /所要時間/);
+    assert.match(supplier, /class="dialogue-box"/);
+    assert.match(inventory, /食分/);
+    assert.equal(JSON.stringify(state), saved);
+  } finally {
+    context.useGame = original;
+  }
+});
 
 test('arrivals, seating, enjoying and departure use foreground game time only', () => {
   const queued = order();
@@ -80,7 +185,7 @@ test('missing asset markup keeps a visible fallback and uses the documented file
 
 test('a fully developed cafe renders all equipment, memories, staff and 4 usable order bubbles without mutating the save', () => {
   const state = {
-    ...createInitialState(), activeMs: 5000,
+    ...stockedCafe(), activeMs: 5000,
     orders: [order('a', 0), order('b', 1, 'cooking'), order('c', 2, 'ready'), order('d', 3)],
     ownedEquipment: equipment.map(item => item.id),
     stations: equipment.map(item => ({ id: `station-${item.id}`, equipmentId: item.id, level: 3 })),
@@ -103,7 +208,7 @@ test('a fully developed cafe renders all equipment, memories, staff and 4 usable
 });
 
 test('presentation does not alter v5 round trips, ingredient consumption or manual serving rewards', () => {
-  let state = createInitialState();
+  let state = stockedCafe();
   const queued = order();
   state = reducer(state, { type: 'SPAWN_ORDER', order: queued });
   const visits = reconcileVisits([], [], state.orders, state.activeMs);
@@ -128,7 +233,7 @@ test('presentation does not alter v5 round trips, ingredient consumption or manu
 const { createManager, enqueueManager, advanceManager, managerFrame, managerPending, MANAGER_TIMING } = require(join(output, 'components/cafe/managerModel.js'));
 
 test('the manager walks to the assigned machine before existing cooking starts', () => {
-  let state = { ...createInitialState(), activeMs: 0, spawnRemainingMs: 1e12 };
+  let state = { ...stockedCafe(), activeMs: 0, spawnRemainingMs: 1e12 };
   state = reducer(state, { type: 'SPAWN_ORDER', order: order('manager-coffee') });
   let manager = enqueueManager(createManager(), state, { kind: 'start', orderId: 'manager-coffee' });
   ({ model: manager } = advanceManager(manager, state));
@@ -148,7 +253,7 @@ test('the manager walks to the assigned machine before existing cooking starts',
 });
 
 test('the manager carries a ready dish to its exact table before the existing reward is collected', () => {
-  let state = { ...createInitialState(), activeMs: 2000, orders: [order('ready-for-two', 1, 'ready')], spawnRemainingMs: 1e12 };
+  let state = { ...stockedCafe(), activeMs: 2000, orders: [order('ready-for-two', 1, 'ready')], spawnRemainingMs: 1e12 };
   const coins = state.currency;
   let manager = enqueueManager(createManager(state.activeMs), state, { kind: 'serve', orderId: 'ready-for-two' });
   ({ model: manager } = advanceManager(manager, state));
@@ -165,11 +270,11 @@ test('the manager carries a ready dish to its exact table before the existing re
   assert.equal(state.orders.length, 0);
   assert.ok(state.currency > coins);
   assert.equal(managerFrame(manager, state).phase, 'serving');
-  assert.deepEqual(managerFrame(manager, state).position, { x: 56, y: 60 });
+  assert.deepEqual(managerFrame(manager, state).position, { x: 56, y: 59 });
 });
 
 test('the manager queues separate valid orders without changing save data itself', () => {
-  const state = { ...createInitialState(), orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
+  const state = { ...stockedCafe(), orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
   const saved = JSON.stringify(state);
   let manager = enqueueManager(createManager(), state, { kind: 'start', orderId: 'first' });
   manager = enqueueManager(manager, state, { kind: 'start', orderId: 'second' });
@@ -182,7 +287,7 @@ test('the manager queues separate valid orders without changing save data itself
 });
 
 test('repeated requests and paused foreground time cannot replay a manager delivery', () => {
-  let state = { ...createInitialState(), activeMs: 0, orders: [order('a', 0, 'ready'), order('b', 1, 'ready')], spawnRemainingMs: 1e12 };
+  let state = { ...stockedCafe(), activeMs: 0, orders: [order('a', 0, 'ready'), order('b', 1, 'ready')], spawnRemainingMs: 1e12 };
   let manager = createManager();
   for (const id of ['a', 'a', 'b', 'b']) manager = enqueueManager(manager, state, { kind: 'serve', orderId: id });
   ({ model: manager } = advanceManager(manager, state));
@@ -205,7 +310,7 @@ test('repeated requests and paused foreground time cannot replay a manager deliv
 });
 
 test('staff completing a pending order cancels the manager action without double payment', () => {
-  let state = { ...createInitialState(), activeMs: 0, orders: [order('staff-wins', 0, 'ready')], spawnRemainingMs: 1e12 };
+  let state = { ...stockedCafe(), activeMs: 0, orders: [order('staff-wins', 0, 'ready')], spawnRemainingMs: 1e12 };
   let manager = enqueueManager(createManager(), state, { kind: 'serve', orderId: 'staff-wins' });
   ({ model: manager } = advanceManager(manager, state));
   // This is the same reducer operation the automated server invokes.
@@ -223,7 +328,7 @@ test('staff completing a pending order cancels the manager action without double
 });
 
 test('one busy machine keeps the next manager preparation queued until it is free', () => {
-  let state = { ...createInitialState(), activeMs: 0, orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
+  let state = { ...stockedCafe(), activeMs: 0, orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
   state = { ...state, stations: [...state.stations, { id: 'coffeeCounter-2', equipmentId: 'coffeeCounter', level: 1 }] };
   let manager = createManager();
   for (const id of ['first', 'second']) manager = enqueueManager(manager, state, { kind: 'start', orderId: id });
@@ -235,7 +340,7 @@ test('one busy machine keeps the next manager preparation queued until it is fre
   }
   assert.deepEqual(commands.map(command => command.orderId), ['first', 'second']);
   assert.ok(commands[1].at - commands[0].at >= 30000);
-  assert.equal(state.ingredients.coffeeBeans, createInitialState().ingredients.coffeeBeans - 2);
+  assert.equal(state.ingredients.coffeeBeans, stockedCafe().ingredients.coffeeBeans - 2);
   assert.ok(state.orders.every(item => item.status === 'ready'));
 });
 
@@ -244,7 +349,7 @@ const { machinePosition } = require(join(output, 'components/cafe/managerModel.j
 const { stationActivity } = require(join(output, 'game/kitchen.js'));
 
 test('unlocking reveals a machine before purchase, then installation and work share its actual position', () => {
-  const initial = createInitialState();
+  const initial = stockedCafe();
   const render = state => renderToStaticMarkup(React.createElement(CafeScene, { state, onOrder() {}, onCharacter() {}, onEquipment() {} }));
   assert.doesNotMatch(render(initial), /data-equipment="espressoMachine"/);
   const unlocked = { ...initial, currency: 10000, unlockedEquipment: [...initial.unlockedEquipment, 'espressoMachine'] };
@@ -265,7 +370,7 @@ test('unlocking reveals a machine before purchase, then installation and work sh
 });
 
 test('equipment and scene track idle, countdown, ready and served from the same order', () => {
-  let state = { ...createInitialState(), spawnRemainingMs: 1e12, orders: [order()] };
+  let state = { ...stockedCafe(), spawnRemainingMs: 1e12, orders: [order()] };
   const station = state.stations.find(item => item.equipmentId === 'coffeeCounter');
   assert.equal(stationActivity(state, station.id).status, 'idle');
   state = reducer(state, { type: 'START_COOKING', orderId: 'one' });
@@ -283,8 +388,8 @@ test('equipment and scene track idle, countdown, ready and served from the same 
 test('the three supplied guests retain their artwork and turn with the entrance and exit route', () => {
   const { CustomerSprite } = require(join(output, 'components/cafe/CustomerSprite.js'));
   const { CUSTOMER_LOOKS, customerFacing } = require(join(output, 'components/cafe/sceneModel.js'));
-  assert.equal(CUSTOMER_LOOKS.length, 3);
-  for (const [index, look] of CUSTOMER_LOOKS.entries()) {
+  assert.deepEqual(CUSTOMER_LOOKS.slice(0, 3), ['moss', 'rose', 'navy']);
+  for (const [index, look] of CUSTOMER_LOOKS.slice(0, 3).entries()) {
     const html = renderToStaticMarkup(React.createElement(CustomerSprite, { look, phase: 'entering' }));
     assert.match(html, /src="\/assets\/customers\/cafe-guests\.png"/);
     assert.ok(html.includes(`--customer-column:${index}`));
@@ -299,4 +404,48 @@ test('the three supplied guests retain their artwork and turn with the entrance 
   const departing = { ...left, servedAt: 5000 };
   assert.equal(customerFacing(departing, 5000 + VISIT_TIMING.enjoy + 10), 1);
   assert.equal(customerFacing(departing, 5000 + VISIT_TIMING.enjoy + VISIT_TIMING.leave * .9), -1);
+});
+
+test('the glasses guest joins regular arrivals and uses the supplied PNG through the whole visit', () => {
+  const { CustomerSprite } = require(join(output, 'components/cafe/CustomerSprite.js'));
+  const { CUSTOMER_LOOKS } = require(join(output, 'components/cafe/sceneModel.js'));
+  assert.deepEqual(CUSTOMER_LOOKS, ['moss', 'rose', 'navy', 'glasses']);
+  const arrivals = Array.from({ length: 100 }, (_, i) => makeVisit(order(`arrival-${i}`), 0));
+  assert.deepEqual(new Set(arrivals.map(visit => visit.look)), new Set(CUSTOMER_LOOKS));
+  const guest = arrivals.find(visit => visit.look === 'glasses');
+  assert.equal(makeVisit(order(guest.id), 9000).look, 'glasses');
+  const ready = order(guest.id, 0, 'ready');
+  assert.equal(reconcileVisits([guest], [order(guest.id)], [ready], 4000)[0].look, 'glasses');
+  const served = reconcileVisits([guest], [ready], [], 5000)[0];
+  assert.equal(served.look, 'glasses');
+  assert.equal(visitPhase(served, 5000), 'enjoying');
+  assert.equal(visitPhase(served, 5000 + VISIT_TIMING.enjoy), 'leaving');
+  for (const phase of ['entering', 'seated', 'enjoying', 'leaving']) {
+    const html = renderToStaticMarkup(React.createElement(CustomerSprite, { look: 'glasses', phase }));
+    assert.match(html, /src="\/assets\/customers\/glasses\.png"/);
+    assert.match(html, /class="cafe-asset customer-standalone"/);
+    assert.doesNotMatch(html, /src="[^\"]*glasses-(entering|seated|enjoying|leaving)\.png"/);
+  }
+  const png = readFileSync(new URL('../public/assets/customers/glasses.png', import.meta.url));
+  assert.equal(png.subarray(1, 4).toString(), 'PNG');
+  assert.equal(png.readUInt32BE(16), 1086);
+  assert.equal(png.readUInt32BE(20), 1448);
+  assert.equal(png[25], 6, 'the original RGBA transparency is preserved');
+});
+
+test('standalone guest sizing matches sheet height and feet while preserving aspect ratio and fallback',()=>{
+  const {CustomerSprite}=require(join(output,'components/cafe/CustomerSprite.js'));
+  const css=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+  const rule=css.match(/\.customer-standalone>img\s*\{([^}]+)\}/)?.[1];
+  assert.ok(rule);
+  for(const declaration of ['height:95%','width:auto','max-width:none','bottom:3%','left:50%','translateX(-50%)'])assert.ok(rule.includes(declaration));
+  const sheetHeight=22.35/13;
+  const sheetHead=100/512/sheetHeight-.091,sheetFeet=924/512/sheetHeight-.091;
+  const portraitHead=.02+14/1448*.95,portraitFeet=.02+1430/1448*.95;
+  assert.ok(Math.abs(portraitHead-sheetHead)<.02,'head height matches within 2% of the guest frame');
+  assert.ok(Math.abs(portraitFeet-sheetFeet)<.02,'feet stay on the same ground line');
+  for(const look of ['moss','rose','navy']){
+    const html=renderToStaticMarkup(React.createElement(CustomerSprite,{look,phase:'seated'}));
+    assert.doesNotMatch(html,/customer-standalone/,'existing sheet guests keep their sizing');
+  }
 });

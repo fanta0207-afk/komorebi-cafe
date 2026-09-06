@@ -1,12 +1,12 @@
 /* A full-height stage, with eight independent asset-ready layers. */
-.game-shell.cafe-shell { --cafe-ink:#392d25; --cafe-wood:#76503a; --cafe-green:#304c3f; --cafe-paper:#fff5dc; width:min(100%,520px); padding:env(safe-area-inset-top) 0 calc(82px + env(safe-area-inset-bottom)); background:#f6eddc; }
+.game-shell.cafe-shell { --cafe-ink:#392d25; --cafe-wood:#76503a; --cafe-green:#304c3f; --cafe-paper:#fff5dc; width:min(100%,520px); padding:env(safe-area-inset-top) 0 var(--bottom-nav-height); background:#f6eddc; }
 .cafe-shell .topbar { height:60px; padding:0 18px; background:#304c3f; color:#fff5dc; border:0; box-shadow:inset 0 -1px #fff5dc20; }
 .cafe-shell .date-lockup strong { display:none; }
 .cafe-shell .eyebrow { color:#ddc797; font-size:10px; letter-spacing:.16em; }
 .cafe-shell .action-pill { background:transparent; border:0; color:#fff5dc; font-size:14px; }
 .cafe-shell .dev-trigger { color:#fff5dc; opacity:.85; min-width:44px; min-height:44px; }
 .cafe-shell .coin-pill { background:#f6e6bc; border-color:#e7c889; box-shadow:0 2px 0 #182e25; color:#513b20; min-width:85px; }
-.cafe-shell .screen-wrap { height:calc(100dvh - 60px - 82px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+.cafe-shell .screen-wrap { height:calc(100dvh - 60px - var(--bottom-nav-height) - env(safe-area-inset-top)); }
 .cafe-screen { height:100%; min-height:490px; display:flex; flex-direction:column; color:var(--cafe-ink); }
 .cafe-scene-heading { flex-shrink:0; min-height:77px; padding:10px 20px 11px; display:flex; justify-content:space-between; align-items:center; gap:12px; background:#f6eddc; box-shadow:inset 0 -1px #a7855533; }
 .cafe-heading-kicker { display:flex; align-items:center; gap:5px; font-size:12px; color:#6b765d; }
@@ -112,10 +112,8 @@
 .cafe-dock-buttons { display:flex; gap:9px; }
 .cafe-dock-buttons button { display:flex; align-items:center; justify-content:center; gap:8px; flex:1; min-height:48px; border:1px solid #849071; background:#344e3d; color:#fff8e5; border-radius:8px; font-size:14px; box-shadow:0 3px 0 #203b2e; cursor:pointer; }
 .cafe-dock-buttons b { display:inline-flex; gap:2px; padding:3px 6px; border-radius:4px; background:#fff5db20; font-size:16px; }.cafe-dock-buttons b small{font-size:12px;font-weight:400;align-self:end;color:#e0ddc9}.cafe-dock-buttons b.has-ready{background:#e2c579;color:#344e3d}.cafe-dock-buttons b.has-ready small{color:#495e43}.dock-icon{font-size:24px}.dock-chevron{margin-left:auto;margin-right:9px}.cafe-dock-buttons .cafe-journal-button{flex:0 0 32%;background:#f5ead1;color:#63543b;border-color:#c8b892;box-shadow:0 3px 0 #d9c7a4;font-size:13px;gap:3px}.cafe-journal-button>span{font-size:20px}
-.cafe-shell .bottom-nav { height:calc(82px + env(safe-area-inset-bottom)); background:#f9f3e8; border-top:1px solid #ccbaa0; padding:5px 8px env(safe-area-inset-bottom); z-index:80; }
-.cafe-shell .bottom-nav button { position:relative; gap:6px; font-size:11px; color:#857258; border-radius:8px; margin:5px 1px; }.cafe-shell .bottom-nav button.active{background:#e5ead9;color:#38543b}.cafe-shell .bottom-nav button.active::after{content:"";position:absolute;bottom:3px;width:16px;height:2px;background:#6c7e54;border-radius:3px}.cafe-shell .bottom-nav button span{font-size:24px}
 .cafe-shell .notice { top:auto; bottom:calc(190px + env(safe-area-inset-bottom)); z-index:90; pointer-events:none; }
-.cafe-screen button:focus-visible,.cafe-shell .bottom-nav button:focus-visible,.cafe-notebook button:focus-visible { outline:3px solid #bd783a; outline-offset:3px; }
+.cafe-screen button:focus-visible,.cafe-notebook button:focus-visible { outline:3px solid #bd783a; outline-offset:3px; }
 /* The notebook is secondary to the shop; native dialog supplies focus trapping / Escape. */
 .cafe-notebook { width:min(100%,520px); max-width:100%; max-height:82dvh; margin:auto auto 0; padding:10px 22px calc(26px + env(safe-area-inset-bottom)); background:#fff7e7; color:#493b2c; border:1px solid #947a56; border-bottom:0; border-radius:23px 23px 0 0; box-shadow:0 -12px 60px #2c2a2340; overflow-y:auto; overscroll-behavior:contain; animation:cafe-notebook-in .25s ease-out both; }
 .cafe-notebook::backdrop { background:#24392d85; backdrop-filter:blur(2px); }

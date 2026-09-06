@@ -20,8 +20,6 @@ export function SupplierScreen({supplierId,onBack}:{supplierId:string;onBack:()=
     <div className="supplier-hero"><Portrait character={character}/><div className="supplier-sign"><span>{supplier.icon} {supplier.name}</span><h1>{character.name}</h1><p>{character.age}歳 · {character.occupation}</p><Hearts stage={progress.relationshipStage} route={progress.route}/><small>好感度 {progress.relationshipStage}/10 · {relationshipLabel(progress.relationshipStage,progress.route)}</small></div></div>
     <div className="dialogue-box"><b>{character.name}</b><p>「{greeting}」</p></div>
     <div className="section-heading"><div><span className="tiny-label">WHOLESALE</span><h2>食材の仕入れ</h2></div><small>1パック = 5食分</small></div>
-    <p className="procurement-guide">同じ食材を1〜20パックまとめて発注。時間はパック数に応じて増え、まとめて届きます。数量は発注前に決めてください。入荷するまでは、同じ食材も別の食材も追加発注できません。代金は発注時にお支払い。画面を閉じていても入荷します。</p>
-    <p className="procurement-bond">♡ このお店の好感度で短縮：Lv.0で1パック3分 → Lv.10で30秒。友情ルートでも同じです。</p>
     <div className="shop-list">{stock.map(item => <SupplyItem key={item.id} item={item}/>)}</div>
   </section>;
 }

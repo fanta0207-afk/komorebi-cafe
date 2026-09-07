@@ -1237,7 +1237,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "開店準備に戸惑うあなたへ、海斗が焼きたてのパンを届ける。運び込みを助け、食べ頃と保存方法を手際よく教える。"
+        "text": "開店準備に戸惑うあなたへ、太陽が焼きたてのパンを届ける。運び込みを助け、食べ頃と保存方法を手際よく教える。"
       },
       {
         "speaker": "narrator",
@@ -1283,7 +1283,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "パンと具材の組み合わせを一緒に試す。あなたが失敗した試作も記録していると、海斗は自分の古いノートを持ってくると約束する。"
+        "text": "パンと具材の組み合わせを一緒に試す。あなたが失敗した試作も記録していると、太陽は自分の古いノートを持ってくると約束する。"
       },
       {
         "speaker": "character",
@@ -1310,7 +1310,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "海斗が別便の担当になり、いつもの時間に顔を見ない。仕入れは届いているのに落ち着かず、あなたは後日「会えなくて寂しかった」と伝える。"
+        "text": "太陽が別便の担当になり、いつもの時間に顔を見ない。仕入れは届いているのに落ち着かず、あなたは後日「会えなくて寂しかった」と伝える。"
       },
       {
         "speaker": "narrator",
@@ -1354,7 +1354,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "海斗が持ってきた試作ノートには、失敗と改善が何年分も並ぶ。あなたは具体的に工夫を褒める。"
+        "text": "太陽が持ってきた試作ノートには、失敗と改善が何年分も並ぶ。あなたは具体的に工夫を褒める。"
       },
       {
         "speaker": "narrator",
@@ -1385,7 +1385,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "用事で近くまで来た海斗に、あなたが一杯を勧める。彼は手伝おうとするが、今日は客として座ることに。"
+        "text": "用事で近くまで来た太陽に、あなたが一杯を勧める。彼は手伝おうとするが、今日は客として座ることに。"
       },
       {
         "speaker": "narrator",
@@ -1413,7 +1413,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "配達、町の行事、自分の試作を全部抱え、海斗が試作会に遅れる。あなたは約束を大切にしてほしいと伝える。"
+        "text": "配達、町の行事、自分の試作を全部抱え、太陽が試作会に遅れる。あなたは約束を大切にしてほしいと伝える。"
       },
       {
         "speaker": "narrator",
@@ -1457,7 +1457,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "海斗が手ぶらでカフェを訪ね、「デートに誘いに来た」と伝える。二人で町を歩き、家族の用事に追われていた頃や、これから欲しい休日を話す。"
+        "text": "太陽が手ぶらでカフェを訪ね、「デートに誘いに来た」と伝える。二人で町を歩き、家族の用事に追われていた頃や、これから欲しい休日を話す。"
       },
       {
         "speaker": "character",
@@ -1481,7 +1481,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "dialogue": [
       {
         "speaker": "narrator",
-        "text": "いつもの帰り道、海斗が「また明日」で終わらせず立ち止まる。役に立てるかに関係なく会いたいと伝え、あなたの毎日に恋人として関わりたいと告白する。"
+        "text": "いつもの帰り道、太陽が「また明日」で終わらせず立ち止まる。役に立てるかに関係なく会いたいと伝え、あなたの毎日に恋人として関わりたいと告白する。"
       },
       {
         "speaker": "character",
@@ -1528,13 +1528,13 @@ export const relationshipEvents: RelationshipEvent[] = [
       "recipeIds": [
         "morningPlate"
       ],
-      "note": "海斗の新作パン・二人のモーニングプレートを解放しました"
+      "note": "太陽の新作パン・二人のモーニングプレートを解放しました"
     },
     "friendshipTitle": "新しい朝のメニュー",
     "friendshipDialogue": [
       {
         "speaker": "narrator",
-        "text": "海斗の新作パンを使ったモーニングを完成させ、仕入れと販売の計画を立てた。"
+        "text": "太陽の新作パンを使ったモーニングを完成させ、仕入れと販売の計画を立てた。"
       },
       {
         "speaker": "character",
@@ -1843,6 +1843,150 @@ export const relationshipEvents: RelationshipEvent[] = [
         "speaker": "character",
         "text": "植え替えの時は、また呼んで。続きを一緒に考えたい。"
       }
+    ]
+  },
+  {
+    "id": "sae-stage1",
+    "characterId": "sae",
+    "fromStage": 0,
+    "toStage": 1,
+    "requiredAffection": 0,
+    "title": "零下の初対面",
+    "dialogue": [
+      { "speaker": "narrator", "text": "冷凍倉庫で迷ったあなたを、厚着の冴が出口まで案内する。返事は冷たいが、滑りやすい足元をさりげなく支えてくれた。" },
+      { "speaker": "character", "text": "用件が済んだら帰れ。……ここはお前には寒すぎる" }
+    ]
+  },
+  {
+    "id": "sae-stage2",
+    "characterId": "sae",
+    "fromStage": 1,
+    "toStage": 2,
+    "requiredAffection": 20,
+    "title": "無言の温度計",
+    "dialogue": [
+      { "speaker": "narrator", "text": "届いたアイスの箱に、保存温度と食べ頃を記したメモが入っていた。感謝を伝えると、冴は視線を逸らす。" },
+      { "speaker": "character", "text": "品質管理の一部だ。……礼はいらない" }
+    ],
+    "reward": { "recipeIds": ["vanillaIceCup"], "note": "バニラアイスカップを解放しました" }
+  },
+  {
+    "id": "sae-stage3",
+    "characterId": "sae",
+    "fromStage": 2,
+    "toStage": 3,
+    "requiredAffection": 45,
+    "title": "半解凍のベリー",
+    "dialogue": [
+      { "speaker": "narrator", "text": "冴は溶け方まで計算したベリーアイスを差し出す。あなたが急がず味わうと、マフラーの奥で口元がわずかに緩んだ。" },
+      { "speaker": "character", "text": "……その速度でいい。一番うまい状態だ" }
+    ],
+    "reward": { "ingredientIds": ["snowMilkIce"], "recipeIds": ["snowBerryCup"], "note": "雪ミルクアイス・雪どけベリーカップを解放しました" }
+  },
+  {
+    "id": "sae-stage4",
+    "characterId": "sae",
+    "fromStage": 3,
+    "toStage": 4,
+    "requiredAffection": 75,
+    "title": "温かい一杯の距離",
+    "dialogue": [
+      { "speaker": "narrator", "text": "風邪気味の冴に、あなたは温かいコーヒーを渡す。冴は受け取らず帰そうとするが、打ち合わせのために席へ戻った。" },
+      { "speaker": "character", "text": "心配は余計だ。……でも、冷めるまではいる" }
+    ],
+    "choices": [
+      { "id": "choice-1", "label": "話さなくても、ここにいて", "response": [{ "speaker": "character", "text": "……変わってるな、お前は。じゃあ、少しだけ" }] },
+      { "id": "choice-2", "label": "コーヒーの温度、見てくれる？", "response": [{ "speaker": "character", "text": "……仕事なら仕方ない。温度計を貸せ" }] }
+    ]
+  },
+  {
+    "id": "sae-stage5",
+    "characterId": "sae",
+    "fromStage": 4,
+    "toStage": 5,
+    "requiredAffection": 110,
+    "title": "見えない表情",
+    "dialogue": [
+      { "speaker": "narrator", "text": "試作中、アイスを失敗した冴はフードを深く被る。あなたが責めずに原因を一緒に探すと、彼は初めて自分のことを少し話した。" },
+      { "speaker": "character", "text": "人とやると、失敗の数が増えると思ってた。……違うんだな" }
+    ],
+    "reward": { "equipmentIds": ["iceCreamMaker"], "recipeIds": ["frozenChocolate"], "note": "アイスクリームメーカー購入権・氷温ショコラアイスを解放しました" }
+  },
+  {
+    "id": "sae-stage6",
+    "characterId": "sae",
+    "fromStage": 5,
+    "toStage": 6,
+    "requiredAffection": 150,
+    "title": "日だまりの席",
+    "dialogue": [
+      { "speaker": "narrator", "text": "冴は閉店前のカフェを訪れ、店の奥の日だまりに座る。厚着を一枚脱ぎ、何もせず同じ時間を過ごした。" },
+      { "speaker": "character", "text": "ここは、暑い。……だが、嫌いじゃない" }
+    ],
+    "reward": { "recipeIds": ["iceCreamSandwich"], "note": "ひとやすみアイスサンドを解放しました" }
+  },
+  {
+    "id": "sae-stage7",
+    "characterId": "sae",
+    "fromStage": 6,
+    "toStage": 7,
+    "requiredAffection": 195,
+    "title": "閉じた扉の向こう",
+    "dialogue": [
+      { "speaker": "narrator", "text": "納品のミスを一人で抱えた冴は、倉庫にこもってしまう。あなたは扉の外から、彼が話せるまで待った。" },
+      { "speaker": "character", "text": "……なぜ帰らない。俺は、人をうまく頼れない" }
+    ],
+    "choices": [
+      { "id": "choice-1", "label": "頼めるまで、ここで待つよ", "response": [{ "speaker": "character", "text": "……ずるいな。そんなふうに待たれたら、打ち明けるしかない" }] },
+      { "id": "choice-2", "label": "半分だけ、私に任せて", "response": [{ "speaker": "character", "text": "半分……か。分かった。お前に頼む" }] }
+    ]
+  },
+  {
+    "id": "sae-stage8",
+    "characterId": "sae",
+    "fromStage": 7,
+    "toStage": 8,
+    "requiredAffection": 245,
+    "title": "初めての外出",
+    "dialogue": [
+      { "speaker": "narrator", "text": "冴が休日にカフェへ来て、人の少ない湖へ誘う。マフラーを少し下げ、倉庫の外で並んで食べるアイスに、小さく笑った。" },
+      { "speaker": "character", "text": "人混みは嫌いだ。……お前と二人なら、外も悪くない" }
+    ],
+    "reward": { "recipeIds": ["frostBerryParfait"], "note": "霜夜のベリーパフェを解放しました" }
+  },
+  {
+    "id": "sae-stage9",
+    "characterId": "sae",
+    "fromStage": 8,
+    "toStage": 9,
+    "requiredAffection": 300,
+    "title": "溶けた言葉",
+    "dialogue": [
+      { "speaker": "narrator", "text": "冴はカフェの外で待ち、帰り道を一緒に歩く。誰かを求めることが怖かったと明かし、あなたにだけは隣にいてほしいと告げる。" },
+      { "speaker": "character", "text": "お前が好きだ。……これからも、俺の隣にいてくれ" }
+    ],
+    "friendshipTitle": "一人じゃない管理表",
+    "friendshipDialogue": [
+      { "speaker": "narrator", "text": "冴はカフェ用の在庫表を開き、これからの仕入れと試作を一緒に管理したいと伝えた。" },
+      { "speaker": "character", "text": "一人で管理するより、お前と確かめた方がいい。……これからも頼む" }
+    ]
+  },
+  {
+    "id": "sae-stage10",
+    "characterId": "sae",
+    "fromStage": 9,
+    "toStage": 10,
+    "requiredAffection": 360,
+    "title": "冬の先の約束",
+    "dialogue": [
+      { "speaker": "narrator", "text": "冴の特製アイスに、あなたが温かいコーヒーを注ぐ。相反する温度が一つの味になり、二人は来年の冬も同じ席で食べる約束をする。" },
+      { "speaker": "character", "text": "溶ける前に食べろ。……来年も、俺が作る" }
+    ],
+    "reward": { "ingredientIds": ["saeIce"], "recipeIds": ["thawingAffogato"], "decorationIds": ["iceMenuBoard"], "note": "冴の特製アイス・ほどける心のアフォガートを解放しました" },
+    "friendshipTitle": "二人の温度レシピ",
+    "friendshipDialogue": [
+      { "speaker": "narrator", "text": "冴の特製アイスとカフェのコーヒーを合わせ、二人の定番メニューを完成させた。" },
+      { "speaker": "character", "text": "温度は俺が見る。味はお前が見ろ。……それでいい" }
     ]
   }
 ];

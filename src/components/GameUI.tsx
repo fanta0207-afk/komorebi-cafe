@@ -6,7 +6,7 @@ import { relationshipLabel } from "../game/config";
 
 export function StatusBar({state,onDev,missionControl}:{state:GameState;onDev:()=>void;missionControl?:ReactNode}) {
   return <header className="topbar">
-    <div className={`date-lockup ${missionControl?"with-mission":""}`}><span className="eyebrow">KOMOREBI CAFE</span>{missionControl||<strong>のんびり営業中</strong>}</div>
+    <div className={`date-lockup ${missionControl?"with-mission":""}`}><span className="eyebrow">KOMOREBI CAFE</span>{missionControl}</div>
     <div className="status-actions"><div className="action-pill" title="お手伝い中のスタッフ"><span>♧</span><b>{state.staff.filter(person=>person.role!=="rest").length}</b><small>人</small></div><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
   </header>;
 }
@@ -19,10 +19,12 @@ export function BottomNav({active,onChange}:{active:string;onChange:(id:string)=
   return <nav className="bottom-nav" aria-label="メインメニュー">{navItems.map(item=><button type="button" className={active===item.id?"active":""} key={item.id} onClick={()=>onChange(item.id)}><span>{item.icon}</span>{item.label}</button>)}</nav>;
 }
 
-export function Portrait({character,small=false,unknown=false}:{character:Character;small?:boolean;unknown?:boolean}) {
+export function Portrait({character,small=false,face=false,unknown=false}:{character:Character;small?:boolean;face?:boolean;unknown?:boolean}) {
   const [failed,setFailed]=useState(false);
-  return <div className={`portrait ${small?"portrait-small":""} ${unknown?"unknown":""}`}>
-    {!unknown&&!failed&&character.image&&<img src={character.image} alt="" onError={()=>setFailed(true)}/>}<span>{unknown?"?":character.silhouette}</span>
+  return <div className={`portrait ${small?"portrait-small":""} ${face?"portrait-face":""} ${unknown?"unknown":""}`} data-character={character.id}>
+    {!unknown&&!failed&&character.image
+      ?<img src={character.image} alt="" onError={()=>setFailed(true)}/>
+      :<span>{unknown?"?":character.silhouette}</span>}
   </div>;
 }
 

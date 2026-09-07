@@ -35,7 +35,7 @@ export interface GrowthEvent {
 export interface Equipment { id:string; name:string; icon:string; price:number; characterId:string; description:string; effectText:string; }
 export interface Decoration { id:string; name:string; icon:string; characterId:string; placement:"wall"|"shelf"|"counter"|"floor"; }
 export interface HiddenUnlock { id:string; requiredEvents:string[]; recipeId:string; note:string; }
-export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; route:RelationshipRoute; eventChoices:Record<string,string>; talkedStages:number[]; }
+export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; route:RelationshipRoute; eventChoices:Record<string,string>; talkedStages:number[]; giftReactions:Record<string,GiftReaction>; }
 export interface Station { id:string; equipmentId:string; level:number; }
 export type StaffRole = "cook"|"server"|"rest";
 export interface Staff { characterId:string; role:StaffRole; servingOrderId?:string; remainingMs:number; }

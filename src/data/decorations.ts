@@ -4,7 +4,7 @@ export const decorations:Decoration[] = [
   {id:"coffeeScoop",name:"豆量りのスコップ",icon:"🥄",characterId:"ren",placement:"shelf"},
   {id:"renCoffeeSet",name:"蓮のコーヒーセット",icon:"☕",characterId:"ren",placement:"counter"},
   {id:"breadBasket",name:"焼きたてパン籠",icon:"🥖",characterId:"haru",placement:"counter"},
-  {id:"haruSign",name:"海斗の手描きパン札",icon:"🪧",characterId:"haru",placement:"wall"},
+  {id:"haruSign",name:"太陽の手描きパン札",icon:"🪧",characterId:"haru",placement:"wall"},
   {id:"milkCan",name:"小さなミルク缶",icon:"🥛",characterId:"sota",placement:"floor"},
   {id:"cloverBottle",name:"四つ葉のミルク瓶",icon:"🍀",characterId:"sota",placement:"shelf"},
   {id:"farmCrate",name:"朝採れ野菜の木箱",icon:"🥕",characterId:"aki",placement:"floor"},
@@ -13,6 +13,8 @@ export const decorations:Decoration[] = [
   {id:"dessertPlate",name:"アールのデザート皿",icon:"🍮",characterId:"itsuki",placement:"shelf"},
   {id:"flowerVase",name:"窓辺の花瓶",icon:"💐",characterId:"nagisa",placement:"wall"},
   {id:"herbGarland",name:"ハーブのガーランド",icon:"🌿",characterId:"nagisa",placement:"shelf"},
+  {id:"frostedGlass",name:"霜花のガラス置物",icon:"❄️",characterId:"sae",placement:"shelf"},
+  {id:"iceMenuBoard",name:"冴のアイスメニュー札",icon:"🧊",characterId:"sae",placement:"wall"},
   // Character story rewards
   {"id": "milkFlowerVase", "name": "ミルク瓶の花器", "icon": "🌷", "characterId": "sota", "placement": "shelf"},
   {"id": "pairedDessertPlates", "name": "ペアのデザート皿", "icon": "🍽️", "characterId": "itsuki", "placement": "shelf"},

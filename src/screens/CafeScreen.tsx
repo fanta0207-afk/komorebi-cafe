@@ -90,36 +90,36 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
   return <dialog ref={dialogRef} className="cafe-notebook" aria-labelledby="notebook-title" onClose={onClose}>
     <div className="notebook-handle"/>
     <header className="notebook-header"><h2 id="notebook-title">注文とキッチン</h2><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
-      {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "お客さまを待っています。" : "お客さまを待っています。食材を仕入れて準備しましょう。"}</p></div>}
+      {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "来店待ち" : "食材がありません"}</p></div>}
       <div className="notebook-orders">{state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
         const problem = order.status === "queued" ? startProblem(state, recipe) : "";
         const pending = managerPending(manager, order.id);
+        const missingConditions = orderRequirements(state, order).filter(condition => !condition.met && condition.id !== "cooking");
         return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>
           <span className="notebook-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
           <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {orderSalePrice(order)}コイン{order.request ? " · リクエスト報酬25%増" : ""}</small><h3>{recipe.name}</h3>
             {order.stationId && <small>{getEquipment(state.stations.find(station => station.id === order.stationId)?.equipmentId || "")?.name}{order.cookId ? ` · ${getCharacter(order.cookId)?.shortName}` : ""}</small>}
-            {order.status === "cooking" ? <><progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/><p>{activeCookingOrder(state)?.id === order.id ? `調理中 · あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち・調理の続きから再開します"}</p></> : <p>{order.status === "ready" ? state.staff.some(person => person.servingOrderId === order.id) ? "スタッフが提供中です。タップでも提供できます" : "できたてです！" : problem || "注文が入りました"}</p>}
+            {order.status === "cooking" ? <><progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/><p>{activeCookingOrder(state)?.id === order.id ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち"}</p></> : order.status === "ready" ? <p>{state.staff.some(person => person.servingOrderId === order.id) ? "スタッフが提供中" : "完成"}</p> : problem ? <p>{problem}</p> : null}
           </div>
-          <div className="order-conditions"><h4>提供するための条件</h4><ul>{orderRequirements(state, order).map(condition => <li key={condition.id} data-met={condition.met}>
-            <span aria-label={condition.met ? "達成" : "未達成"}>{condition.met ? "✓" : "○"}</span><div><b>{condition.label}</b><small>{condition.detail}</small></div>
-          </li>)}</ul></div>
+          {missingConditions.length > 0 && <div className="order-conditions"><h4>不足</h4><ul>{missingConditions.map(condition => <li key={condition.id} data-met={condition.met}>
+            <span aria-label="未達成">○</span><div><b>{condition.label}</b><small>{condition.detail}</small></div>
+          </li>)}</ul></div>}
           {order.status === "queued" && <div className="notebook-order-tools">{(!state.unlockedRecipes.includes(recipe.id) || !hasIngredients(state, recipe)) && <button type="button" onClick={onTown}>食材を仕入れる →</button>}<button type="button" className="decline-order" onClick={() => onDecline(order.id)}>お断りする</button></div>}
           <button type="button" className="notebook-action" disabled={!!pending || order.status === "cooking" || (order.status === "queued" && !!problem)} onClick={() => order.status === "ready" ? onCollect(order.id) : onStart(order.id)}>{pending === "serve" ? "お届け待ち" : pending === "start" ? "準備待ち" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeCookingOrder(state)?.id === order.id ? "調理中" : "順番待ち" : "調理開始"}</button>
         </article>;
       })}</div>
-      {!stocked && <div className="notebook-stock"><p>食材が足りません。仕入れは1パック5食分です。</p><button type="button" onClick={onTown}>街へ仕入れに行く →</button></div>}
+      {!stocked && <div className="notebook-stock"><button type="button" onClick={onTown}>街へ仕入れに行く →</button></div>}
     {state.deliveries.length > 0 && <section className="notebook-deliveries"><h3>入荷待ち</h3>{state.deliveries.map(delivery => <p className="supply-delivery" key={delivery.id}><span>{getIngredient(delivery.ingredientId)?.name} {delivery.packs * 5}食分</span><b>あと {deliveryCountdown(delivery.arrivesAt, state.lastPlayedAt)}</b></p>)}</section>}
     <section className="notebook-equipment"><h3>設備の使用状況 <small>{state.stations.length}台</small></h3>{state.stations.map(station => {
       const activity = stationActivity(state, station.id);
       const recipe = activity.order && getRecipe(activity.order.recipeId);
       return <div key={station.id} data-station-status={activity.status}><span>{getEquipment(station.equipmentId)?.icon} {getEquipment(station.equipmentId)?.name} <small>Lv.{station.level}</small>
-        <small className="station-order-detail">{recipe ? `${recipe.name} · テーブル${activity.order!.customerSlot + 1}` : "注文をお待ちしています"}</small>
+        {recipe && <small className="station-order-detail">{recipe.name} · テーブル{activity.order!.customerSlot + 1}</small>}
         {activity.status === "cooking" && <progress max={activity.order.totalMs} value={activity.order.totalMs - activity.order.remainingMs} aria-label={`${getEquipment(station.equipmentId)?.name}の調理進捗`}/>}
       </span><b className={activity.status}>{activity.label}{activity.status === "cooking" && <small>あと{Math.ceil(activity.order.remainingMs / 1000)}秒</small>}</b></div>;
     })}
     {equipmentLayout(state).filter(entry => entry.status === "uninstalled").map(({ item }) => <div key={item.id}><span>{item.icon} {item.name}</span><b>解放済み・未設置</b></div>)}
     <button className="notebook-equipment-link" type="button" onClick={onEquipment}>設備の設置・強化へ →</button></section>
-    {state.staff.some(person => person.role !== "rest") && <section className="notebook-crew"><h3>お手伝い中</h3>{state.staff.filter(person => person.role !== "rest").map(person => <p key={person.characterId}>♡ {getCharacter(person.characterId)?.shortName} · {person.role === "cook" ? "調理担当" : "提供担当"}</p>)}</section>}
   </dialog>;
 }

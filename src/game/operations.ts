@@ -10,6 +10,7 @@ export const specialties:Record<string,{label:string;tags:string[]}>= {
   ren:{label:"コーヒー",tags:["coffee"]},sota:{label:"ミルク料理",tags:["milk"]},
   aki:{label:"野菜・フルーツ",tags:["vegetable","fruit"]},itsuki:{label:"スイーツ",tags:["sweet","dessert"]},
   haru:{label:"パン料理",tags:["bread"]},nagisa:{label:"紅茶・ハーブ",tags:["tea"]},
+  sae:{label:"アイス・冷菓",tags:["ice"]},
 };
 export function preparation(recipe:Recipe) {
   const equipmentId=recipeEquipmentId(recipe);

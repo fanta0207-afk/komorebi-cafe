@@ -14,12 +14,15 @@ export const ingredients: Ingredient[] = [
   { id:"chocolate", name:"チョコレート", icon:"🍫", price:180, supplierId:"patisserie" },
   { id:"herb", name:"香りハーブ", icon:"🌿", price:100, supplierId:"herb" },
   { id:"mint", name:"ミント", icon:"☘️", price:110, supplierId:"herb" },
+  { id:"vanillaIce", name:"バニラアイス", icon:"🍨", price:180, supplierId:"freezer" },
+  { id:"frozenBerries", name:"冷凍ベリー", icon:"🫐", price:170, supplierId:"freezer" },
   { id:"moonRoast", name:"月舟の宵豆", icon:"🌙", price:240, supplierId:"coffee", limited:true, unlockEventId:"ren-growth2" },
   { id:"goldenHoney", name:"朝焼けはちみつ", icon:"🍯", price:210, supplierId:"bakery", limited:true, unlockEventId:"haru-growth2" },
   { id:"cloverCream", name:"四つ葉クリーム", icon:"🍀", price:230, supplierId:"ranch", limited:true, unlockEventId:"sota-growth2" },
   { id:"sunTomato", name:"陽だまりトマト", icon:"🌞", price:190, supplierId:"farm", limited:true, unlockEventId:"aki-growth2" },
   { id:"vanillaSugar", name:"秘密のバニラ糖", icon:"✨", price:260, supplierId:"patisserie", limited:true, unlockEventId:"itsuki-growth2" },
   { id:"mimosaHerb", name:"ミモザの若葉", icon:"🌼", price:200, supplierId:"herb", limited:true, unlockEventId:"nagisa-growth2" },
+  { id:"diamondIce", name:"ダイヤモンドアイス", icon:"💎", price:240, supplierId:"freezer", limited:true, unlockEventId:"sae-growth2" },
   // Character story rewards
   {"id": "singleOrigin", "name": "高級シングルオリジン豆", "icon": "🫘", "price": 220, "supplierId": "coffee", "limited": true, "unlockEventId": "ren-stage3"},
   {"id": "espressoBlend", "name": "エスプレッソ向け豆", "icon": "🫘", "price": 240, "supplierId": "coffee", "limited": true, "unlockEventId": "ren-stage5"},
@@ -31,9 +34,11 @@ export const ingredients: Ingredient[] = [
   {"id": "petitGateau", "name": "高級プチガトー", "icon": "🍰", "price": 280, "supplierId": "patisserie", "limited": true, "unlockEventId": "itsuki-stage3"},
   {"id": "teaChiffon", "name": "紅茶シフォンケーキ", "icon": "🍰", "price": 260, "supplierId": "patisserie", "limited": true, "unlockEventId": "itsuki-stage5"},
   {"id": "campagne", "name": "カンパーニュ", "icon": "🥖", "price": 180, "supplierId": "bakery", "limited": true, "unlockEventId": "haru-stage3"},
-  {"id": "kaitoBread", "name": "海斗の新作パン", "icon": "🥖", "price": 270, "supplierId": "bakery", "limited": true, "unlockEventId": "haru-stage10"},
+  {"id": "kaitoBread", "name": "太陽の新作パン", "icon": "🥖", "price": 270, "supplierId": "bakery", "limited": true, "unlockEventId": "haru-stage10"},
   {"id": "chamomile", "name": "カモミール", "icon": "🌼", "price": 150, "supplierId": "herb", "limited": true, "unlockEventId": "nagisa-stage3"},
   {"id": "lemonBalm", "name": "レモンバーム", "icon": "🌿", "price": 150, "supplierId": "herb", "limited": true, "unlockEventId": "nagisa-stage3"},
+  {"id": "snowMilkIce", "name": "雪ミルクアイス", "icon": "❄️", "price": 260, "supplierId": "freezer", "limited": true, "unlockEventId": "sae-stage3"},
+  {"id": "saeIce", "name": "冴の特製アイス", "icon": "🧊", "price": 300, "supplierId": "freezer", "limited": true, "unlockEventId": "sae-stage10"},
 ];
 
 export const getIngredient = (id:string) => ingredients.find(item => item.id === id);

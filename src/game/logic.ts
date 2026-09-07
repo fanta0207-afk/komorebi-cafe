@@ -35,11 +35,15 @@ export function availableEvent(state:GameState, events:RelationshipEvent[]) {
   });
 }
 
-export function relationshipRequirements(event:RelationshipEvent,state:GameState) {
+export function relationshipRequirementTargets(stage:number) {
   const orderTargets=[0,0,0,5,10,15,25,40,60,80,100];
+  return {orderTarget:orderTargets[Math.max(0,Math.min(10,stage))],purchaseTarget:stage<3?0:Math.min(8,stage-2)};
+}
+
+export function relationshipRequirements(event:RelationshipEvent,state:GameState) {
   const supplierId=characters.find(item=>item.id===event.characterId)?.supplierId;
   const purchases=ingredients.filter(item=>item.supplierId===supplierId).reduce((sum,item)=>sum+(state.lifetimeStats.ingredientPurchases[item.id]||0),0);
-  const orderTarget=orderTargets[event.toStage],purchaseTarget=event.toStage<3?0:event.toStage-2;
+  const {orderTarget,purchaseTarget}=relationshipRequirementTargets(event.toStage);
   return [{label:"お店の累計提供",current:state.lifetimeStats.totalOrders,target:orderTarget,met:state.lifetimeStats.totalOrders>=orderTarget},
     {label:"このお店での累計仕入れ",current:purchases,target:purchaseTarget,met:purchases>=purchaseTarget}].filter(item=>item.target>0);
 }
@@ -75,7 +79,7 @@ export function hiddenRecipeRewards(viewedEvents:string[],unlockedRecipes:string
 }
 
 export function createCharacterProgress() {
-  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,route:"undecided" as const,eventChoices:{},talkedStages:[] }]));
+  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,route:"undecided" as const,eventChoices:{},talkedStages:[],giftReactions:{} }]));
 }
 
 export function bestSeller(recipeSales:Record<string,number>) {

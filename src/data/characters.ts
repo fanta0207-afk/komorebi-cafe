@@ -12,7 +12,7 @@ export const characters: Character[] = [
     "occupation": "コーヒー豆店 店主",
     "supplierId": "coffee",
     "profile": "亡き父の小さな焙煎店を継いだ職人。接客は不器用だが、買い手の器具や営業形態まで覚えて豆を選ぶ。愛情表現は、荷物を持つ、焙煎日をメモする、閉店まで待つなどの行動が先に出る。豆の説明になると少しだけ口数が増える。",
-    "image": "",
+    "image": "/assets/characters/ren.png",
     "silhouette": "蓮",
     "favoriteGiftTags": [
       "coffee",
@@ -51,7 +51,7 @@ export const characters: Character[] = [
     "occupation": "牧場スタッフ",
     "supplierId": "ranch",
     "profile": "家族経営の牧場で働き、乳製品の販売を担当する。動物の小さな変化に気づき、人の話も最後まで聞く。天然さは、牛の誕生日は全頭覚えているのに自分の誕生日を忘れるような生活の偏り。飼育の判断には責任感がある。",
-    "image": "",
+    "image": "/assets/characters/shirakawa-maki.png",
     "silhouette": "牧",
     "favoriteGiftTags": [
       "animal",
@@ -90,7 +90,7 @@ export const characters: Character[] = [
     "occupation": "農園・栽培と直売担当",
     "supplierId": "farm",
     "profile": "祖父母の農園で栽培と直売を担当する。新しい品種や売り方を試すのが好き。勝負を持ちかけたり、大きな野菜を宝物のように差し出したりして、人を笑わせる。距離は近いが、嫌がられたことは繰り返さない。",
-    "image": "",
+    "image": "/assets/characters/aki.png",
     "silhouette": "葵",
     "favoriteGiftTags": [
       "nature",
@@ -129,7 +129,7 @@ export const characters: Character[] = [
     "occupation": "洋菓子店 パティシエ",
     "supplierId": "patisserie",
     "profile": "町の洋菓子店を営むパティシエ。アール・グレイの名で親しまれている。礼儀正しく、味・温度・盛りつけに厳しい。少し意地悪な質問もするが、改善点は具体的に教えてくれる。素朴なおやつを好む一面も。",
-    "image": "",
+    "image": "/assets/characters/earl-grey.png",
     "silhouette": "ア",
     "favoriteGiftTags": [
       "sweet",
@@ -160,16 +160,16 @@ export const characters: Character[] = [
   },
   {
     "id": "haru",
-    "name": "空木 海斗",
-    "shortName": "海斗",
-    "nameReading": "うつぎ かいと",
+    "name": "麦野 太陽",
+    "shortName": "太陽",
+    "nameReading": "むぎの たいよう",
     "gender": "male",
     "age": 25,
     "occupation": "パン職人・配達担当",
     "supplierId": "bakery",
     "profile": "パン屋で製造と配達を担う。人懐っこく、困りごとを放っておけない兄貴肌。見えないところで練習を重ねる努力家で、接客中に失敗談を笑って話しても、本当に悩んでいることは言わない。主人公の店に朝いちばんで顔を出すことが多い。",
-    "image": "",
-    "silhouette": "海",
+    "image": "/assets/characters/mugino-taiyo.png",
+    "silhouette": "太",
     "favoriteGiftTags": [
       "sweet",
       "handmade",
@@ -180,11 +180,11 @@ export const characters: Character[] = [
     ],
     "routeTheme": "毎日の「またね」が、未来の約束になる",
     "voice": "「俺」と話す。「任せとけ」と明るく歯切れがよい。自分から頼む時だけ、少し言葉が遅くなる。",
-    "backstory": "家業を手伝いながら、年の離れた弟妹の世話をして育った。「海斗がいると助かる」と言われることが誇り。製パンは最初から得意だったわけではなく、早朝の練習を何年も続けて今の腕になった。家族が独立しても、自分は誰かの用事で一日を埋める癖が残っている。",
+    "backstory": "家業を手伝いながら、年の離れた弟妹の世話をして育った。「太陽がいると助かる」と言われることが誇り。製パンは最初から得意だったわけではなく、早朝の練習を何年も続けて今の腕になった。家族が独立しても、自分は誰かの用事で一日を埋める癖が残っている。",
     "concern": "頼られなくなると、居場所もなくなりそうで怖い。自分の新しいパンを作りたいのに、他の人の頼みを先に引き受けてしまう。",
     "attraction": "完成したパンだけでなく、何年も重ねた試作や工夫に気づいてくれた。パンを持たない日も会いたいと言ってくれるあなたの前なら、役に立とうと急がず座っていられる。",
     "greetings": {
-      "first": "おはよう！　空木海斗だ。朝いちばんの焼きたて、持ってきたぞ。",
+      "first": "おはよう！　麦野太陽だ。朝いちばんの焼きたて、持ってきたぞ。",
       "familiar": "おはよう！　昨日の売れ行き、どうだった？",
       "close": "今日は俺が聞く番。何かあった？",
       "romance": "会いたくて来た。……今の、結構照れるな。",
@@ -207,7 +207,7 @@ export const characters: Character[] = [
     "occupation": "花・ハーブ店 店主",
     "supplierId": "herb",
     "profile": "古い温室のある花・ハーブ店を営む。香りや光に敏感で、「雨の前は葉が少し急いでいる」など独特の表現をする。静かな観察力と、ふいに出る率直な一言が魅力。神秘的に見える場面も、植物や暮らしへの細やかな注意で説明でき、超常現象の有無は確定させない。",
-    "image": "/assets/characters/nagisa.png",
+    "image": "/assets/characters/shizuka.png",
     "silhouette": "静",
     "favoriteGiftTags": [
       "flower",
@@ -234,6 +234,46 @@ export const characters: Character[] = [
       "like": "好きな感じだ。君も、そう思って選んでくれたの？",
       "normal": "ありがとう。置く場所を考えてみるね。",
       "dislike": "ありがとう。いつもと違う香りで、少し驚いた。"
+    }
+  },
+  {
+    "id": "sae",
+    "name": "凍堂 冴",
+    "shortName": "冴",
+    "nameReading": "とうどう さえ",
+    "gender": "male",
+    "age": 29,
+    "occupation": "冷凍倉庫 管理者",
+    "supplierId": "freezer",
+    "profile": "アイスや冷凍果実を保管する冷凍倉庫の管理者。常に厚着で、マフラーとフードに隠れて表情が見えにくい。人と関わるのを避け、必要なことしか話さないが、温度管理と品質への妥協はない。主人公の温かさに触れ、凍った距離が少しずつ溶けていく。",
+    "image": "/assets/characters/toudou-sae.png",
+    "silhouette": "冴",
+    "favoriteGiftTags": [
+      "practical",
+      "craft",
+      "warm"
+    ],
+    "dislikedGiftTags": [
+      "flashy",
+      "perfume"
+    ],
+    "routeTheme": "閉ざした心が、あなたの温度で溶けるまで",
+    "voice": "「俺」と話す。返事は短く淡々としている。気持ちが揺れると沈黙が長くなり、優しさは小さな注意や行動に出る。",
+    "backstory": "幼い頃から人の感情に敏感で、周囲の言い争いに巻き込まれるたびに、誰とも深く関わらない方が楽だと学んだ。静かな環境と数値で管理できる仕事を好み、冷凍倉庫の管理者になった。人を避ける一方、品物を最良の状態で届けることには誰より誠実。",
+    "concern": "親しくなれば期待され、いずれ失望させると思っている。一人なら傷つかないと言い聞かせるが、本当は誰かと同じ食卓を囲む温かさに憧れている。",
+    "attraction": "沈黙を無理に埋めず、寒さや距離を尊重しながら何度も会いに来てくれた。冷たい手に温かい飲み物を渡し、その後は急かさないあなたの隣でなら、自分のペースで心を開けると思った。",
+    "greetings": {
+      "first": "凍堂冴。用件は。倉庫は寒い。長居するな。",
+      "familiar": "また来たのか。……手袋は。",
+      "close": "そこにいろ。温かいのを用意した。",
+      "romance": "お前が来ると、ここも寒くない。……おかしいな。",
+      "friendship": "次の試作、俺も見る。お前の店なら、悪くない。"
+    },
+    "giftResponses": {
+      "love": "……温かい。俺のために選んだのか。ありがとう。",
+      "like": "実用的だな。……大事に使う。",
+      "normal": "俺に？　……受け取っておく。",
+      "dislike": "……人目を引くのは苦手だ。でも、気持ちは受け取る。"
     }
   }
 ];

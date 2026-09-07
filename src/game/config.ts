@@ -1,6 +1,6 @@
 export const GAME_CONFIG = {
   saveKey:"komorebi-cafe-save-v1",
-  saveVersion:9,
+  saveVersion:11,
   initialCurrency:200,
   profitMultiplier:0.1,
   daysPerSeason:28,

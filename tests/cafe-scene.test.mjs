@@ -24,7 +24,7 @@ for (const folder of ['data', 'game', 'components', 'components/cafe', 'screens'
   }
 }
 const require = createRequire(import.meta.url);
-const { makeVisit, reconcileVisits, visitPhase, VISIT_TIMING, cafeAsset } = require(join(output, 'components/cafe/sceneModel.js'));
+const { makeVisit, reconcileVisits, visitPhase, VISIT_TIMING, cafeAsset, TABLE_POSITIONS } = require(join(output, 'components/cafe/sceneModel.js'));
 const { CafeScene } = require(join(output, 'components/cafe/CafeScene.js'));
 const { CafeAsset } = require(join(output, 'components/cafe/CafeAsset.js'));
 const { createInitialState, reducer, migrateSavedState } = require(join(output, 'game/state.js'));
@@ -34,6 +34,61 @@ const { equipment } = require(join(output, 'data/equipment.js'));
 const { decorations } = require(join(output, 'data/decorations.js'));
 const { characters } = require(join(output, 'data/characters.js'));
 const order = (id = 'one', slot = 0, status = 'queued') => ({ id, customerSlot: slot, recipeId: 'coffee', status, totalMs: 10000, remainingMs: status === 'ready' ? 0 : 5000 });
+
+test('the supplied Ren artwork is used for full portraits and face selectors',()=>{
+  const ren=characters.find(character=>character.id==='ren');
+  assert.equal(ren.image,'/assets/characters/ren.png');
+  const png=readFileSync(new URL('../public/assets/characters/ren.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),512);
+  assert.equal(png.readUInt32BE(20),812);
+});
+
+test('the supplied Shizuka artwork is used for full portraits and face selectors',()=>{
+  const shizuka=characters.find(character=>character.id==='nagisa');
+  assert.equal(shizuka.image,'/assets/characters/shizuka.png');
+  const png=readFileSync(new URL('../public/assets/characters/shizuka.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
+});
+
+test('the supplied Earl Grey artwork is used for full portraits and face selectors',()=>{
+  const earlGrey=characters.find(character=>character.id==='itsuki');
+  assert.equal(earlGrey.image,'/assets/characters/earl-grey.png');
+  const png=readFileSync(new URL('../public/assets/characters/earl-grey.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),512);
+  assert.equal(png.readUInt32BE(20),812);
+});
+
+test('the supplied Shirakawa Maki artwork is used for full portraits and face selectors',()=>{
+  const maki=characters.find(character=>character.id==='sota');
+  assert.equal(maki.image,'/assets/characters/shirakawa-maki.png');
+  const png=readFileSync(new URL('../public/assets/characters/shirakawa-maki.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),512);
+  assert.equal(png.readUInt32BE(20),812);
+});
+
+test('the supplied Mugino Taiyo artwork is used for full portraits and face selectors',()=>{
+  const taiyo=characters.find(character=>character.id==='haru');
+  assert.equal(taiyo.image,'/assets/characters/mugino-taiyo.png');
+  assert.equal(taiyo.silhouette,'太');
+  const png=readFileSync(new URL('../public/assets/characters/mugino-taiyo.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),512);
+  assert.equal(png.readUInt32BE(20),812);
+});
+
+test('the supplied Toudou Sae artwork is used for full portraits and face selectors',()=>{
+  const sae=characters.find(character=>character.id==='sae');
+  assert.equal(sae.image,'/assets/characters/toudou-sae.png');
+  const png=readFileSync(new URL('../public/assets/characters/toudou-sae.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),512);
+  assert.equal(png.readUInt32BE(20),857);
+});
 
 test('the supplied coffee machine is used in idle, cooking and ready states without changing equipment',()=>{
   const asset='/assets/cafe/equipment/coffeeCounter.png?v=dc73b59a';
@@ -60,6 +115,9 @@ test('the room renders exactly the purchased table sets and all six guests remai
     assert.equal((html.match(/class="scene-order /g)||[]).length,tableCount);
     assert.doesNotMatch(html,/NaN|undefined%/);
   }
+  assert.deepEqual(TABLE_POSITIONS.slice(2),[{x:29,y:64},{x:71,y:64},{x:29,y:76},{x:71,y:76}]);
+  const css=readFileSync(new URL('../src/components/cafe/cafe-scene.css',import.meta.url),'utf8');
+  assert.match(css,/\.room-table:nth-child\(n\+5\) \{ width:27%; height:14%; \}/);
 });
 
 test('seating purchase card shows mission gates, prices and the maximum',()=>{
@@ -88,7 +146,7 @@ test('the actual new-game scene shows only the coffee machine and reveals other 
   assert.doesNotMatch(render(purchased),/data-equipment="prepTable"/);
 });
 
-test('screens omit explanatory prefaces and voice notes while keeping playable controls and requirements', () => {
+test('screens keep playable controls while removing decorative and repeated copy', () => {
   const context = require(join(output, 'game/GameContext.js'));
   const original = context.useGame;
   const state = stockedCafe();
@@ -106,32 +164,74 @@ test('screens omit explanatory prefaces and voice notes while keeping playable c
     const { suppliers } = require(join(output, 'data/suppliers.js'));
     const supplier = render('screens/SupplierScreen.js', 'SupplierScreen', { supplierId: suppliers[0].id, onBack() {} });
     const inventory = render('components/cafe/InventoryModal.js', 'InventoryModal', { state, onClose() {}, onTown() {} });
+    const suppliedPortrait = render('components/GameUI.js', 'Portrait', { character: characters[0] });
+    assert.match(people,/portrait-small portrait-face/);
+    assert.match(town,/portrait-small portrait-face/);
+    assert.match(staff,/portrait-small portrait-face/);
+    assert.match(profile,/portrait-face/);
+    assert.match(supplier,/portrait-face/);
     for (const html of [equipment, recipes, staff, people, profile, town, gifts, supplier, inventory]) {
       assert.doesNotMatch(html, /class="(?:intro-copy|investment-note|staff-guide|procurement-guide|procurement-bond|notebook-intro)"/);
       assert.doesNotMatch(html, /売上を貯めて、お店に投資|調理担当 \+ 提供担当で、自動営業へ|<summary>話し方<\/summary>/);
     }
     assert.match(equipment, /設備と料理/);
     assert.match(equipment, /強化 ●/);
-    assert.doesNotMatch(equipment, /CAFE GROWTH/);
+    assert.doesNotMatch(equipment, /CAFE GROWTH|STORY LOCKED/);
     assert.match(recipes, /食材代/);
-    assert.match(recipes, /在庫/);
+    assert.match(recipes, /利益/);
+    assert.doesNotMatch(recipes, /SECRET RECIPE|STORY RECIPE|1品につき各1食分|必要な設備を購入すると販売できます/);
     assert.match(staff, /好感度3で雇用できます/);
     assert.match(staff, /調理をお願いする/);
-    assert.match(staff, /初回のみ/);
+    assert.match(staff, /初回/);
+    assert.doesNotMatch(staff, /得意な仕事が上達しました|担当を変更しても、今のお仕事を終えてから移ります/);
     assert.match(profile, /プレゼントを渡す/);
     assert.match(profile, /ふたりの物語/);
-    assert.match(profile, /次の共同開発/);
-    assert.doesNotMatch(profile, /過去の話は、好感度5で|心の悩みは、好感度7で|話してくれた過去|分かち合った悩み/);
-    state.characterProgress.ren.relationshipStage=7;
-    const unlockedProfile=render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
-    assert.match(unlockedProfile,/話してくれた過去/);
-    assert.match(unlockedProfile,/分かち合った悩み/);
-    state.characterProgress.ren.relationshipStage=0;
+    assert.match(profile, /贈物の好み/);
+    assert.ok(profile.indexOf('ふたりの物語') < profile.indexOf('贈物の好み'));
+    assert.match(profile, /大好物/);
+    assert.match(profile, /好き/);
+    assert.match(profile, /ふつう/);
+    assert.match(profile, /苦手/);
+    assert.doesNotMatch(profile, /共同成長|次の共同開発|調理をお願いする|提供をお願いする/);
+    assert.doesNotMatch(profile, new RegExp(`${characters[0].age}歳|${characters[0].occupation}|${characters[0].nameReading}`));
+    assert.doesNotMatch(profile, new RegExp(characters[0].profile));
+    state.characterProgress.ren.giftReactions={mug:'love',ribbon:'dislike'};
+    const discoveredProfile=render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
+    assert.match(discoveredProfile,/2\/20/);
+    assert.match(discoveredProfile,/大好物[\s\S]*陶器のマグ/);
+    assert.match(discoveredProfile,/苦手[\s\S]*きらきらリボン/);
+    state.characterProgress.ren.giftReactions={};
     assert.match(gifts, /品揃えを更新/);
+    assert.doesNotMatch(gifts, new RegExp(require(join(output, 'data/gifts.js')).gifts[0].description));
     assert.match(supplier, /1パック = 5食分/);
-    assert.match(supplier, /所要時間/);
+    assert.match(supplier, /入荷まで/);
+    assert.doesNotMatch(supplier, /WHOLESALE|好感度Lv\.|所要時間/);
+    assert.doesNotMatch(supplier, new RegExp(`${characters[0].age}歳|${characters[0].occupation}`));
     assert.match(supplier, /class="dialogue-box"/);
+    assert.match(supplier,/\/assets\/characters\/ren\.png/);
+    assert.match(suppliedPortrait,/data-character="ren"/);
+    assert.doesNotMatch(suppliedPortrait,/<span>蓮<\/span>/);
     assert.match(inventory, /食分/);
+    assert.doesNotMatch(inventory, /CAFE STOCK|在庫なし/);
+    assert.doesNotMatch(town, new RegExp(suppliers[0].description));
+    assert.match(readFileSync(new URL('../src/screens/PeopleScreen.tsx',import.meta.url),'utf8'),/createPortal\(<div className="modal-backdrop gift-backdrop"/);
+    assert.match(readFileSync(new URL('../app/globals.css',import.meta.url),'utf8'),/\.gift-backdrop\{position:fixed/);
+    const gameUi=readFileSync(new URL('../src/components/GameUI.tsx',import.meta.url),'utf8');
+    const storyModal=readFileSync(new URL('../src/components/StoryModal.tsx',import.meta.url),'utf8');
+    const storyCss=readFileSync(new URL('../src/components/story-modal.css',import.meta.url),'utf8');
+    assert.match(gameUi,/data-character=\{character\.id\}/);
+    assert.match(storyModal,/className=\{`story-stage[\s\S]*data-character=\{character\.id\}/);
+    const globalCss=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+    assert.match(globalCss,/\.portrait-face\[data-character="haru"\] \{ --face-scale:1\.65; --face-shift-x:12\.5%; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="ren"\] \{ --face-scale:2\.05; --face-shift-x:-14%; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="itsuki"\] \{ --face-scale:2\.2; --face-shift-x:-7%;/);
+    assert.match(globalCss,/\.portrait-face img \{[^}]*mix-blend-mode:multiply;/);
+    assert.match(globalCss,/\.profile-card>\.person-summary>\.portrait-face,[\s\S]*\.supplier-hero>\.portrait-face \{[^}]*width:96px;[^}]*height:96px;/);
+    assert.match(storyCss,/\.story-standing-art \{[\s\S]*height:var\(--story-height\);[\s\S]*object-position:50% 0;/);
+    assert.match(storyCss,/data-character="sota"\] \{ --story-height:75%; --story-top:5%; --story-left:16px; \}/);
+    assert.match(storyCss,/data-character="ren"\] \{ --story-height:72%; --story-top:10%; --story-left:-14px; \}/);
+    assert.match(storyCss,/data-character="itsuki"\] \{ --story-height:80%; --story-top:8%; --story-left:-12px; \}/);
+    assert.match(storyCss,/data-character="haru"\] \{ --story-height:78%; --story-top:4%; --story-left:22px; \}/);
     assert.equal(JSON.stringify(state), saved);
   } finally {
     context.useGame = original;

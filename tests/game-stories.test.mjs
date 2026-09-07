@@ -74,9 +74,9 @@ function play(id,route='romance',until=10) {
   return state;
 }
 
-test('the six requested characters have 10 unique stories, consistent rewards and no dangling references',()=>{
-  assert.deepEqual(characters.map(c=>[c.name,c.age]),[['黒豆 蓮',26],['白川 牧',24],['三ツ葉 葵',22],['アール・グレイ',28],['空木 海斗',25],['灰島 静',27]]);
-  assert.equal(relationshipEvents.length,60);
+test('the seven requested characters have 10 unique stories, consistent rewards and no dangling references',()=>{
+  assert.deepEqual(characters.map(c=>[c.name,c.age]),[['黒豆 蓮',26],['白川 牧',24],['三ツ葉 葵',22],['アール・グレイ',28],['麦野 太陽',25],['灰島 静',27],['凍堂 冴',29]]);
+  assert.equal(relationshipEvents.length,70);
   for(const catalog of [characters,relationshipEvents,recipes,ingredients,equipment,decorations])assert.equal(new Set(catalog.map(item=>item.id)).size,catalog.length);
   const catalogs={recipeIds:recipes,ingredientIds:ingredients,equipmentIds:equipment,decorationIds:decorations};
   for(const character of characters){
@@ -96,7 +96,19 @@ test('the six requested characters have 10 unique stories, consistent rewards an
   }
 });
 
-for(const character of ['ren','sota','aki','itsuki','haru','nagisa'])test(`${character}: normal trade and gifts reach level 10 on both routes, with equal rewards and independent supplies`,()=>{
+test('developer affection can advance a selected character beyond stage 2',()=>{
+  let state=createInitialState();
+  const coins=state.currency;
+  state=reducer(state,{type:'DEV_AFFECTION',characterId:'aki'});
+  for(const event of routeEvents('aki').slice(0,4)){
+    assert.equal(availableEvent(state,relationshipEvents)?.id,event.id);
+    state=complete(state,event);
+  }
+  assert.equal(state.characterProgress.aki.relationshipStage,4);
+  assert.equal(state.currency,coins);
+});
+
+for(const character of characters.map(item=>item.id))test(`${character}: normal trade and gifts reach level 10 on both routes, with equal rewards and independent supplies`,()=>{
   const romance=play(character,'romance');const friendship=play(character,'friendship');
   assert.equal(romance.characterProgress[character].route,'romance');
   assert.equal(friendship.characterProgress[character].route,'friendship');
@@ -146,7 +158,7 @@ test('a v3 save keeps progress, possessions and growth unlocks while removing da
   assert.deepEqual(next.characterProgress.ren.viewedEvents,['ren-stage1','ren-stage2','ren-stage3']);
   assert.ok(next.unlockedIngredients.includes('singleOrigin'));assert.ok(next.unlockedRecipes.includes('carefulDrip'));assert.ok(next.unlockedRecipes.includes('moonLatte'));
   assert.equal(next.characterProgress.haru.relationshipStage,0);assert.equal(next.characterProgress.haru.met,false);
-  assert.equal(Object.keys(next.characterProgress).length,6);
+  assert.equal(Object.keys(next.characterProgress).length,7);
   const again=migrateSavedState(next);
   assert.deepEqual(again.characterProgress,next.characterProgress);assert.deepEqual(again.unlockedRecipes,next.unlockedRecipes);
 });
@@ -198,7 +210,7 @@ test('the existing cooperative routes still award their ingredients, equipment a
     state=reducer(state,{type:'COMPLETE_GROWTH_EVENT',eventId:event.eventId});
     assert.ok(state.viewedGrowthEvents.includes(event.eventId),event.eventId);
   }
-  assert.equal(state.viewedGrowthEvents.length,30);
+  assert.equal(state.viewedGrowthEvents.length,characters.length*5);
   assert.ok(state.unlockedRecipes.includes('richChocolatePudding'));assert.ok(state.unlockedRecipes.includes('gardenBerryTea'));
 });
 
@@ -230,13 +242,14 @@ test('seating is bought one set at a time after missions, with coin and six-set 
   assert.equal(reducer(state,{type:'RESET'}).tableCount,1);
 });
 
-test('old four-table saves retain their seats and waiting orders without resetting possessions',()=>{
-  const old={...stockedCafe(),saveVersion:8,currency:876,orders:[order('legacy','coffee',3)]};
+test('legacy saves no longer infer free tables and preserve one progressed order at the purchased seat',()=>{
+  const old={...stockedCafe(),saveVersion:9,currency:876,orders:[order('waiting','coffee',0),{...order('legacy','toast',3),status:'cooking',remainingMs:12000,totalMs:30000}],staff:[{characterId:'ren',role:'server',servingOrderId:'waiting',remainingMs:1000}]};
   delete old.tableCount;
   const restored=migrateSavedState(old);
-  assert.equal(restored.tableCount,4);assert.equal(restored.currency,876);
-  assert.deepEqual(restored.orders,old.orders);assert.deepEqual(restored.ingredients,old.ingredients);
-  assert.equal(migrateSavedState(restored).tableCount,4);
+  assert.equal(restored.tableCount,1);assert.equal(restored.currency,876);
+  assert.equal(restored.orders.length,1);assert.equal(restored.orders[0].id,'legacy');assert.equal(restored.orders[0].customerSlot,0);
+  assert.deepEqual(restored.ingredients,old.ingredients);assert.equal(restored.staff[0].servingOrderId,undefined);assert.equal(restored.staff[0].remainingMs,0);
+  assert.equal(migrateSavedState(restored).tableCount,1);
   assert.equal(migrateSavedState({...createInitialState(),tableCount:100}).tableCount,6);
   assert.equal(migrateSavedState({...createInitialState(),tableCount:-1}).tableCount,1);
 });
@@ -359,8 +372,8 @@ test('insufficient food, locked recipes and missing equipment cannot consume sto
   const purchased=reducer(isolated(),{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});assert.equal(purchased.ingredients.coffeeBeans,10);assert.equal(purchased.deliveries[0].packs,1);assert.equal(purchased.currency,2900);
 });
 
-test('all 51 recipes have real ingredients, a valid station, finite cooking time and positive ingredient margin',()=>{
-  assert.equal(recipes.length,51);
+test('all recipes have real ingredients, a valid station, finite cooking time and positive ingredient margin',()=>{
+  assert.equal(recipes.length,59);
   for(const recipe of recipes){
     assert.ok(recipe.requiredIngredients.length>0,recipe.id);
     assert.equal(new Set(recipe.requiredIngredients).size,recipe.requiredIngredients.length);
@@ -437,6 +450,8 @@ test('visiting and gifting have no daily limit, repeated dialogue is not farmabl
   let state=reducer(isolated(),{type:'VISIT',characterId:'ren'});const aff=state.characterProgress.ren.affection;
   for(let i=0;i<20;i++)state=reducer(state,{type:'VISIT',characterId:'ren'});assert.equal(state.characterProgress.ren.affection,aff);
   state={...state,inventory:{mug:2}};for(let i=0;i<2;i++)state=reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:'mug',reaction:'love'});assert.equal(state.inventory.mug,0);assert.ok(state.characterProgress.ren.affection>aff);
+  assert.equal(state.characterProgress.ren.giftReactions.mug,'love');
+  assert.equal(migrateSavedState(JSON.parse(JSON.stringify(state))).characterProgress.ren.giftReactions.mug,'love');
   state={...state,characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,relationshipStage:2,affection:100,viewedEvents:['ren-stage1','ren-stage2']}}};assert.equal(availableEvent(state,relationshipEvents),undefined);
   state=trade(state,5);state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});assert.equal(availableEvent(state,relationshipEvents)?.id,'ren-stage3');
 });
@@ -448,7 +463,7 @@ test('automatic order generation respects stock, slots and capacity during susta
   state=receiveAll(reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'}));state=tick(state,120000);assert.ok(state.currency>coins);
 });
 
-test('all 51 recipes retain ingredient cost but reduce the normal profit to one tenth',()=>{
+test('all recipes retain ingredient cost but reduce the normal profit to one tenth',()=>{
   assert.equal(createInitialState().currency,200);
   assert.equal(salePrice('coffee'),36);
   assert.equal(salePrice('toast'),31);

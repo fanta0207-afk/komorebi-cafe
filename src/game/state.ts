@@ -1,6 +1,6 @@
 import { getGift } from "../data/gifts";
 import { getCharacter } from "../data/characters";
-import { getIngredient } from "../data/ingredients";
+import { getIngredient, ingredients } from "../data/ingredients";
 import { getRecipe, recipes } from "../data/recipes";
 import { baseEquipmentIds, initialEquipmentIds, equipment, getEquipment } from "../data/equipment";
 import { getGrowthEvent } from "../data/growthEvents";
@@ -14,7 +14,7 @@ import { nextTableUpgrade, tableCapacity, tableUpgradeUnlocked } from "./seating
 import { orderSupplies, receiveSupplies } from "./procurement";
 import { stationOccupied } from "./kitchen";
 import { GAME_CONFIG, relationshipLabel } from "./config";
-import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction } from "./logic";
+import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction, relationshipRequirementTargets } from "./logic";
 
 export type Action =
   | {type:"BUY_TABLE"; expectedCount:number}
@@ -103,15 +103,24 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       const legacy=(saved.saveVersion || 1)<4;
       const stage=old.met?Math.max(legacy?1:0,Math.min(10,old.relationshipStage || 0)):0;
       const viewed=legacy?relationshipEvents.filter(event=>event.characterId===id && event.toStage<=stage).map(event=>event.id):(old.viewedEvents || []);
-      return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,route:old.route || "undecided",eventChoices:old.eventChoices || {}}];
+      return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,route:old.route || "undecided",eventChoices:old.eventChoices || {},giftReactions:old.giftReactions || {}}];
     }));
     const ongoing=restoreOngoing(saved.missions?.ongoing);
     const missionIds=new Set([...missions,...milestoneMissions,...ongoing].map(m=>m.id));
-    const savedOrders=(saved.orders||[]).filter(order=>Number.isInteger(order.customerSlot)&&order.customerSlot>=0&&order.customerSlot<GAME_CONFIG.maxOrders);
-    const previousTables=Number.isInteger(saved.tableCount)?Math.max(1,Math.min(GAME_CONFIG.maxOrders,saved.tableCount!)):(saved.saveVersion||1)<9?4:1;
+    const savedVersion=saved.saveVersion || 1;
+    const validSavedOrders=(saved.orders||[]).filter(order=>Number.isInteger(order.customerSlot)&&order.customerSlot>=0&&order.customerSlot<GAME_CONFIG.maxOrders);
+    // Versions before v10 could silently turn the old four-seat layout into four
+    // purchased table sets. Reset that inferred capacity once; only BUY_TABLE may
+    // increase it from now on. Preserve the most progressed in-flight order.
+    const previousTables=savedVersion<10?1:Number.isInteger(saved.tableCount)?Math.max(1,Math.min(GAME_CONFIG.maxOrders,saved.tableCount!)):1;
+    const orderPriority=(order:Order)=>order.status==="ready"?2:order.status==="cooking"?1:0;
+    const legacyOrder=savedVersion<10?[...validSavedOrders].sort((a,b)=>orderPriority(b)-orderPriority(a))[0]:undefined;
+    const savedOrders=savedVersion<10?(legacyOrder?[{...legacyOrder,customerSlot:0}]:[]):validSavedOrders.filter(order=>order.customerSlot<previousTables);
+    const keptOrderIds=new Set(savedOrders.map(order=>order.id));
+    const discardedOrders=validSavedOrders.filter(order=>!keptOrderIds.has(order.id));
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
-      tableCount:Math.max(previousTables,...savedOrders.map(order=>order.customerSlot+1)),
+      tableCount:previousTables,
       missions:{...emptyMissions(),...saved.missions,
         ongoing,
         completed:[...new Set((saved.missions?.completed||[]).filter(id=>missionIds.has(id)))],
@@ -133,16 +142,18 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       deliveries:Array.isArray(saved.deliveries) ? saved.deliveries.filter(item => item && getIngredient(item.ingredientId)
         && typeof item.id === "string" && Number.isInteger(item.packs) && item.packs > 0 && item.packs <= GAME_CONFIG.maxProcurementPacks
         && Number.isFinite(item.orderedAt) && Number.isFinite(item.arrivesAt) && item.arrivesAt >= item.orderedAt) : [],
-      orders:savedOrders, lastPlayedAt:now,
+      orders:savedOrders,
+      staff:(saved.staff||[]).map(person=>person.servingOrderId&&!keptOrderIds.has(person.servingOrderId)?{...person,servingOrderId:undefined,remainingMs:0}:person),
+      lastPlayedAt:now,
       offlineOffer:0, notice:undefined,
     };
     // Old saves retain their earned stages; make the newly authored memories and rewards available.
-    if ((saved.saveVersion || 1)<4) {
+    if (savedVersion<4) {
       for (const event of relationshipEvents) {
         if (characterProgress[event.characterId].viewedEvents.includes(event.id)) migrated=applyStoryReward(migrated,event.reward);
       }
     }
-    if ((saved.saveVersion || 1)<5) {
+    if (savedVersion<5) {
       migrated.ingredients={...Object.fromEntries(Object.entries(saved.ingredients || {}).map(([id,count])=>[id,count*GAME_CONFIG.ingredientPackSize]))};
       for(const id of ["coffeeBeans","bread"])migrated.ingredients[id]=(migrated.ingredients[id]||0)+10;
       migrated.ownedEquipment=[...new Set([...baseEquipmentIds,...migrated.ownedEquipment])];
@@ -151,7 +162,14 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       migrated.staff=[];
       migrated.orders=migrated.orders.map(order=>({...order,status:"queued",remainingMs:0,totalMs:0}));
     }
-    if((saved.saveVersion||1)<7) {
+    if(savedVersion>=5&&savedVersion<10) {
+      // Orders removed with the inferred seats never charged when queued. Return
+      // ingredients for any cooking or completed dishes that had already charged.
+      const ingredients={...migrated.ingredients};
+      for(const order of discardedOrders)if(order.status!=="queued")for(const id of getRecipe(order.recipeId)?.requiredIngredients||[])ingredients[id]=(ingredients[id]||0)+1;
+      migrated.ingredients=ingredients;
+    }
+    if(savedVersion<7) {
       // Paid purchases minus pending packs are evidence of already completed deliveries.
       migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
     }
@@ -193,12 +211,13 @@ function reduceAction(state:GameState, action:Action):GameState {
     case "GIVE_GIFT": {
       const item=getGift(action.giftId); const current=state.characterProgress[action.characterId];
       if (!item || !current || !state.inventory[item.id]) return state;
-      const amount=GAME_CONFIG.giftAffection[giftReaction(getCharacter(action.characterId)!,item)];
+      const reaction=giftReaction(getCharacter(action.characterId)!,item);
+      const amount=GAME_CONFIG.giftAffection[reaction];
       const nextCount=state.inventory[item.id]-1;
       const nextInventory={ ...state.inventory, [item.id]:nextCount };
       return {
         ...state, missions:{...state.missions,gaveBook:state.missions.gaveBook||(action.characterId==="ren"&&item.id==="book")},inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
-        characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,affection:Math.max(0,current.affection+amount) } },
+        characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,affection:Math.max(0,current.affection+amount),giftReactions:{...current.giftReactions,[item.id]:reaction} } },
         notice:notice("heart",amount>0?`気持ちが少し近づきました ♡`:`少し好みと違ったようです`),
       };
     }
@@ -285,8 +304,14 @@ function reduceAction(state:GameState, action:Action):GameState {
     case "CLEAR_NOTICE": return { ...state,notice:undefined };
     case "DEV_COINS": return { ...state,currency:state.currency+10000,notice:notice("coin","+10,000 コイン") };
     case "DEV_AFFECTION": {
-      const current=state.characterProgress[action.characterId]; if(!current)return state;
-      return { ...state,characterProgress:{...state.characterProgress,[action.characterId]:{...current,met:true,affection:current.affection+100}},notice:notice("heart","好感度 +100") };
+      const current=state.characterProgress[action.characterId],character=getCharacter(action.characterId); if(!current||!character)return state;
+      const supplierIngredient=ingredients.find(item=>item.supplierId===character.supplierId&&!item.unlockEventId);
+      const {orderTarget,purchaseTarget}=relationshipRequirementTargets(10);
+      const ingredientPurchases=supplierIngredient?{...state.lifetimeStats.ingredientPurchases,[supplierIngredient.id]:Math.max(state.lifetimeStats.ingredientPurchases[supplierIngredient.id]||0,purchaseTarget)}:state.lifetimeStats.ingredientPurchases;
+      return { ...state,
+        characterProgress:{...state.characterProgress,[action.characterId]:{...current,met:true,affection:current.affection+100}},
+        lifetimeStats:{...state.lifetimeStats,totalOrders:Math.max(state.lifetimeStats.totalOrders,orderTarget),ingredientPurchases},
+        notice:notice("heart","好感度 +100・物語条件を解放") };
     }
     case "DEV_UNLOCK_ALL": return {...state,unlockedRecipes:recipes.map(item=>item.id),unlockedEquipment:equipment.map(item=>item.id),ownedEquipment:equipment.map(item=>item.id),stations:equipment.map(item=>({id:`${item.id}-1`,equipmentId:item.id,level:1})),notice:notice("unlock","料理と設備をすべて解放しました")};
     case "RESET": return createInitialState();

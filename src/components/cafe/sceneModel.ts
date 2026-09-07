@@ -3,8 +3,8 @@ import type { Order } from "../../types/game";
 // Presentation only. These coordinates and visits are never written to the save.
 export const TABLE_POSITIONS = [
   { x: 29, y: 51 }, { x: 71, y: 51 },
-  { x: 29, y: 68 }, { x: 71, y: 68 },
-  { x: 29, y: 85 }, { x: 71, y: 85 },
+  { x: 29, y: 64 }, { x: 71, y: 64 },
+  { x: 29, y: 76 }, { x: 71, y: 76 },
 ] as const;
 export const VISIT_TIMING = { enter: 3200, enjoy: 1800, leave: 2800 };
 export type VisitPhase = "entering" | "seated" | "enjoying" | "leaving";

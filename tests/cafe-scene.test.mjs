@@ -183,11 +183,16 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(staff, /好感度3で雇用できます/);
     assert.match(staff, /調理をお願いする/);
     assert.match(staff, /初回/);
+    assert.match(gifts,/gift-rarity-common/);
+    assert.match(gifts,/gift-rarity-rare/);
+    assert.doesNotMatch(gifts,/ギフトのレアリティ|好感度効果|ノーマル|最高レア|返品/);
+    assert.match(staff, /class="screen staff-screen fade-in"/);
+    assert.equal((staff.match(/data-staff-state="locked"/g) || []).length, characters.length);
     assert.doesNotMatch(staff, /得意な仕事が上達しました|担当を変更しても、今のお仕事を終えてから移ります/);
-    assert.match(profile, /プレゼントを渡す/);
+    assert.match(profile, /ギフトを渡す/);
     assert.match(profile, /ふたりの物語/);
-    assert.match(profile, /贈物の好み/);
-    assert.ok(profile.indexOf('ふたりの物語') < profile.indexOf('贈物の好み'));
+    assert.match(profile, /ギフトの好み/);
+    assert.ok(profile.indexOf('ふたりの物語') < profile.indexOf('ギフトの好み'));
     assert.match(profile, /大好物/);
     assert.match(profile, /好き/);
     assert.match(profile, /ふつう/);
@@ -197,15 +202,16 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.doesNotMatch(profile, new RegExp(characters[0].profile));
     state.characterProgress.ren.giftReactions={mug:'love',ribbon:'dislike'};
     const discoveredProfile=render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
-    assert.match(discoveredProfile,/2\/20/);
+    assert.match(discoveredProfile,/2\/100/);
     assert.match(discoveredProfile,/大好物[\s\S]*陶器のマグ/);
     assert.match(discoveredProfile,/苦手[\s\S]*きらきらリボン/);
     state.characterProgress.ren.giftReactions={};
     assert.match(gifts, /品揃えを更新/);
     assert.doesNotMatch(gifts, new RegExp(require(join(output, 'data/gifts.js')).gifts[0].description));
-    assert.match(supplier, /1パック = 5食分/);
+    assert.match(supplier, /1パック = 4食分/);
+    assert.ok(supplier.indexOf("食材の仕入れ")<supplier.indexOf("デートに誘う"));
     assert.match(supplier, /入荷まで/);
-    assert.doesNotMatch(supplier, /WHOLESALE|好感度Lv\.|所要時間/);
+    assert.doesNotMatch(supplier, /WHOLESALE|所要時間/);
     assert.doesNotMatch(supplier, new RegExp(`${characters[0].age}歳|${characters[0].occupation}`));
     assert.match(supplier, /class="dialogue-box"/);
     assert.match(supplier,/\/assets\/characters\/ren\.png/);
@@ -222,6 +228,10 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(gameUi,/data-character=\{character\.id\}/);
     assert.match(storyModal,/className=\{`story-stage[\s\S]*data-character=\{character\.id\}/);
     const globalCss=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+    const cafeGame=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+    const recipesSource=readFileSync(new URL('../src/data/recipes.ts',import.meta.url),'utf8');
+    const missionsSource=readFileSync(new URL('../src/game/missions.ts',import.meta.url),'utf8');
+    for(const rarity of ['common','rare','superRare','ultraRare'])assert.match(globalCss,new RegExp(`\\.gift-rarity-${rarity}\\{--rarity:`));
     assert.match(globalCss,/\.portrait-face\[data-character="haru"\] \{ --face-scale:1\.65; --face-shift-x:12\.5%; \}/);
     assert.match(globalCss,/\.portrait-face\[data-character="ren"\] \{ --face-scale:2\.05; --face-shift-x:-14%; \}/);
     assert.match(globalCss,/\.portrait-face\[data-character="itsuki"\] \{ --face-scale:2\.2; --face-shift-x:-7%;/);
@@ -232,6 +242,21 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(storyCss,/data-character="ren"\] \{ --story-height:72%; --story-top:10%; --story-left:-14px; \}/);
     assert.match(storyCss,/data-character="itsuki"\] \{ --story-height:80%; --story-top:8%; --story-left:-12px; \}/);
     assert.match(storyCss,/data-character="haru"\] \{ --story-height:78%; --story-top:4%; --story-left:22px; \}/);
+    assert.match(cafeGame,/className="story-stage is-speaking" data-character=\{character\.id\}/);
+    assert.match(cafeGame,/className="story-standing-art" src=\{character\.image\}/);
+    assert.match(globalCss,/\.growth-event-overlay \.story-stage\{[^}]*twilight-cafe-street\.png/);
+    assert.doesNotMatch(globalCss,/\.growth-event-overlay \.event-scene\{background:radial-gradient/);
+    assert.match(cafeGame,/className="story-modal story-player date-story-player"/);
+    assert.match(cafeGame,/className=\{`story-stage is-speaking date-location-\$\{event\.locationId\}`\}/);
+    assert.match(globalCss,/\.story-player\.date-story-player \.story-stage\.date-location-amusement\{[^}]*date-amusement-park\.png/);
+    assert.match(globalCss,/\.story-player\.date-story-player \.story-stage\.date-location-walk\{[^}]*twilight-cafe-street\.png/);
+    assert.match(globalCss,/\.story-player\.date-story-player \.story-stage\.date-location-home\{[^}]*date-home\.png/);
+    assert.match(globalCss,/\.story-player\.date-story-player \.story-standing-art \{[^}]*opacity:1;[^}]*mix-blend-mode:normal;/);
+    assert.doesNotMatch(globalCss,/\.date-event-overlay/);
+    assert.match(storyCss,/--story-height:100%/);
+    assert.doesNotMatch(cafeGame,/>店づくりの物語 · \{event\.routeStage\}\/5</);
+    assert.match(cafeGame,/className="event-scene story-player growth-story-scene" role="dialog" aria-label=\{`\$\{event\.title\}のイベント`\}/);
+   for (const source of [cafeGame, recipesSource, missionsSource]) assert.doesNotMatch(source,/共同成長/);
     assert.equal(JSON.stringify(state), saved);
   } finally {
     context.useGame = original;
@@ -283,7 +308,21 @@ test('missing asset markup keeps a visible fallback and uses the documented file
   assert.doesNotMatch(html, /hidden=/);
 });
 
-test('a fully developed cafe renders all equipment, memories, staff and 4 usable order bubbles without mutating the save', () => {
+test('priority artwork paints directly without flashing its legacy fallback', () => {
+  const html = renderToStaticMarkup(React.createElement(CafeAsset, {
+    src: '/assets/cafe/backgrounds/room.png?v=d9fba6fd',
+    className: 'room-art',
+    fallbackDuringLoad: false,
+    priority: true,
+  }, 'OLD ROOM'));
+  assert.match(html, /data-asset-state="loading"/);
+  assert.match(html, /class="cafe-asset-fallback" hidden="">OLD ROOM/);
+  assert.match(html, /class="asset-loaded"/);
+  assert.match(html, /loading="eager"/);
+  assert.match(html, /fetchPriority="high"/);
+});
+
+test('a fully developed cafe renders all equipment, staff and 4 usable order bubbles without decorative rewards', () => {
   const state = {
     ...stockedCafe(), activeMs: 5000,
     orders: [order('a', 0), order('b', 1, 'cooking'), order('c', 2, 'ready'), order('d', 3)],
@@ -296,7 +335,7 @@ test('a fully developed cafe renders all equipment, memories, staff and 4 usable
   const html = renderToStaticMarkup(React.createElement(CafeScene, { state, onOrder() {}, onCharacter() {}, onEquipment() {} }));
   assert.deepEqual([...html.matchAll(/data-layer="([^"]+)"/g)].map(match => match[1]), ['background', 'furniture', 'equipment', 'seating', 'customers', 'characters', 'bubbles', 'effects']);
   for (const item of equipment) assert.ok(html.includes(`data-equipment="${item.id}"`));
-  for (const item of decorations) assert.ok(html.includes(`data-decoration="${item.id}"`));
+  assert.doesNotMatch(html,/data-decoration=/);
   for (const character of characters) assert.ok(html.includes(`aria-label="${character.name}・`));
   assert.match(html, /aria-label="店長（あなた）・いらっしゃいませ"/);
   assert.equal((html.match(/class="scene-order /g) || []).length, 4);
@@ -524,7 +563,7 @@ test('the glasses guest joins regular arrivals and uses the supplied PNG through
     const html = renderToStaticMarkup(React.createElement(CustomerSprite, { look: 'glasses', phase }));
     assert.match(html, /src="\/assets\/customers\/glasses\.png"/);
     assert.match(html, /class="cafe-asset customer-standalone"/);
-    assert.doesNotMatch(html, /src="[^\"]*glasses-(entering|seated|enjoying|leaving)\.png"/);
+    assert.doesNotMatch(html, /src="[^"]*glasses-(entering|seated|enjoying|leaving)\.png"/);
   }
   const png = readFileSync(new URL('../public/assets/customers/glasses.png', import.meta.url));
   assert.equal(png.subarray(1, 4).toString(), 'PNG');

@@ -6,7 +6,7 @@ export const tableUpgrades = [
   { count: 3, price: 450, missionId: "coffee-three" },
   { count: 4, price: 650, missionId: "coffee-ten" },
   { count: 5, price: 900, missionId: "serve-mocha" },
-  { count: 6, price: 1200, missionId: "first-investment" },
+  { count: 6, price: 1200, missionId: "automation-enable" },
 ] as const;
 
 export const tableCapacity = (state: GameState) => Math.min(GAME_CONFIG.maxOrders, Math.max(1, state.tableCount));

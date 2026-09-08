@@ -1,6 +1,6 @@
-import { GAME_CONFIG } from "./config";
+import { GAME_CONFIG, giftRequirementTargets } from "./config";
 import { characters } from "../data/characters";
-import { gifts } from "../data/gifts";
+import { gifts, sortGiftIdsByRarity } from "../data/gifts";
 import { ingredients } from "../data/ingredients";
 import { recipes, recipeEquipmentId } from "../data/recipes";
 import { growthEvents } from "../data/growthEvents";
@@ -14,10 +14,18 @@ export function findNewRecipes(owned:Record<string,number>, unlocked:string[]) {
   return recipes.filter(recipe => !recipe.unlockEventId && !unlocked.includes(recipe.id) && recipe.requiredIngredients.every(id => (owned[id] || 0) > 0)).map(recipe => recipe.id);
 }
 
-export function randomShopItems(count=10) {
-  const pool = [...gifts];
-  for (let i=pool.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  return pool.slice(0,count).map(gift => gift.id);
+export function randomShopItems(count=GAME_CONFIG.giftShopSize,random=Math.random) {
+  const pool=[...gifts],selected:string[]=[];
+  while(pool.length&&selected.length<count){
+    const total=pool.reduce((sum,gift)=>sum+GAME_CONFIG.giftRarityWeight[gift.rarity],0);
+    let roll=random()*total,index=pool.length-1;
+    for(let i=0;i<pool.length;i++){
+      roll-=GAME_CONFIG.giftRarityWeight[pool[i].rarity];
+      if(roll<0){index=i;break;}
+    }
+    selected.push(pool.splice(index,1)[0].id);
+  }
+  return sortGiftIdsByRarity(selected);
 }
 
 export function giftReaction(character:Character, gift:Gift):GiftReaction {
@@ -26,6 +34,11 @@ export function giftReaction(character:Character, gift:Gift):GiftReaction {
   if (favoriteCount >= 2) return "love";
   if (favoriteCount === 1) return "like";
   return "normal";
+}
+
+export function giftAffectionAmount(gift:Gift,reaction:GiftReaction) {
+  const base=GAME_CONFIG.giftAffection[reaction];
+  return base>0?Math.round(base*GAME_CONFIG.giftRarityMultiplier[gift.rarity]):base;
 }
 
 export function availableEvent(state:GameState, events:RelationshipEvent[]) {
@@ -37,15 +50,17 @@ export function availableEvent(state:GameState, events:RelationshipEvent[]) {
 
 export function relationshipRequirementTargets(stage:number) {
   const orderTargets=[0,0,0,5,10,15,25,40,60,80,100];
-  return {orderTarget:orderTargets[Math.max(0,Math.min(10,stage))],purchaseTarget:stage<3?0:Math.min(8,stage-2)};
+  const bounded=Math.max(0,Math.min(10,stage));
+  return {orderTarget:orderTargets[bounded],purchaseTarget:stage<3?0:Math.min(8,stage-2),giftTarget:giftRequirementTargets[bounded]};
 }
 
 export function relationshipRequirements(event:RelationshipEvent,state:GameState) {
   const supplierId=characters.find(item=>item.id===event.characterId)?.supplierId;
   const purchases=ingredients.filter(item=>item.supplierId===supplierId).reduce((sum,item)=>sum+(state.lifetimeStats.ingredientPurchases[item.id]||0),0);
-  const {orderTarget,purchaseTarget}=relationshipRequirementTargets(event.toStage);
+  const {orderTarget,purchaseTarget,giftTarget}=relationshipRequirementTargets(event.toStage);
   return [{label:"お店の累計提供",current:state.lifetimeStats.totalOrders,target:orderTarget,met:state.lifetimeStats.totalOrders>=orderTarget},
-    {label:"このお店での累計仕入れ",current:purchases,target:purchaseTarget,met:purchases>=purchaseTarget}].filter(item=>item.target>0);
+    {label:"このお店での累計仕入れ",current:purchases,target:purchaseTarget,met:purchases>=purchaseTarget},
+    {label:"この人へ渡したギフト",current:state.characterProgress[event.characterId].giftsGiven,target:giftTarget,met:state.characterProgress[event.characterId].giftsGiven>=giftTarget}].filter(item=>item.target>0);
 }
 
 export function growthStatValue(requirement:GrowthStatRequirement,state:GameState) {
@@ -61,7 +76,7 @@ export function growthRequirements(event:GrowthEvent,state:GameState) {
   return [
     {label:`関係：段階${event.requiredRelationshipStage}以上`,current:character?.relationshipStage || 0,target:event.requiredRelationshipStage,met:(character?.relationshipStage || 0)>=event.requiredRelationshipStage},
     ...event.requiredStats.map(requirement=>{const current=growthStatValue(requirement,state);return {label:requirement.label,current,target:requirement.target,met:current>=requirement.target};}),
-    ...(event.requiredPreviousEvents.length?[{label:"前の共同イベント",current:event.requiredPreviousEvents.filter(id=>state.viewedGrowthEvents.includes(id)).length,target:event.requiredPreviousEvents.length,met:event.requiredPreviousEvents.every(id=>state.viewedGrowthEvents.includes(id))}]:[]),
+    ...(event.requiredPreviousEvents.length?[{label:"前の物語",current:event.requiredPreviousEvents.filter(id=>state.viewedGrowthEvents.includes(id)).length,target:event.requiredPreviousEvents.length,met:event.requiredPreviousEvents.every(id=>state.viewedGrowthEvents.includes(id))}]:[]),
     ...((event.requiredEquipmentIds || []).map(id=>({label:"必要な設備を設置",current:state.ownedEquipment.includes(id)?1:0,target:1,met:state.ownedEquipment.includes(id)}))),
   ];
 }
@@ -79,7 +94,7 @@ export function hiddenRecipeRewards(viewedEvents:string[],unlockedRecipes:string
 }
 
 export function createCharacterProgress() {
-  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,route:"undecided" as const,eventChoices:{},talkedStages:[],giftReactions:{} }]));
+  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,giftsGiven:0,route:"undecided" as const,eventChoices:{},talkedStages:[],giftReactions:{} }]));
 }
 
 export function bestSeller(recipeSales:Record<string,number>) {
@@ -144,7 +159,7 @@ export function pickIncomingOrder(state: GameState): { recipeId: string; request
       for (const id of recipe.requiredIngredients) {
         const ingredient = ingredients.find(item => item.id === id);
         if (!ingredient || (ingredient.unlockEventId && !state.unlockedIngredients.includes(id))) return false;
-        const incoming = state.deliveries.filter(item => item.ingredientId === id).reduce((sum, item) => sum + item.packs * GAME_CONFIG.ingredientPackSize, 0);
+        const incoming = state.deliveries.filter(item => item.ingredientId === id).reduce((sum, item) => sum + item.packs * item.servingsPerPack, 0);
         if ((available[id] || 0) + incoming <= 0) cost += ingredient.price;
       }
       // A legacy save may hold all ingredients without having discovered this basic recipe.

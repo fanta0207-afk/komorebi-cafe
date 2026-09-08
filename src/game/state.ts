@@ -1,20 +1,22 @@
-import { getGift } from "../data/gifts";
+import { getGift, sortGiftIdsByRarity } from "../data/gifts";
 import { getCharacter } from "../data/characters";
 import { getIngredient, ingredients } from "../data/ingredients";
 import { getRecipe, recipes } from "../data/recipes";
 import { baseEquipmentIds, initialEquipmentIds, equipment, getEquipment } from "../data/equipment";
 import { getGrowthEvent } from "../data/growthEvents";
 import { getRelationshipEvent, relationshipEvents } from "../data/events";
+import { getDateEvent } from "../data/dates";
 import { conditionForDay } from "../data/dailyConditions";
 import type { CharacterProgress, EventReward, GameState, GiftReaction, MissionPlace, Order, RelationshipRoute, StaffRole } from "../types/game";
 import { claimMission, emptyMissions, missions, milestoneMissions, restoreOngoing, updateMissions } from "./missions";
 import { startCooking, serveOrder, equipmentPrice, upgradePrice } from "./operations";
 import { advanceGame } from "./simulation";
 import { nextTableUpgrade, tableCapacity, tableUpgradeUnlocked } from "./seating";
-import { orderSupplies, receiveSupplies } from "./procurement";
+import { orderSupplies, receiveSupplies, runAutoProcurement } from "./procurement";
+import { autoProcurementUnlocked } from "./automation";
 import { stationOccupied } from "./kitchen";
-import { GAME_CONFIG, relationshipLabel } from "./config";
-import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftReaction, relationshipRequirementTargets } from "./logic";
+import { GAME_CONFIG, giftRequirementTargets, relationshipLabel } from "./config";
+import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftAffectionAmount, giftReaction, relationshipRequirementTargets } from "./logic";
 
 export type Action =
   | {type:"BUY_TABLE"; expectedCount:number}
@@ -33,11 +35,12 @@ export type Action =
   | {type:"REFRESH_SHOP"; items:string[]; costAction:boolean}
   | {type:"COMPLETE_EVENT"; eventId:string; route?:Exclude<RelationshipRoute,"undecided">; choiceId?:string}
   | {type:"COMPLETE_GROWTH_EVENT"; eventId:string}
+  | {type:"COMPLETE_DATE"; eventId:string}
   | {type:"BUY_EQUIPMENT"; equipmentId:string}
   | {type:"UPGRADE_EQUIPMENT"; stationId:string}
   | {type:"HIRE_STAFF"; characterId:string; role:StaffRole}
   | {type:"ASSIGN_STAFF"; characterId:string; role:StaffRole}
-  | {type:"RETURN_GIFT"; giftId:string}
+  | {type:"TOGGLE_AUTO_PROCUREMENT"; enabled:boolean}
   | {type:"CLAIM_OFFLINE"}
   | {type:"NEXT_DAY"}
   | {type:"CLEAR_NOTICE"}
@@ -48,7 +51,7 @@ export type Action =
   | {type:"RESET"};
 
 const emptyStats = () => ({ sales:0, orders:0, recipeSales:{} });
-const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSales:{},totalOrders:0,totalRevenue:0});
+const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSales:{},totalOrders:0,totalRevenue:0,automaticPacks:0,automatedOrders:0});
 
 export function createInitialState():GameState {
   const condition=conditionForDay(1);
@@ -62,12 +65,12 @@ export function createInitialState():GameState {
     lastPlayedAt:Date.now(), dailyStats:emptyStats(), dayNews:[], orders:[], offlineOffer:0,
     maxActions:0, actionsRemaining:0,
     dailyWeatherId:condition.weatherId,dailyCustomerGroupId:condition.customerGroupId,dailyEventId:condition.dailyEventId,
-    lifetimeStats:emptyLifetimeStats(),viewedGrowthEvents:[],unlockedEquipment:[...baseEquipmentIds],ownedEquipment:[...initialEquipmentIds],unlockedDecorations:[],
+    lifetimeStats:emptyLifetimeStats(),viewedGrowthEvents:[],viewedDateEvents:[],unlockedEquipment:[...baseEquipmentIds],ownedEquipment:[...initialEquipmentIds],unlockedDecorations:[],autoProcurementEnabled:false,
   };
 }
 
 function giftsForFirstDay() {
-  return ["bouquet","cookies","book","mug","handkerchief","earlGrey","chocolateBox","plant","scarf","animalCharm"];
+  return sortGiftIdsByRarity(["bouquet","cookies","book","handkerchief","earlGrey","plant","mintCandy","poundCake"]);
 }
 
 export function loadState():GameState {
@@ -87,7 +90,6 @@ export function applyStoryReward(state:GameState, reward?:EventReward):GameState
     unlockedIngredients:[...new Set([...state.unlockedIngredients,...(reward.ingredientIds || [])])],
     unlockedRecipes:[...new Set([...state.unlockedRecipes,...(reward.recipeIds || [])])],
     unlockedEquipment:[...new Set([...state.unlockedEquipment,...(reward.equipmentIds || [])])],
-    unlockedDecorations:[...new Set([...state.unlockedDecorations,...(reward.decorationIds || [])])],
   };
 }
 
@@ -103,7 +105,9 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       const legacy=(saved.saveVersion || 1)<4;
       const stage=old.met?Math.max(legacy?1:0,Math.min(10,old.relationshipStage || 0)):0;
       const viewed=legacy?relationshipEvents.filter(event=>event.characterId===id && event.toStage<=stage).map(event=>event.id):(old.viewedEvents || []);
-      return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,route:old.route || "undecided",eventChoices:old.eventChoices || {},giftReactions:old.giftReactions || {}}];
+      const giftReactions=old.giftReactions || {};
+      const giftsGiven=Number.isInteger(old.giftsGiven)?Math.max(0,old.giftsGiven):Math.max(Object.keys(giftReactions).length,giftRequirementTargets[stage]);
+      return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,giftsGiven,route:old.route || "undecided",eventChoices:old.eventChoices || {},giftReactions}];
     }));
     const ongoing=restoreOngoing(saved.missions?.ongoing);
     const missionIds=new Set([...missions,...milestoneMissions,...ongoing].map(m=>m.id));
@@ -129,10 +133,12 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
         receivedPacks:saved.missions?.receivedPacks||{},
       },
       characterProgress,
+      giftShopItems:sortGiftIdsByRarity((saved.giftShopItems || fresh.giftShopItems).filter(id=>!!getGift(id)).slice(0,GAME_CONFIG.giftShopSize)),
       dailyStats:{ ...emptyStats(), ...(saved.dailyStats || {}) },
       lifetimeStats:{...emptyLifetimeStats(),...(saved.lifetimeStats || {}),recipeSales:saved.lifetimeStats?.recipeSales || {},ingredientPurchases:saved.lifetimeStats?.ingredientPurchases || {},tagSales:saved.lifetimeStats?.tagSales || {}},
       unlockedIngredients:saved.unlockedIngredients || [],
       viewedGrowthEvents:saved.viewedGrowthEvents || [],
+      viewedDateEvents:saved.viewedDateEvents || [],
       unlockedEquipment:saved.unlockedEquipment || [],ownedEquipment:saved.ownedEquipment || [],unlockedDecorations:saved.unlockedDecorations || [],
       maxActions:0,
       actionsRemaining:0,
@@ -141,10 +147,12 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       dailyEventId:saved.dailyEventId || condition.dailyEventId,
       deliveries:Array.isArray(saved.deliveries) ? saved.deliveries.filter(item => item && getIngredient(item.ingredientId)
         && typeof item.id === "string" && Number.isInteger(item.packs) && item.packs > 0 && item.packs <= GAME_CONFIG.maxProcurementPacks
-        && Number.isFinite(item.orderedAt) && Number.isFinite(item.arrivesAt) && item.arrivesAt >= item.orderedAt) : [],
+        && Number.isFinite(item.orderedAt) && Number.isFinite(item.arrivesAt) && item.arrivesAt >= item.orderedAt)
+        .map(item=>({...item,servingsPerPack:Number.isInteger(item.servingsPerPack)&&item.servingsPerPack>0?item.servingsPerPack:5})) : [],
       orders:savedOrders,
       staff:(saved.staff||[]).map(person=>person.servingOrderId&&!keptOrderIds.has(person.servingOrderId)?{...person,servingOrderId:undefined,remainingMs:0}:person),
       lastPlayedAt:now,
+      autoProcurementEnabled:!!saved.autoProcurementEnabled,
       offlineOffer:0, notice:undefined,
     };
     // Old saves retain their earned stages; make the newly authored memories and rewards available.
@@ -154,7 +162,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       }
     }
     if (savedVersion<5) {
-      migrated.ingredients={...Object.fromEntries(Object.entries(saved.ingredients || {}).map(([id,count])=>[id,count*GAME_CONFIG.ingredientPackSize]))};
+      migrated.ingredients={...Object.fromEntries(Object.entries(saved.ingredients || {}).map(([id,count])=>[id,count*5]))};
       for(const id of ["coffeeBeans","bread"])migrated.ingredients[id]=(migrated.ingredients[id]||0)+10;
       migrated.ownedEquipment=[...new Set([...baseEquipmentIds,...migrated.ownedEquipment])];
       migrated.unlockedEquipment=[...new Set([...baseEquipmentIds,...migrated.unlockedEquipment])];
@@ -212,13 +220,13 @@ function reduceAction(state:GameState, action:Action):GameState {
       const item=getGift(action.giftId); const current=state.characterProgress[action.characterId];
       if (!item || !current || !state.inventory[item.id]) return state;
       const reaction=giftReaction(getCharacter(action.characterId)!,item);
-      const amount=GAME_CONFIG.giftAffection[reaction];
+      const amount=giftAffectionAmount(item,reaction);
       const nextCount=state.inventory[item.id]-1;
       const nextInventory={ ...state.inventory, [item.id]:nextCount };
       return {
         ...state, missions:{...state.missions,gaveBook:state.missions.gaveBook||(action.characterId==="ren"&&item.id==="book")},inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
-        characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,affection:Math.max(0,current.affection+amount),giftReactions:{...current.giftReactions,[item.id]:reaction} } },
-        notice:notice("heart",amount>0?`気持ちが少し近づきました ♡`:`少し好みと違ったようです`),
+        characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,affection:Math.max(0,current.affection+amount),giftsGiven:current.giftsGiven+1,giftReactions:{...current.giftReactions,[item.id]:reaction} } },
+        notice:notice("heart",amount>0?`好感度 +${amount} ♡`:`好感度 ${amount}・好みと違ったようです`),
       };
     }
     case "SPAWN_ORDER": {
@@ -233,11 +241,11 @@ function reduceAction(state:GameState, action:Action):GameState {
     case "START_COOKING": return startCooking(state,action.orderId);
     case "TICK": {
       const now=action.now ?? Date.now();
-      const next=advanceGame(receiveSupplies(state,now),action.deltaMs);
+      const next=advanceGame(runAutoProcurement(receiveSupplies(state,now),now),action.deltaMs);
       return next===state?state:{...next,lastPlayedAt:now};
     }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);
-    case "REFRESH_SHOP": return {...state,giftShopItems:state.characterProgress.ren.relationshipStage<2?[...new Set(["book",...action.items])].slice(0,10):action.items,giftShopRefreshAt:Date.now(),notice:notice("info","贈物が入れ替わりました")};
+    case "REFRESH_SHOP": return {...state,giftShopItems:sortGiftIdsByRarity(state.characterProgress.ren.relationshipStage<2?[...new Set(["book",...action.items])].slice(0,GAME_CONFIG.giftShopSize):action.items.slice(0,GAME_CONFIG.giftShopSize)),giftShopRefreshAt:Date.now(),notice:notice("info","ギフトが入れ替わりました")};
     case "COMPLETE_EVENT": {
       const event=getRelationshipEvent(action.eventId);
       if (!event || !availableEvent(state,[event])) return state;
@@ -264,8 +272,16 @@ function reduceAction(state:GameState, action:Action):GameState {
         unlockedIngredients:[...new Set([...state.unlockedIngredients,...(event.rewards.ingredientIds || [])])],
         unlockedRecipes:nextRecipes,
         unlockedEquipment:[...new Set([...state.unlockedEquipment,...(event.rewards.equipmentIds || [])])],
-        unlockedDecorations:[...new Set([...state.unlockedDecorations,...(event.rewards.decorationIds || [])])],
         dayNews:[...state.dayNews,...news],notice:notice("unlock",hidden[0]?.note || event.rewards.note)};
+    }
+    case "COMPLETE_DATE": {
+      const event=getDateEvent(action.eventId);if(!event||state.viewedDateEvents.includes(event.id))return state;
+      const current=state.characterProgress[event.characterId];
+      if(!current?.met||current.relationshipStage<GAME_CONFIG.dateUnlockStage)return state;
+      return {...state,viewedDateEvents:[...state.viewedDateEvents,event.id],
+        characterProgress:{...state.characterProgress,[event.characterId]:{...current,affection:current.affection+GAME_CONFIG.dateAffection}},
+        dayNews:[...state.dayNews,`${getCharacter(event.characterId)?.shortName}と${event.title}へ行きました`],
+        notice:notice("heart",`${event.title}で、もっと距離が近づきました ♡`)};
     }
     case "BUY_TABLE": {
       const offer=nextTableUpgrade(state);
@@ -295,9 +311,9 @@ function reduceAction(state:GameState, action:Action):GameState {
       if(!["cook","server","rest"].includes(action.role))return state;
       return {...state,staff:state.staff.map(person=>person.characterId===action.characterId?{...person,role:action.role}:person)};
     }
-    case "RETURN_GIFT": {
-      const item=getGift(action.giftId);if(!item||!(state.inventory[item.id]>0))return state;
-      return {...state,currency:state.currency+item.price,inventory:{...state.inventory,[item.id]:state.inventory[item.id]-1},notice:notice("info","未使用の贈物を返品しました")};
+    case "TOGGLE_AUTO_PROCUREMENT": {
+      if(action.enabled&&!autoProcurementUnlocked(state))return state;
+      return {...state,autoProcurementEnabled:action.enabled,notice:notice("info",action.enabled?"自動仕入れを開始しました":"自動仕入れを停止しました")};
     }
     // Retained action names let older development tools fail safely after migration.
     case "CLAIM_OFFLINE": case "NEXT_DAY": case "DEV_ACTIONS": return state;
@@ -309,7 +325,7 @@ function reduceAction(state:GameState, action:Action):GameState {
       const {orderTarget,purchaseTarget}=relationshipRequirementTargets(10);
       const ingredientPurchases=supplierIngredient?{...state.lifetimeStats.ingredientPurchases,[supplierIngredient.id]:Math.max(state.lifetimeStats.ingredientPurchases[supplierIngredient.id]||0,purchaseTarget)}:state.lifetimeStats.ingredientPurchases;
       return { ...state,
-        characterProgress:{...state.characterProgress,[action.characterId]:{...current,met:true,affection:current.affection+100}},
+        characterProgress:{...state.characterProgress,[action.characterId]:{...current,met:true,affection:current.affection+1000}},
         lifetimeStats:{...state.lifetimeStats,totalOrders:Math.max(state.lifetimeStats.totalOrders,orderTarget),ingredientPurchases},
         notice:notice("heart","好感度 +100・物語条件を解放") };
     }

@@ -110,7 +110,7 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
         </article>;
       })}</div>
       {!stocked && <div className="notebook-stock"><button type="button" onClick={onTown}>街へ仕入れに行く →</button></div>}
-    {state.deliveries.length > 0 && <section className="notebook-deliveries"><h3>入荷待ち</h3>{state.deliveries.map(delivery => <p className="supply-delivery" key={delivery.id}><span>{getIngredient(delivery.ingredientId)?.name} {delivery.packs * 5}食分</span><b>あと {deliveryCountdown(delivery.arrivesAt, state.lastPlayedAt)}</b></p>)}</section>}
+    {state.deliveries.length > 0 && <section className="notebook-deliveries"><h3>入荷待ち</h3>{state.deliveries.map(delivery => <p className="supply-delivery" key={delivery.id}><span>{delivery.automatic?"自動仕入れ · ":""}{getIngredient(delivery.ingredientId)?.name} {delivery.packs * delivery.servingsPerPack}食分</span><b>あと {deliveryCountdown(delivery.arrivesAt, state.lastPlayedAt)}</b></p>)}</section>}
     <section className="notebook-equipment"><h3>設備の使用状況 <small>{state.stations.length}台</small></h3>{state.stations.map(station => {
       const activity = stationActivity(state, station.id);
       const recipe = activity.order && getRecipe(activity.order.recipeId);

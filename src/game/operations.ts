@@ -47,12 +47,13 @@ export function startCooking(state:GameState,orderId:string,cookId?:string):Game
 export function serveOrder(state:GameState,orderId:string):GameState {
   const order=state.orders.find(item=>item.id===orderId),recipe=order&&getRecipe(order.recipeId);
   if(!order||order.status!=="ready"||!recipe)return state;
+  const fullyAutomated=!!order.cookId&&state.staff.some(person=>person.servingOrderId===orderId);
   const price=orderSalePrice(order),tagSales={...state.lifetimeStats.tagSales};
   recipe.tags.forEach(tag=>{tagSales[tag]=(tagSales[tag]||0)+1;});
   return {...state,currency:state.currency+price,orders:state.orders.filter(item=>item.id!==orderId),
     staff:state.staff.map(person=>person.servingOrderId===orderId?{...person,servingOrderId:undefined,remainingMs:0}:person),
     dailyStats:{sales:state.dailyStats.sales+price,orders:state.dailyStats.orders+1,recipeSales:{...state.dailyStats.recipeSales,[recipe.id]:(state.dailyStats.recipeSales[recipe.id]||0)+1}},
-    lifetimeStats:{...state.lifetimeStats,totalOrders:state.lifetimeStats.totalOrders+1,totalRevenue:state.lifetimeStats.totalRevenue+price,recipeSales:{...state.lifetimeStats.recipeSales,[recipe.id]:(state.lifetimeStats.recipeSales[recipe.id]||0)+1},tagSales},
+    lifetimeStats:{...state.lifetimeStats,totalOrders:state.lifetimeStats.totalOrders+1,totalRevenue:state.lifetimeStats.totalRevenue+price,automatedOrders:state.lifetimeStats.automatedOrders+(fullyAutomated?1:0),recipeSales:{...state.lifetimeStats.recipeSales,[recipe.id]:(state.lifetimeStats.recipeSales[recipe.id]||0)+1},tagSales},
     notice:{id:Date.now()+Math.random(),type:"coin",text:`${recipe.name}を提供 +${price} コイン`}};
 }
 export function equipmentPrice(state:GameState,equipmentId:string) {

@@ -47,6 +47,19 @@ test('mission cards keep readable text and touch targets while sharing a compact
   assert.equal(declarations('.mission-actions')['max-width'],'100%');
 });
 
+test('finishing the third mission pauses on a celebratory screen before revealing the next group',()=>{
+  const component=readFileSync(new URL('../src/components/MissionGuide.tsx',import.meta.url),'utf8');
+  assert.match(component,/chapter\.missions\.every/);
+  assert.match(component,/setCelebration\(\{step:chapterIndex\+1,isFinal:/);
+  assert.match(component,/className="mission-celebration"/);
+  assert.match(component,/ミッション達成！/);
+  assert.match(component,/"次のミッションへ進めます。"/);
+  assert.doesNotMatch(component,/3つの目標を達成しました。次のミッションへ進めます。/);
+  assert.match(component,/onClick=\{\(\)=>setCelebration\(null\)\}>閉じる/);
+  assert.equal(declarations('.mission-celebration').isolation,'isolate');
+  assert.match(declarations('.mission-sparkles span').animation,/mission-sparkle/);
+});
+
 test('bottom navigation has one shared theme and a common reserved height on every screen',()=>{
   const globalCss=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
   const cafeCss=readFileSync(new URL('../src/components/cafe/cafe-scene.css',import.meta.url),'utf8');

@@ -2,7 +2,6 @@
 
 import { useState, type CSSProperties } from "react";
 import { getCharacter } from "../../data/characters";
-import { getDecoration } from "../../data/decorations";
 import { getRecipe } from "../../data/recipes";
 import { hasIngredients, startProblem } from "../../game/operations";
 import { activeCookingOrder } from "../../game/kitchen";
@@ -38,11 +37,10 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
   const workingStaff = state.staff.filter(person => person.role !== "rest");
   const layout = equipmentLayout(state);
   const activeOrder = activeCookingOrder(state);
-  const memories = state.unlockedDecorations.flatMap(id => { const item = getDecoration(id); return item ? [item] : []; });
   const serving = workingStaff.some(person => person.servingOrderId);
   return <div className={`cafe-scene photo-cafe ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} style={{ "--guest-enter-duration": `${VISIT_TIMING.enter}ms`, "--guest-leave-duration": `${VISIT_TIMING.leave}ms` } as CSSProperties} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
     <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
-      <CafeAsset src={`${cafeAsset.background("room")}?v=d9fba6fd`} className="room-art"><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
+      <CafeAsset src={`${cafeAsset.background("room")}?v=d9fba6fd`} className="room-art" fallbackDuringLoad={false} priority><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
       <div className="room-floor"><CafeAsset src={cafeAsset.background("floor")}><i className="wood-floor"/></CafeAsset></div></CafeAsset>
     </div>
     <div className="scene-layer layer-furniture" data-layer="furniture" aria-hidden="true">
@@ -57,16 +55,6 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       <div className="room-plant plant-left"><CafeAsset src={cafeAsset.furniture("plant")}><span>🪴</span></CafeAsset></div>
       <div className="room-plant plant-right"><CafeAsset src={cafeAsset.furniture("plant")}><span>🪴</span></CafeAsset></div>
       <div className="door-mat">WELCOME</div></div>
-      {memories.map((item, index) => {
-        const group = memories.filter(memory => memory.placement === item.placement);
-        const offset = group.findIndex(memory => memory.id === item.id);
-        const position = item.placement === "wall" ? place(8 + offset * 11, 5)
-          : item.placement === "shelf" ? place(43 + offset * 6, 25)
-          : item.placement === "counter" ? place(38 + offset * 7, 41) : place(6 + offset * 7, 91);
-        return <span className={`room-memory memory-on-${item.placement}`} key={item.id} style={position} title={item.name} data-decoration={item.id}>
-          <CafeAsset src={cafeAsset.furniture(item.id)}><span>{item.icon}</span></CafeAsset><span className="sr-only">{index + 1}. {item.name}</span>
-        </span>;
-      })}
     </div>
     <div className="scene-layer layer-equipment" data-layer="equipment">
       <div className="equipment-layout">

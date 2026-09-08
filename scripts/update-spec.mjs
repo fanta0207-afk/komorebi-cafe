@@ -3,11 +3,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { characters } from "../src/data/characters.ts";
-import { decorations } from "../src/data/decorations.ts";
 import { equipment } from "../src/data/equipment.ts";
 import { relationshipEvents } from "../src/data/events.ts";
 import { growthEvents } from "../src/data/growthEvents.ts";
-import { gifts } from "../src/data/gifts.ts";
+import { dateEvents, dateLocations } from "../src/data/dates.ts";
+import { giftRarityInfo, gifts } from "../src/data/gifts.ts";
 import { ingredients } from "../src/data/ingredients.ts";
 import { recipes } from "../src/data/recipes.ts";
 import { suppliers } from "../src/data/suppliers.ts";
@@ -15,22 +15,21 @@ import { affectionThresholds, GAME_CONFIG, relationshipNames } from "../src/game
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const outputPath = join(projectRoot, "docs", "仕様書.md");
-const clean = (value) => String(value).replaceAll("|", "\|").replaceAll("\n", " ");
+const clean = (value) => String(value).replaceAll("|", "\\|").replaceAll("\n", " ");
 const list = (items) => items.map((item) => clean(item)).join("、");
 const supplierById = Object.fromEntries(suppliers.map((supplier) => [supplier.id, supplier]));
 const relationshipByCharacter = Object.groupBy(relationshipEvents, (event) => event.characterId);
 const growthByCharacter = Object.groupBy(growthEvents, (event) => event.characterId);
+const raritySummary=Object.entries(giftRarityInfo).map(([id,info])=>`${info.badge} ${info.label}（倍率${GAME_CONFIG.giftRarityMultiplier[id]}・抽選重み${GAME_CONFIG.giftRarityWeight[id]}）`).join("／");
 
 const navSource = readFileSync(join(projectRoot, "src", "components", "GameUI.tsx"), "utf8");
 const navigation = [...navSource.matchAll(/\{id:"([^"]+)",icon:"([^"]+)",label:"([^"]+)"\}/g)]
   .map((match) => `${match[3]}（${match[1]}）`);
 const missionSource = readFileSync(join(projectRoot, "src", "game", "missions.ts"), "utf8");
-const fixedMissions = [...missionSource.matchAll(/add\("([^"]+)","([^"]+)","([^"]+)","([^"]+)",(\d+),"([^"]+)"/g)]
-  .map((match) => ({ id: match[1], chapter: match[2], title: match[3], hint: match[4], reward: Number(match[5]), destination: match[6] }));
-const missionsByChapter = Object.groupBy(fixedMissions, (mission) => mission.chapter);
-const missionSummary = Object.entries(missionsByChapter).map(([chapter, missions]) =>
-  `- ${chapter}：${list(missions.map((mission) => mission.title))}`
-).join("\n");
+const fixedMissions = [...missionSource.matchAll(/add\("([^"]+)","([^"]+)"/g)]
+  .map((match) => ({ id: match[1], title: match[2] }));
+const missionCount = 29 + characters.length * 10;
+const missionSummary = `- 導入：街、仕入れ、在庫、調理、提供、ギフト、新料理\n- 人物ごと：出会い、仕入れ改善、好感度3、雇用、好感度6、限定料理、好感度10\n- デート：好感度${GAME_CONFIG.dateUnlockStage}で解放、${list(dateLocations.map(location=>location.title))}\n- 自動化：スタッフ3人、好感度6が3人、自動仕入れ、全自動提供`;
 const seatingSource = readFileSync(join(projectRoot, "src", "game", "seating.ts"), "utf8");
 const tableUpgrades = [...seatingSource.matchAll(/\{ count: (\d+), price: (\d+), missionId: "([^"]+)" \}/g)]
   .map((match) => ({ count: Number(match[1]), price: Number(match[2]), missionId: match[3] }));
@@ -54,7 +53,7 @@ const characterDetails = characters.map((character) => {
 - 抱える問題：${character.concern}
 - 主人公への気持ち：${character.attraction}
 - 好感度ストーリー：${list(stories.sort((a, b) => a.toStage - b.toStage).map((event) => `${event.toStage}.「${event.title}」`))}
-- 共同成長：${list(growth.sort((a, b) => a.routeStage - b.routeStage).map((event) => `${event.routeStage}.「${event.title}」`))}`;
+- 店づくりの物語：${list(growth.sort((a, b) => a.routeStage - b.routeStage).map((event) => `${event.routeStage}.「${event.title}」`))}`;
 }).join("\n\n");
 
 const supplierRows = suppliers.map((supplier) => {
@@ -71,7 +70,7 @@ const equipmentRows = equipment.map((item) => {
 const recipeGroups = [
   ["初期レシピ", recipes.filter((recipe) => recipe.initiallyUnlocked)],
   ["食材の入荷で解放", recipes.filter((recipe) => !recipe.initiallyUnlocked && !recipe.unlockEventId)],
-  ["共同成長で解放", recipes.filter((recipe) => recipe.unlockEventId?.includes("growth"))],
+  ["店づくりで解放", recipes.filter((recipe) => recipe.unlockEventId?.includes("growth"))],
   ["好感度ストーリーで解放", recipes.filter((recipe) => recipe.unlockEventId?.includes("stage"))],
   ["隠しレシピ", recipes.filter((recipe) => recipe.hidden)],
 ];
@@ -86,7 +85,7 @@ const spec = `# こもれびカフェ ゲーム仕様書
 - タイトル：こもれびカフェ
 - ジャンル：カフェ経営×恋愛シミュレーション
 - 主要プレイ：仕入れ、調理、提供、設備拡張、キャラクター交流、共同メニュー開発
-- 対応画面：${navigation.length ? list(navigation) : "店、街、贈物、人物、スタッフ"}
+- 対応画面：${navigation.length ? list(navigation) : "店、街、ギフト、人物、スタッフ"}
 - 画面文言：操作、状態、必要条件を優先し、装飾的な副見出しや重複説明は表示しない。
 - 保存方式：端末の localStorage（セーブ形式 v${GAME_CONFIG.saveVersion}）
 
@@ -96,23 +95,24 @@ const spec = `# こもれびカフェ ゲーム仕様書
 |---|---:|
 | 恋愛対象キャラクター | ${characters.length}人 |
 | 好感度ストーリー | ${relationshipEvents.length}件 |
-| 共同成長ストーリー | ${growthEvents.length}件 |
+| 店づくりの物語 | ${growthEvents.length}件 |
+| デート | ${dateEvents.length}件 |
 | 仕入れ先 | ${suppliers.length}か所 |
 | 食材 | ${ingredients.length}種 |
 | 料理 | ${recipes.length}種 |
 | 設備 | ${equipment.length}種 |
-| 装飾 | ${decorations.length}種 |
-| 贈物 | ${gifts.length}種 |
+| ギフト | ${gifts.length}種 |
 
 ## 3. ゲームの基本ループ
 
 1. 街の仕入れ先を訪ね、食材を1〜${GAME_CONFIG.maxProcurementPacks}パックで発注する。
-2. 1パックは${GAME_CONFIG.ingredientPackSize}食分。入荷までの基本時間は${GAME_CONFIG.procurementMs / 1000}秒で、仕入れ先キャラクターの好感度により最短${GAME_CONFIG.minProcurementMs / 1000}秒まで短縮される。
+2. 1パックは通常${GAME_CONFIG.ingredientPackSize}食分。店づくりの仕入れ改善後は${GAME_CONFIG.improvedPackSize}食分。入荷までの基本時間は${GAME_CONFIG.procurementMs / 1000}秒で、好感度により最短${GAME_CONFIG.minProcurementMs / 1000}秒まで短縮される。
 3. 来店客の注文を選び、必要食材と設備が揃っていれば調理する。基本調理時間は${GAME_CONFIG.baseCookingSeconds}秒。
 4. 完成後に提供すると売上と累計提供数、人物進行の条件が加算される。
-5. 会話、贈物、仕入れで交流ポイントを増やし、好感度ストーリーを解放する。
+5. 会話、ギフト、仕入れで交流ポイントを増やし、好感度ストーリーを解放する。
 6. 好感度3からキャラクターに店を手伝ってもらえる。好感度6で得意料理の調理時間が20%短縮される。
-7. 好感度9で恋愛／友情を選択し、10でそれぞれの後日談へ進む。ゲーム報酬は両ルートで同一。
+7. 好感度${GAME_CONFIG.dateUnlockStage}で街の各人物の店からデートに誘える。初回は1か所につき交流ポイント+${GAME_CONFIG.dateAffection}。
+8. 好感度9で恋愛／友情を選択し、10でそれぞれの後日談へ進む。ゲーム報酬は両ルートで同一。
 
 ## 4. 主要パラメーター
 
@@ -130,14 +130,15 @@ const spec = `# こもれびカフェ ゲーム仕様書
 | 関係段階数 | ${relationshipNames.length - 1}段階 |
 | 必要累計交流ポイント | ${list(affectionThresholds)} |
 | 会話の交流ポイント | +${GAME_CONFIG.talkAffection} |
-| 贈物の交流ポイント | 大好き +${GAME_CONFIG.giftAffection.love}／好き +${GAME_CONFIG.giftAffection.like}／普通 +${GAME_CONFIG.giftAffection.normal}／苦手 ${GAME_CONFIG.giftAffection.dislike} |
+| 仕入れの交流ポイント | 1回の発注につき +${GAME_CONFIG.procurementAffection} |
+| ギフトの基本交流ポイント | 大好き +${GAME_CONFIG.giftAffection.love}／好き +${GAME_CONFIG.giftAffection.like}／普通 +${GAME_CONFIG.giftAffection.normal}／苦手 ${GAME_CONFIG.giftAffection.dislike} |
+| ギフトのレアリティ | ${raritySummary} |
 
 ## 5. ミッションと客席拡張
 
-- 導入ミッションは${fixedMissions.length}件。仕入れ、初調理、キャラクター交流、共同開発、設備強化までを段階的に案内する。
-- 達成判定は一度成立したら保持され、報酬はミッション画面で受け取る。表示順は「受取可能 → 挑戦中 → 受取済み」。
-- 長期ミッションは「料理の種類」「出会った人数」「共同成長の読了数」「雇用数」を記録する。
-- 初回提供後は「一定数を提供」「指定系統の料理を提供」「食材を受け取る」の3種の継続ミッションが更新される。
+- ミッションは全${missionCount}件。常に現在の3件だけを表示し、3件すべての報酬を受け取ると次の3件へ進む。
+- 序盤は仕入れ、初調理、人物交流、新料理開発を順に案内する。その後はキャラクターデータから出会い、仕入れ改善、雇用、好感度、店づくり、3種類のデートを自動生成する。
+- 最終目標は全キャラクターの好感度10、自動仕入れ3回、スタッフによる全自動提供10品。キャラクターや料理が追加された場合は対象数も自動で増える。
 
 ${missionSummary}
 
@@ -185,16 +186,17 @@ ${equipmentRows}
 - 設備の増設価格は「基本価格 × 1.5^現在台数」。
 - 強化価格は「基本価格 × 0.5 × 現在Lv.」。強化ごとに調理時間が15%短縮される。
 
-## 11. 好感度と共同成長
+## 11. 好感度と店づくり
 
 - 各キャラクターの好感度ストーリーは${relationshipNames.length - 1}段階。
 - 好感度4と7で返答を選ぶ。9で恋愛／友情を決定し、10で後日談と最終報酬を解放する。
-- 共同成長は各1人5段階。販売、仕入れ、関係段階、前段階の読了、設備購入を条件とし、食材・料理・設備・装飾を解放する。
+- 店づくりの物語は各1人5段階。第1話は仕入れ手順の改善で、担当仕入れ先の1パックを${GAME_CONFIG.ingredientPackSize}食分から${GAME_CONFIG.improvedPackSize}食分へ増やす。以降は食材・料理・設備を解放する。
+- デートは好感度${GAME_CONFIG.dateUnlockStage}で解放。各キャラクターに${list(dateLocations.map(location=>location.title))}の3本がある。お家デートは穏やかな会話のみで、性的表現は扱わない。
 - 恋愛ルートと友情ルートで、料理や設備の報酬に差はつけない。
-- 人物ページは名前、好感度、好感度ストーリー、贈物の好みの順に絞る。年齢、職業、プロフィール設定、共同成長、スタッフ操作は表示しない。
+- 人物ページは名前、好感度、好感度ストーリー、ギフトの好みを表示する。デートは街の各人物の店から開始する。
 - 街と人物一覧の選択カードは、画像があるキャラクターを顔中心の丸いアイコンで表示する。人物詳細と物語では従来の立ち絵表示を使う。
 - 顔アイコンと物語開始時の立ち絵は、三ツ葉 葵を基準に全キャラクターの顔の大きさ、表示高、中央位置を揃える。元画像の人物位置が左右に寄っている場合は、人物ごとの補正で頭部を枠の中央へ置き、見切れを防ぐ。
-- 顔アイコンは全員共通のクリーム色を背景にし、元画像の白背景も共通色になじませる。物語画面の立ち絵も全員同じクリーム系の舞台背景へ表示する。
+- 顔アイコンは全員共通のクリーム色を背景にし、元画像の白背景も共通色になじませる。デート画面は行き先ごとの専用背景と物語と同じサイズの立ち絵を使う。
 - スタッフ一覧、人物詳細、街のお店詳細も、街・人物一覧と同じ人物別の中心補正を使う。全身立ち絵ではなく顔中心の丸い画像に揃え、詳細画面では同じ切り抜きを大きく表示する。
 - 画像がある人物では代替文字を重ねず、街のお店画面を含めて画像の背後に文字を表示しない。画像がない場合、読込に失敗した場合、未遭遇の場合だけ代替文字を表示する。
 - 黒豆 蓮の立ち絵：\`/assets/characters/ren.png\`
@@ -203,20 +205,22 @@ ${equipmentRows}
 - 白川 牧の立ち絵：\`/assets/characters/shirakawa-maki.png\`
 - 麦野 太陽の立ち絵：\`/assets/characters/mugino-taiyo.png\`
 - 凍堂 冴の立ち絵：\`/assets/characters/toudou-sae.png\`
-- 贈物の選択画面は、人物ページのスクロール位置にかかわらずゲーム画面中央へ表示する。
-- 渡したことのある贈物だけを、人物ごとに「大好物／好き／ふつう／苦手」へ記録する。未確認の好みは「未発見」とし、記録はセーブに保存する。
+- ギフトの選択画面は、人物ページのスクロール位置にかかわらずゲーム画面中央へ表示する。
+- 渡したことのあるギフトだけを、人物ごとに「大好物／好き／ふつう／苦手」へ記録する。未確認の好みは「未発見」とし、記録はセーブに保存する。
 
 ## 12. スタッフ
 
 - 好感度3以上、${GAME_CONFIG.hirePrice.toLocaleString("ja-JP")}コインで初回雇用できる。
 - 担当は「調理」「提供」「お休み」。担当変更時は進行中の仕事を完了してから切り替える。
 - 好感度6以上で本人の得意料理は20%短縮、提供時間は${GAME_CONFIG.serveMs / 1000}秒から${GAME_CONFIG.serveMs * 0.8 / 1000}秒に短縮される。
+- スタッフを3人雇用し、3人と好感度6になると自動仕入れを解放する。在庫2食以下の必要食材を1パックずつ自動発注する。
+- 調理担当、提供担当、自動仕入れをそろえると、注文から仕入れ・調理・提供まで全自動で進む。
 
 ## 13. セーブと互換性
 
 - 保存キー：\`${GAME_CONFIG.saveKey}\`
 - 現在の保存形式：v${GAME_CONFIG.saveVersion}
-- 旧セーブのコイン、食材、人物進行、解放料理、設備、贈物、調理進行を引き継ぐ。
+- 旧セーブのコイン、食材、人物進行、解放料理、設備、ギフト、調理進行を引き継ぐ。
 - 新しいキャラクターは旧セーブの読込時に初期進行状態で自動追加する。
 - ゲームの調理や自動提供は画面表示中のみ進行する。仕入れの配送時間は再読込や画面を閉じている間も進む。
 

@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useGame } from "../game/GameContext";
-import { sortedMissions, missionRank, type MissionDestination } from "../game/missions";
+import { activeMissionChapter, missionChapters, sortedMissions, missionRank, type MissionDestination } from "../game/missions";
 
-const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",coffee:"蓮のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",gifts:"贈物のお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
+const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",coffee:"蓮のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",gifts:"ギフトのお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
 
 export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void}) {
   const {state}=useGame();
@@ -23,29 +23,50 @@ export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void
 function MissionNotebook({onClose,onGo}:{onClose:()=>void;onGo:(destination:MissionDestination)=>void}) {
   const {state,dispatch}=useGame();
   const ref=useRef<HTMLDialogElement>(null);
+  const celebrationButtonRef=useRef<HTMLButtonElement>(null);
+  const [celebration,setCelebration]=useState<{step:number;isFinal:boolean}|null>(null);
   const list=sortedMissions(state);
+  const chapter=activeMissionChapter(state);
+  const chapterIndex=chapter?missionChapters.findIndex(item=>item.id===chapter.id):-1;
   const ready=list.filter(m=>missionRank(state,m)===0).length;
   useEffect(()=>{const dialog=ref.current;dialog?.showModal();return ()=>dialog?.close();},[]);
+  useEffect(()=>{if(celebration)celebrationButtonRef.current?.focus();},[celebration]);
+  const claim=(missionId:string)=>{
+    const finishesChapter=!!chapter&&chapter.missions.every(mission=>mission.id===missionId||state.missions.claimed.includes(mission.id));
+    if(finishesChapter)setCelebration({step:chapterIndex+1,isFinal:chapterIndex===missionChapters.length-1});
+    dispatch({type:"CLAIM_MISSION",missionId});
+  };
   return <dialog ref={ref} tabIndex={-1} className="mission-notebook" onClose={onClose} aria-labelledby="mission-title">
-    <header><div><h2 id="mission-title">ミッション</h2></div><button onClick={onClose} aria-label="ミッションを閉じる">×</button></header>
+    {celebration?<div className="mission-celebration" role="status" aria-live="polite">
+      <div className="mission-sparkles" aria-hidden="true">
+        <span>✦</span><span>✧</span><span>✦</span><span>✧</span><span>✦</span><span>✧</span>
+      </div>
+      <div className="mission-seal" aria-hidden="true"><span>✓</span></div>
+      <p className="mission-celebration-step">STEP {celebration.step} COMPLETE</p>
+      <h2 id="mission-title">ミッション達成！</h2>
+      <p>{celebration.isFinal?"すべての目標を達成しました。":"次のミッションへ進めます。"}</p>
+      <button ref={celebrationButtonRef} type="button" onClick={()=>setCelebration(null)}>閉じる</button>
+    </div>:<>
+    <header><div><h2 id="mission-title">ミッション</h2>{chapter&&<span>ステップ {chapterIndex+1} / {missionChapters.length}</span>}</div><button onClick={onClose} aria-label="ミッションを閉じる">×</button></header>
     <div className="mission-scroll">
-    <p className="mission-total" aria-live="polite">受取可能 {ready}件 · 受取済み {state.missions.claimed.length}件</p>
-    <ol>{list.map((mission,index)=>{
+    {chapter?<><p className="mission-total" aria-live="polite">この3つを達成すると次へ進みます · 受取可能 {ready}件</p>
+    <ol>{list.map(mission=>{
       const claimed=state.missions.claimed.includes(mission.id),done=state.missions.completed.includes(mission.id);
       const value=done?mission.target:Math.max(0,Math.min(mission.target,mission.value(state)));
       const rank=missionRank(state,mission);
       return <li key={mission.id} data-mission-id={mission.id} data-mission-status={rank} className={`${done&&!claimed?"mission-active":""} ${claimed?"mission-claimed":""}`}>
         <article>
-          {(index===0||missionRank(state,list[index-1])!==rank)&&<b className="mission-group">{["受け取れるミッション","挑戦中","受取済み"][rank]}</b>}
           <h3>{mission.title}</h3>
+          {!done&&<p className="mission-hint">{mission.hint}</p>}
           {!done&&mission.target>1&&<progress max={mission.target} value={value} aria-label={mission.title}/>}
           <div className="mission-footer">
           <div className="mission-status"><span>{claimed?"✓ 受取済み":done?"✓ 達成":`${value} / ${mission.target}`}</span><b>+{mission.reward} コイン</b></div>
-          {!claimed&&<div className="mission-actions">{done?<button className="mission-claim" onClick={()=>{ref.current?.focus({preventScroll:true});dispatch({type:"CLAIM_MISSION",missionId:mission.id});}}>報酬を受け取る</button>:<button className="mission-go" onClick={()=>onGo(mission.destination)}>{destinations[mission.destination]} →</button>}</div>}
+          {!claimed&&<div className="mission-actions">{done?<button className="mission-claim" onClick={()=>claim(mission.id)}>報酬を受け取る</button>:<button className="mission-go" onClick={()=>onGo(mission.destination)}>{destinations[mission.destination]} →</button>}</div>}
           </div>
         </article>
       </li>;
-    })}</ol>
+    })}</ol></>:<div className="mission-complete"><span>✓</span><h3>すべてのミッション達成</h3><p>全員との物語と、全自動のカフェが完成しました。</p></div>}
     </div>
+    </>}
   </dialog>;
 }

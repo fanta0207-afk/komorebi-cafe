@@ -22,19 +22,21 @@ const require=createRequire(import.meta.url);
 const {characters}=require(join(output,'data/characters.js'));
 const {relationshipEvents}=require(join(output,'data/events.js'));
 const {growthEvents}=require(join(output,'data/growthEvents.js'));
+const {dateEvents,dateLocations}=require(join(output,'data/dates.js'));
 const {recipes}=require(join(output,'data/recipes.js'));
-const {gifts}=require(join(output,'data/gifts.js'));
+const {gifts,giftRarityInfo}=require(join(output,'data/gifts.js'));
 const {ingredients}=require(join(output,'data/ingredients.js'));
 const {equipment}=require(join(output,'data/equipment.js'));
 const {decorations}=require(join(output,'data/decorations.js'));
 const {createInitialState,reducer,migrateSavedState}=require(join(output,'game/state.js'));
-const {availableEvent,isRecipeUsable,giftReaction,pickWeightedRecipe}=require(join(output,'game/logic.js'));
-const {relationshipLabel,GAME_CONFIG}=require(join(output,'game/config.js'));
+const {availableEvent,isRecipeUsable,giftAffectionAmount,giftReaction,pickWeightedRecipe,randomShopItems,relationshipRequirementTargets}=require(join(output,'game/logic.js'));
+const {affectionThresholds,relationshipLabel,GAME_CONFIG}=require(join(output,'game/config.js'));
 const {tableUpgrades,tableSlots}=require(join(output,'game/seating.js'));
-const {missions,milestoneMissions,getMissions,sortedMissions,missionRank,currentMission,updateMissions}=require(join(output,'game/missions.js'));
+const {missions,missionChapters,getMissions,sortedMissions,missionRank,currentMission,activeMissionChapter,updateMissions}=require(join(output,'game/missions.js'));
 const {salePrice,ingredientCost,pickIncomingOrder,availableGrowthEvent}=require(join(output,'game/logic.js'));
 
-const {receiveSupplies,procurementRate,procurementQuote}=require(join(output,'game/procurement.js'));
+const {receiveSupplies,procurementRate,procurementQuote,supplyPackSize,runAutoProcurement}=require(join(output,'game/procurement.js'));
+const {autoProcurementUnlocked}=require(join(output,'game/automation.js'));
 const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;
 const routeEvents=id=>relationshipEvents.filter(event=>event.characterId===id);
 function complete(state,event,route='romance') {
@@ -58,7 +60,7 @@ function play(id,route='romance',until=10) {
   const supply=ingredients.find(item=>item.supplierId===character.supplierId&&!item.unlockEventId);
   state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:supply.id,packs:8});
   state=receiveAll(state);
-  const gift=gifts.filter(item=>state.giftShopItems.includes(item.id)).sort((a,b)=>a.price/GAME_CONFIG.giftAffection[giftReaction(character,a)]-b.price/GAME_CONFIG.giftAffection[giftReaction(character,b)]).find(item=>GAME_CONFIG.giftAffection[giftReaction(character,item)]>0);
+  const gift=gifts.filter(item=>state.giftShopItems.includes(item.id)).sort((a,b)=>a.price/giftAffectionAmount(a,giftReaction(character,a))-b.price/giftAffectionAmount(b,giftReaction(character,b))).find(item=>giftAffectionAmount(item,giftReaction(character,item))>0);
   for(const event of routeEvents(id).filter(event=>event.toStage<=until)) {
     let attempts=0;
     while(state.characterProgress[id].affection<event.requiredAffection) {
@@ -84,6 +86,7 @@ test('the seven requested characters have 10 unique stories, consistent rewards 
     for(const key of ['profile','voice','backstory','concern','attraction'])assert.ok(character[key].length>10);
   }
   for(const event of relationshipEvents){
+    assert.equal(event.requiredAffection,affectionThresholds[event.toStage]);
     assert.equal(event.fromStage,event.toStage-1);
     assert.ok(event.dialogue.length>=2);
     assert.ok(event.dialogue.every(line=>line.text&&!line.text.includes('［主人公名］')));
@@ -94,6 +97,41 @@ test('the seven requested characters have 10 unique stories, consistent rewards 
     for(const id of recipe.requiredIngredients)assert.ok(ingredients.some(item=>item.id===id),`${recipe.id}: missing ${id}`);
     for(const id of recipe.requiredEquipmentIds||[])assert.ok(equipment.some(item=>item.id===id));
   }
+});
+
+test('100 gifts have balanced preferences and four color-coded rarity tiers',()=>{
+  const rarities=['common','rare','superRare','ultraRare'];
+  assert.equal(gifts.length,100);
+  assert.equal(new Set(gifts.map(gift=>gift.id)).size,100);
+  assert.deepEqual(Object.keys(giftRarityInfo),rarities);
+  assert.ok(gifts.every(gift=>rarities.includes(gift.rarity)));
+  for(const rarity of rarities)assert.ok(gifts.some(gift=>gift.rarity===rarity));
+  for(let index=1;index<rarities.length;index++){
+    const lower=gifts.filter(gift=>gift.rarity===rarities[index-1]);
+    const higher=gifts.filter(gift=>gift.rarity===rarities[index]);
+    assert.ok(Math.min(...higher.map(gift=>gift.price))>Math.max(...lower.map(gift=>gift.price)));
+    assert.ok(GAME_CONFIG.giftRarityMultiplier[rarities[index]]>GAME_CONFIG.giftRarityMultiplier[rarities[index-1]]);
+    assert.ok(GAME_CONFIG.giftRarityWeight[rarities[index]]<GAME_CONFIG.giftRarityWeight[rarities[index-1]]);
+    assert.ok(giftAffectionAmount(higher[0],'love')>giftAffectionAmount(lower[0],'love'));
+  }
+  const shop=randomShopItems(GAME_CONFIG.giftShopSize,()=>.73);
+  assert.equal(shop.length,GAME_CONFIG.giftShopSize);
+  assert.equal(new Set(shop).size,shop.length);
+  const shopRanks=shop.map(id=>rarities.indexOf(gifts.find(gift=>gift.id===id).rarity));
+  assert.deepEqual(shopRanks,[...shopRanks].sort((left,right)=>left-right));
+  for(const character of characters){
+    const reactions=new Set(gifts.map(gift=>giftReaction(character,gift)));
+    for(const reaction of ['love','like','normal','dislike'])assert.ok(reactions.has(reaction),`${character.id}: missing ${reaction} gift`);
+  }
+});
+
+test('late relationship levels need increasingly more gifts while procurement grants only one affection per order',()=>{
+  assert.deepEqual([6,7,8,9,10].map(stage=>relationshipRequirementTargets(stage).giftTarget),[1,2,4,7,10]);
+  let state=reducer(createInitialState(),{type:'VISIT',characterId:'ren'});
+  const before=state.characterProgress.ren.affection;
+  state=reducer({...state,currency:10000},{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans',packs:20,now:1000});
+  assert.equal(state.characterProgress.ren.affection-before,GAME_CONFIG.procurementAffection);
+  assert.equal(GAME_CONFIG.procurementAffection,1);
 });
 
 test('developer affection can advance a selected character beyond stage 2',()=>{
@@ -141,7 +179,7 @@ test('stories require their earned level, a valid reply and an explicit relation
   assert.equal(reducer(stage4,{type:'COMPLETE_EVENT',eventId:'ren-stage4'}),stage4);
   assert.equal(reducer(stage4,{type:'COMPLETE_EVENT',eventId:'ren-stage4',choiceId:'invented'}),stage4);
   let beforeConfession=play('ren','romance',8);
-  beforeConfession={...beforeConfession,characterProgress:{...beforeConfession.characterProgress,ren:{...beforeConfession.characterProgress.ren,affection:300}}};
+  beforeConfession={...beforeConfession,characterProgress:{...beforeConfession.characterProgress,ren:{...beforeConfession.characterProgress.ren,affection:routeEvents('ren')[8].requiredAffection}}};
   assert.equal(reducer(beforeConfession,{type:'COMPLETE_EVENT',eventId:'ren-stage9'}),beforeConfession);
   assert.equal(complete(beforeConfession,routeEvents('ren')[8],'friendship').characterProgress.ren.route,'friendship');
 });
@@ -194,7 +232,7 @@ test('locked ingredients and equipment cannot be bought; a reward unlocks purcha
   const ordered=reducer(purchased,{type:'BUY_INGREDIENT',ingredientId:'espressoBlend'});
   assert.equal(ordered.ingredients.espressoBlend,undefined);
   const stocked=receiveAll(ordered);
-  assert.equal(stocked.ingredients.espressoBlend,5);assert.equal(stocked.currency,4560);
+  assert.equal(stocked.ingredients.espressoBlend,4);assert.equal(stocked.currency,4560);
 });
 
 test('the existing cooperative routes still award their ingredients, equipment and hidden recipes',()=>{
@@ -265,9 +303,9 @@ test('zero-stock arrivals fill only purchased tables and wait safely until suppl
     assert.deepEqual(state.ingredients,{});assert.equal(state.currency,200);
     state=receiveAll(reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'}));
     state=start({...state,spawnRemainingMs:1e12},first);
-    assert.equal(state.ingredients.coffeeBeans,4);
+    assert.equal(state.ingredients.coffeeBeans,3);
     state=tick(state,30000);state=collect(state,first);
-    assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.currency,136);
+    assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.currency,141);
     assert.equal(state.orders.length,tableCount-1);
     assert.equal(collect(state,first),state);
   }
@@ -302,7 +340,7 @@ test('a new cafe and reset have no supplies, one coffee station, and begin with 
   assert.equal(ordered.currency,100);assert.deepEqual(ordered.ingredients,{});
   assert.deepEqual(pickIncomingOrder(ordered),{recipeId:'coffee'});
   ordered=updateMissions(receiveAll(ordered));
-  assert.equal(ordered.ingredients.coffeeBeans,5);
+  assert.equal(ordered.ingredients.coffeeBeans,4);
   assert.deepEqual(pickIncomingOrder(ordered),{recipeId:'coffee'});
   const reset=reducer(stockedCafe(),{type:'RESET'});
   assert.deepEqual(reset.ingredients,{});assert.deepEqual(reset.stations,fresh.stations);
@@ -317,13 +355,11 @@ test('new-game defaults never remove an existing cafes supplies, stations, coins
   assert.deepEqual(restored.missions.claimed,previous.missions.claimed);
 });
 
-test('recipes, requests and recurring categories require the actual base station until it is purchased',()=>{
+test('recipes and requests require the actual base station until it is purchased',()=>{
   let state={...createInitialState(),currency:2000,ingredients:{bread:5},missions:{...createInitialState().missions,claimed:['serve-mocha']},lifetimeStats:{...createInitialState().lifetimeStats,totalOrders:3}};
   assert.equal(isRecipeUsable('toast',state),false);
   assert.equal(pickWeightedRecipe(state),'coffee');
   for(let i=0;i<50;i++)assert.notEqual(pickIncomingOrder(state)?.recipeId,'toast');
-  state=updateMissions(state);
-  assert.equal(state.missions.ongoing.find(run=>run.kind==='special').tag,'drink');
   const before=state.currency;
   state=reducer(state,{type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});
   assert.equal(state.currency,before-800);
@@ -406,7 +442,7 @@ test('a cook and a server run the whole loop; manual serving during delivery nev
   state=tick(state,29999);assert.equal(state.orders[0].status,'cooking');assert.equal(state.currency,600);
   state=tick(state,1);assert.equal(state.orders[0].status,'ready');assert.equal(state.staff[1].servingOrderId,'manual');
   const manual=collect(state);const afterDelivery=tick(manual,2000);assert.equal(afterDelivery.lifetimeStats.totalOrders,1);
-  state=tick(state,1999);assert.equal(state.lifetimeStats.totalOrders,0);state=tick(state,1);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,636);
+  state=tick(state,1999);assert.equal(state.lifetimeStats.totalOrders,0);state=tick(state,1);assert.equal(state.lifetimeStats.totalOrders,1);assert.equal(state.ingredients.coffeeBeans,9);assert.equal(state.currency,641);assert.equal(state.lifetimeStats.automatedOrders,1);
 });
 
 test('multiple cooks and servers cannot reserve one machine, ingredient or finished dish twice',()=>{
@@ -452,7 +488,7 @@ test('visiting and gifting have no daily limit, repeated dialogue is not farmabl
   state={...state,inventory:{mug:2}};for(let i=0;i<2;i++)state=reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:'mug',reaction:'love'});assert.equal(state.inventory.mug,0);assert.ok(state.characterProgress.ren.affection>aff);
   assert.equal(state.characterProgress.ren.giftReactions.mug,'love');
   assert.equal(migrateSavedState(JSON.parse(JSON.stringify(state))).characterProgress.ren.giftReactions.mug,'love');
-  state={...state,characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,relationshipStage:2,affection:100,viewedEvents:['ren-stage1','ren-stage2']}}};assert.equal(availableEvent(state,relationshipEvents),undefined);
+  state={...state,characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,relationshipStage:2,affection:routeEvents('ren')[2].requiredAffection-1,viewedEvents:['ren-stage1','ren-stage2']}}};assert.equal(availableEvent(state,relationshipEvents),undefined);
   state=trade(state,5);state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'});assert.equal(availableEvent(state,relationshipEvents)?.id,'ren-stage3');
 });
 
@@ -460,14 +496,15 @@ test('automatic order generation respects stock, slots and capacity during susta
   let state=hired(hired({...isolated(),spawnRemainingMs:1000},'ren','cook'),'haru','server');state=tick(state,700000);
   assert.ok(state.lifetimeStats.totalOrders>=19);assert.ok(state.orders.length<=4);assert.ok(Object.values(state.ingredients).every(count=>count>=0));
   const coins=state.currency;state=tick(state,60000);assert.equal(state.currency,coins);
-  state=receiveAll(reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans'}));state=tick(state,120000);assert.ok(state.currency>coins);
+  state={...state,orders:[],deliveries:[],ingredients:{...state.ingredients,coffeeBeans:4},spawnRemainingMs:1e12,staff:state.staff.map(person=>({...person,servingOrderId:undefined,remainingMs:0}))};
+  state=reducer(state,{type:'SPAWN_ORDER',order:order('restocked','coffee')});state=tick(state,120000);assert.ok(state.currency>coins);
 });
 
 test('all recipes retain ingredient cost but reduce the normal profit to one tenth',()=>{
   assert.equal(createInitialState().currency,200);
-  assert.equal(salePrice('coffee'),36);
-  assert.equal(salePrice('toast'),31);
-  assert.equal(salePrice('cafeMocha'),115);
+  assert.equal(salePrice('coffee'),41);
+  assert.equal(salePrice('toast'),35.5);
+  assert.equal(salePrice('cafeMocha'),133.5);
   for(const recipe of recipes){
     const cost=ingredientCost(recipe.id),margin=salePrice(recipe.id)-cost;
     assert.equal(margin,Math.round((recipe.price-cost)/10));
@@ -476,67 +513,43 @@ test('all recipes retain ingredient cost but reduce the normal profit to one ten
   assert.equal(upgradePrice(createInitialState().stations[0]),450);
   const state=createInitialState();
   assert.equal(reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:state.stations[0].id}),state);
-  assert.equal(missions.length,37);
-  assert.equal(new Set(missions.map(m=>m.id)).size,37);
+  assert.equal(missions.length,29+characters.length*10);
+  assert.equal(new Set(missions.map(m=>m.id)).size,99);
   assert.ok(missions.every(m=>m.reward>0&&m.title.length<=24&&m.hint.length>0&&m.hint.length<=40),'mission copy stays concise without removing hints');
-  assert.ok(missions.reduce((sum,m)=>sum+m.reward,0)<=500,'intro rewards must not buy special equipment outright');
+  assert.equal(missionChapters.length,missions.length/3);
 });
 
-test('mission rewards can be claimed out of order, exactly once, latched, and separate from cafe sales',()=>{
-  let state=createInitialState();
-  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'}),state);
-  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'not-real'}),state);
-  state=addOrder(state);
-  const coins=state.currency;
-  assert.ok(state.missions.completed.includes('first-order'));
-  state=reducer(state,{type:'DECLINE_ORDER',orderId:'manual'});
-  assert.ok(state.missions.completed.includes('first-order'),'removing the order cannot undo completion');
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'});
-  assert.equal(state.currency,coins+5);
-  assert.equal(state.lifetimeStats.totalRevenue,0);
-  assert.equal(state.lifetimeStats.totalOrders,0);
-  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'}),state);
-  state=reducer(state,{type:'MISSION_VIEW',place:'gifts'});
-  assert.ok(state.missions.completed.includes('visit-gifts'),'out-of-order achievements are retained');
-  const beforeLaterReward=state.currency;
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'visit-gifts'});
-  assert.equal(state.currency,beforeLaterReward+missions.find(m=>m.id==='visit-gifts').reward);
-  assert.ok(state.missions.claimed.includes('visit-gifts'),'later rewards do not require earlier missions');
-  assert.ok(!state.missions.claimed.includes('first-cook'));
-  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'visit-gifts'}),state);
-  const restored=migrateSavedState(JSON.parse(JSON.stringify(state)));
-  assert.equal(restored.currency,state.currency);
-  assert.deepEqual(restored.missions,state.missions);
-  assert.equal(reducer(restored,{type:'CLAIM_MISSION',missionId:'first-order'}),restored);
-  assert.equal(reducer(restored,{type:'CLAIM_MISSION',missionId:'visit-gifts'}),restored);
-  const reset=reducer(restored,{type:'RESET'});
-  assert.equal(reset.currency,200);assert.equal(reset.missions.claimed.length,0);assert.equal(reset.missions.completed.length,0);
-});
-
-test('all completed mission rewards can be claimed in reverse order and survive reload',()=>{
-  let state=createInitialState();
-  state={...state,missions:{...state.missions,completed:missions.map(m=>m.id)}};
-  const before=state.currency;
-  for(const mission of [...missions].reverse()){
-    const coins=state.currency;
-    state=reducer(state,{type:'CLAIM_MISSION',missionId:mission.id});
-    assert.equal(state.currency,coins+mission.reward);
-    assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:mission.id}),state);
-    state=migrateSavedState(JSON.parse(JSON.stringify(state)));
-    assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:mission.id}),state);
+test('missions are generated in locked groups of three and later progress stays hidden',()=>{
+  assert.equal(missions.length,29+characters.length*10);
+  assert.equal(new Set(missions.map(m=>m.id)).size,missions.length);
+  assert.ok(missionChapters.every(chapter=>chapter.missions.length===3));
+  for(const character of characters){
+    for(const prefix of ['supply','bond3','hire','bond6','growth5','bond10'])assert.ok(missions.some(m=>m.id===`${prefix}-${character.id}`));
+    for(const location of dateLocations)assert.ok(missions.some(m=>m.id===`${character.id}-date-${location.id}`));
   }
-  assert.equal(state.currency,before+missions.reduce((sum,m)=>sum+m.reward,0));
-  assert.equal(currentMission(state),undefined);
+  let state=createInitialState();
+  assert.deepEqual(getMissions(state).map(m=>m.id),['visit-town','meet-ren','ren-story1']);
+  state=addOrder(state);
+  assert.ok(!state.missions.completed.includes('first-order'),'a future mission is not active yet');
+  state=updateMissions({...state,missions:{...state.missions,visited:['town']},characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,met:true,relationshipStage:1}}});
+  assert.ok(getMissions(state).every(m=>state.missions.completed.includes(m.id)));
+  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:'beans-first'}),state,'the next group cannot be claimed early');
+  const before=state.currency;
+  for(const mission of [...getMissions(state)].reverse())state=reducer(state,{type:'CLAIM_MISSION',missionId:mission.id});
+  assert.equal(state.currency,before+30);
+  assert.deepEqual(getMissions(state).map(m=>m.id),['beans-first','inventory','beans-arrive']);
+  assert.equal(getMissions(state).length,3);
+  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(state))).missions,state.missions);
 });
 
-test('mission UI offers every destination and every earned reward, with a badge for later rewards',()=>{
+test('mission UI renders only the current three goals and advances its step',()=>{
   let state=createInitialState();
   const ui={};
   const source=readFileSync(new URL('../src/components/MissionGuide.tsx',import.meta.url),'utf8')+'\nexport { MissionNotebook };';
   const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText;
   new Function('require','exports',compiled)(name=>{
     if(name==='../game/GameContext')return {useGame:()=>({state,dispatch(){}})};
-    if(name==='../game/missions')return {sortedMissions,missionRank};
+    if(name==='../game/missions')return {sortedMissions,missionRank,activeMissionChapter,missionChapters};
     return require(name);
   },ui);
   const {createElement}=require('react');
@@ -544,123 +557,33 @@ test('mission UI offers every destination and every earned reward, with a badge 
   const render=component=>renderToStaticMarkup(createElement(component,{onClose(){},onGo(){}}));
   const initial=render(ui.MissionNotebook);
   assert.match(initial, /id="mission-title">ミッション<\/h2>/);
-  assert.doesNotMatch(initial, /開店ミッション|すべて達成しました/);
-  assert.equal((initial.match(/class="mission-go"/g)||[]).length,37);
-  assert.doesNotMatch(initial,/<details|<summary|条件・やり方|mission-hint|mission-chapter/);
-  assert.equal((initial.match(/class="mission-footer"/g)||[]).length,37);
-  assert.match(initial,/<progress/);
+  assert.match(initial,new RegExp(`ステップ 1 \\/ ${missionChapters.length}`));
+  assert.equal((initial.match(/data-mission-id=/g)||[]).length,3);
+  assert.equal((initial.match(/class="mission-go"/g)||[]).length,3);
+  assert.equal((initial.match(/class="mission-footer"/g)||[]).length,3);
+  assert.match(initial,/class="mission-hint"/);
   assert.match(initial,/\+15 コイン/);
-  assert.doesNotMatch(initial,/aria-current="step"|class="mission-claim"/);
-  state=reducer(state,{type:'MISSION_VIEW',place:'gifts'});
-  state=reducer(state,{type:'MISSION_VIEW',place:'equipment'});
-  assert.ok(!state.missions.completed.includes('first-order'));
+  assert.doesNotMatch(initial,/beans-first|first-order|class="mission-claim"/);
+  state=updateMissions({...state,missions:{...state.missions,visited:['town']},characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,met:true,relationshipStage:1}}});
   assert.match(render(ui.MissionGuide),/class="mission-badge"/);
-  assert.equal((render(ui.MissionNotebook).match(/class="mission-claim"/g)||[]).length,2);
-  assert.deepEqual([...render(ui.MissionNotebook).matchAll(/data-mission-id="([^"]+)"/g)].slice(0,2).map(m=>m[1]),['visit-gifts','view-investment']);
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'view-investment'});
-  assert.equal((render(ui.MissionNotebook).match(/class="mission-claim"/g)||[]).length,1);
-  assert.equal([...render(ui.MissionNotebook).matchAll(/data-mission-id="([^"]+)"/g)].at(-1)[1],'view-investment');
-  assert.match(render(ui.MissionGuide),/class="mission-badge"/);
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'visit-gifts'});
+  assert.equal((render(ui.MissionNotebook).match(/class="mission-claim"/g)||[]).length,3);
+  for(const mission of getMissions(state))state=reducer(state,{type:'CLAIM_MISSION',missionId:mission.id});
+  assert.match(render(ui.MissionNotebook),new RegExp(`ステップ 2 \\/ ${missionChapters.length}`));
+  assert.doesNotMatch(render(ui.MissionNotebook),/visit-town/);
   assert.doesNotMatch(render(ui.MissionGuide),/class="mission-badge"/);
-  assert.doesNotMatch(render(ui.MissionNotebook),/class="mission-claim"/);
 });
 
-test('ongoing service goals start after the first serving and keep renewing without reusing past sales',()=>{
-  let state=createInitialState();
-  assert.equal(state.missions.ongoing.length,0);
-  state=trade(state,1);
-  assert.equal(state.missions.ongoing.length,3);
-  let mission=getMissions(state).find(m=>m.id==='ongoing-service-1');
-  assert.equal(mission.value(state),0);
-  assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:mission.id}),state);
-  state=trade(state,5);
-  assert.ok(state.missions.completed.includes(mission.id));
-  // Exercise many further rounds with accumulated serving counters.
-  for(let round=1;round<=25;round++){
-    mission=getMissions(state).find(m=>m.id===`ongoing-service-${round}`);
-    assert.ok(mission.target<=20&&mission.reward<=30);
-    state=updateMissions({...state,lifetimeStats:{...state.lifetimeStats,totalOrders:state.lifetimeStats.totalOrders+mission.target}});
-    const before=state.currency;
-    state=reducer(state,{type:'CLAIM_MISSION',missionId:mission.id});
-    assert.equal(state.currency,before+mission.reward);
-    assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:mission.id}),state);
-    const next=getMissions(state).find(m=>m.id===`ongoing-service-${round+1}`);
-    assert.equal(next.value(state),0,'excess past servings cannot complete the next goal');
-    assert.ok(!state.missions.completed.includes(next.id));
-    const restored=migrateSavedState(JSON.parse(JSON.stringify(state)));
-    assert.deepEqual(restored.missions,state.missions);
-    assert.equal(restored.currency,state.currency);
-    state=restored;
-  }
-  assert.equal(state.missions.ongoing.filter(run=>run.kind==='service'&&!state.missions.claimed.includes(run.id)).length,1);
-});
-
-test('ongoing specialties rotate among unlocked categories and procurement counts arrivals, not orders',()=>{
-  let state=updateMissions({...stockedCafe(),currency:3000,lifetimeStats:{...createInitialState().lifetimeStats,totalOrders:1}});
-  assert.equal(state.missions.ongoing.find(run=>run.kind==='special').tag,'drink');
-  state=updateMissions({...state,lifetimeStats:{...state.lifetimeStats,tagSales:{drink:3}}});
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'ongoing-special-1'});
-  const next=state.missions.ongoing.find(run=>run.id==='ongoing-special-2');
-  assert.equal(next.tag,'bread');
-  state=updateMissions({...state,lifetimeStats:{...state.lifetimeStats,tagSales:{drink:10}}});
-  assert.equal(getMissions(state).find(m=>m.id===next.id).value(state),0);
-  state=updateMissions({...state,lifetimeStats:{...state.lifetimeStats,tagSales:{drink:10,bread:3}}});
-  assert.ok(state.missions.completed.includes(next.id));
-  state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans',packs:3,now:1000});
-  assert.ok(state.deliveries.length>0);
-  assert.ok(!state.missions.completed.includes('ongoing-supply-1'));
-  state=updateMissions(receiveAll(state));
-  assert.ok(state.missions.completed.includes('ongoing-supply-1'));
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'ongoing-supply-1'});
-  assert.equal(getMissions(state).find(m=>m.id==='ongoing-supply-2').value(state),0);
-});
-
-test('mission sorting puts ready rewards first and collected rewards last, including recurring history',()=>{
-  let state=updateMissions({...createInitialState(),lifetimeStats:{...createInitialState().lifetimeStats,totalOrders:1}});
-  state=updateMissions({...state,lifetimeStats:{...state.lifetimeStats,totalOrders:6}});
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'ongoing-service-1'});
-  state=reducer(state,{type:'CLAIM_MISSION',missionId:'first-order'});
-  const sorted=sortedMissions(state);
-  const ranks=sorted.map(m=>missionRank(state,m));
-  assert.deepEqual(ranks,[...ranks].sort());
-  assert.equal(sorted.at(-1).id,'ongoing-service-1');
-  assert.ok(sorted.find(m=>m.id==='ongoing-service-2'));
-  assert.equal(missions[0].id,'visit-town','sorting must not change the guide catalog');
-});
-
-test('v7 saves preserve rewards and initialize fresh ongoing baselines instead of paying old activity again',()=>{
+test('old recurring mission data is removed while valid roadmap rewards survive migration',()=>{
   const old=createInitialState();old.saveVersion=7;delete old.missions.ongoing;
   old.currency=1234;old.lifetimeStats.totalOrders=1000;old.lifetimeStats.tagSales.drink=700;
-  old.missions.receivedPacks={coffeeBeans:100};old.missions.claimed=['first-order'];
+  old.missions.receivedPacks={coffeeBeans:100};old.missions.claimed=['visit-town'];
   const state=migrateSavedState(old);
   assert.equal(state.saveVersion,GAME_CONFIG.saveVersion);assert.equal(state.currency,1234);
-  assert.ok(state.missions.claimed.includes('first-order'));
-  assert.equal(state.missions.ongoing.length,3);
-  for(const run of state.missions.ongoing){
-    assert.equal(getMissions(state).find(m=>m.id===run.id).value(state),0);
-    assert.ok(!state.missions.completed.includes(run.id));
-  }
+  assert.ok(state.missions.claimed.includes('visit-town'));
+  assert.deepEqual(state.missions.ongoing,[]);
   assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(state))).missions,state.missions);
   const malformed={...state,missions:{...state.missions,ongoing:[null,{id:'ongoing-service-0',kind:'service',round:0,start:0}]}};
-  assert.equal(migrateSavedState(malformed).missions.ongoing.length,3);
-});
-
-test('long-term milestones reward recipe variety, neighbors, collaboration and staffing independently',()=>{
-  let state=createInitialState();
-  state=updateMissions({...state,lifetimeStats:{...state.lifetimeStats,totalOrders:5,recipeSales:Object.fromEntries(recipes.slice(0,5).map(r=>[r.id,1]))},
-    characterProgress:Object.fromEntries(Object.entries(state.characterProgress).map(([id,p])=>[id,{...p,met:true}])),
-    viewedGrowthEvents:growthEvents.slice(0,5).map(e=>e.id),staff:[{characterId:'ren',role:'rest'}]});
-  assert.equal(milestoneMissions.length,14);
-  for(const id of ['variety-5','neighbors-3','neighbors-6','collaboration-5','team-1']){
-    assert.ok(state.missions.completed.includes(id),id);
-    const before=state.currency;
-    state=reducer(state,{type:'CLAIM_MISSION',missionId:id});
-    assert.ok(state.currency>before);
-    assert.equal(reducer(state,{type:'CLAIM_MISSION',missionId:id}),state);
-  }
-  assert.ok(!state.missions.completed.includes('variety-10'));
-  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(state))).missions,state.missions);
+  assert.deepEqual(migrateSavedState(malformed).missions.ongoing,[]);
 });
 
 test('v6 saves keep money and reconstruct received packs without granting duplicate mission coins',()=>{
@@ -692,7 +615,7 @@ test('guided guests wait for coffee supplies and new dishes require stock before
   }finally{Math.random=random;}
 });
 
-test('a fresh player finishes every mission, develops and serves mocha, then saves for an upgrade without cheats',t=>{
+test('a fresh player follows the first eight mission groups through the first developed recipe',t=>{
   let state=createInitialState(),now=1000000,elapsed=0,firstDevelopmentAt=0;
   const random=Math.random;Math.random=()=>.9;
   const act=action=>{state=reducer(state,action);assert.ok(state.currency>=0);assert.ok(Object.values(state.ingredients).every(n=>n>=0));};
@@ -716,7 +639,7 @@ test('a fresh player finishes every mission, develops and serves mocha, then sav
     serveWhileWaiting();
   };
   try{
-    for(let i=0;i<3000&&currentMission(state);i++){
+    for(let i=0;i<3000&&!state.missions.claimed.includes('serve-mocha');i++){
       settleStories();
       const mission=currentMission(state);
       if(state.missions.completed.includes(mission.id)){
@@ -731,19 +654,10 @@ test('a fresh player finishes every mission, develops and serves mocha, then sav
         case 'inventory':view('inventory');break;
         case 'visit-gifts':view('gifts');break;
         case 'buy-book':act({type:'BUY_GIFT',giftId:'book'});break;
-        case 'ren-profile':view('ren');break;
         case 'give-book':act({type:'GIVE_GIFT',characterId:'ren',giftId:'book',reaction:'like'});break;
-        case 'mocha-recipe':view('recipes');break;
-        case 'meet-ranch':act({type:'VISIT',characterId:'sota'});break;
+        case 'meet-sota':act({type:'VISIT',characterId:'sota'});break;
         case 'buy-milk':buy('milk');break;
         case 'buy-chocolate':act({type:'VISIT',characterId:'itsuki'});buy('chocolate');break;
-        case 'view-investment':view('equipment');break;
-        case 'first-investment':{
-          for(const o of state.orders.filter(o=>o.status==='ready'))act({type:'COLLECT_ORDER',orderId:o.id});
-          const station=state.stations.find(s=>s.equipmentId==='coffeeCounter');
-          act({type:'UPGRADE_EQUIPMENT',stationId:station.id});
-          now+=1000;elapsed+=1000;act({type:'TICK',deltaMs:1000,now});break;
-        }
         default:{
           // Replenish when the available beans are all consumed or reserved, using earned money only.
           const reserved=state.orders.filter(o=>o.status==='queued').filter(o=>recipes.find(r=>r.id===o.recipeId)?.requiredIngredients.includes('coffeeBeans')).length;
@@ -752,16 +666,15 @@ test('a fresh player finishes every mission, develops and serves mocha, then sav
         }
       }
     }
-    assert.equal(currentMission(state),undefined,`stuck on ${currentMission(state)?.id}, coins=${state.currency}, elapsed=${elapsed/1000}s`);
-    assert.equal(state.missions.claimed.length,37);
+    assert.ok(state.missions.claimed.includes('serve-mocha'),`stuck on ${currentMission(state)?.id}, coins=${state.currency}, elapsed=${elapsed/1000}s`);
+    assert.equal(state.missions.claimed.length,24);
     assert.ok(firstDevelopmentAt>0&&firstDevelopmentAt<=15*60000,`development took ${firstDevelopmentAt/1000}s`);
     assert.ok(state.lifetimeStats.recipeSales.cafeMocha>=1);
-    assert.equal(state.stations.find(s=>s.equipmentId==='coffeeCounter').level,2);
-    assert.ok(state.currency>=100,'investment leaves money for a pack of beans');
-    const expected=GAME_CONFIG.initialCurrency+state.lifetimeStats.totalRevenue+missions.reduce((sum,m)=>sum+m.reward,0)
-      -Object.entries(state.lifetimeStats.ingredientPurchases).reduce((sum,[id,n])=>sum+ingredients.find(i=>i.id===id).price*n,0)-360-450;
+    const claimedRewards=missions.filter(m=>state.missions.claimed.includes(m.id)).reduce((sum,m)=>sum+m.reward,0);
+    const expected=GAME_CONFIG.initialCurrency+state.lifetimeStats.totalRevenue+claimedRewards
+      -Object.entries(state.lifetimeStats.ingredientPurchases).reduce((sum,[id,n])=>sum+ingredients.find(i=>i.id===id).price*n,0)-360;
     assert.equal(state.currency,expected,'no hidden subsidies, repeat rewards, or free supplies');
-    t.diagnostic(`guided play: first development ${firstDevelopmentAt/1000}s, all missions ${elapsed/1000}s, ${state.lifetimeStats.totalOrders} dishes, ${state.currency} coins remaining`);
+    t.diagnostic(`guided play: first development ${firstDevelopmentAt/1000}s, eight groups ${elapsed/1000}s, ${state.lifetimeStats.totalOrders} dishes`);
   }finally{Math.random=random;}
 });
 
@@ -823,7 +736,7 @@ test('legacy weather and trend fields no longer affect orders, prices or rotate 
         const condition = conditionForDay(day);
         const changed = { ...state, dailyWeatherId: condition.weatherId, dailyCustomerGroupId: condition.customerGroupId, dailyEventId: condition.dailyEventId };
         assert.equal(pickWeightedRecipe(changed), expected);
-        assert.equal(salePrice('coffee', changed), 36);
+        assert.equal(salePrice('coffee', changed), 41);
       }
     }
   } finally { Math.random = originalRandom; }
@@ -835,27 +748,27 @@ test('bulk procurement scales with quantity and rejects further purchases until 
   let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 1000 });
   assert.equal(state.currency, 2700);
   assert.equal(state.ingredients.coffeeBeans, 10);
-  assert.equal(state.deliveries[0].arrivesAt, 541000);
-  for (const now of [1000, 31000, 540999]) {
+  assert.equal(state.deliveries[0].arrivesAt, 181000);
+  for (const now of [1000, 31000, 180999]) {
     const rejected = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now });
     for (const key of ['currency', 'ingredients', 'deliveries', 'characterProgress', 'lifetimeStats']) assert.deepEqual(rejected[key], state[key]);
     assert.match(rejected.notice.text, /追加発注できません/);
   }
   state = migrateSavedState(JSON.parse(JSON.stringify(state)), 31000);
   assert.equal(procurementQuote(state, 'coffeeBeans', 2, 31000).blocking.id, state.deliveries[0].id);
-  assert.equal(receiveSupplies(state, 540999), state);
-  state = receiveSupplies(state, 541000);
-  assert.equal(state.ingredients.coffeeBeans, 25);
+  assert.equal(receiveSupplies(state, 180999), state);
+  state = receiveSupplies(state, 181000);
+  assert.equal(state.ingredients.coffeeBeans, 22);
   assert.equal(state.deliveries.length, 0);
-  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now: 541000 });
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now: 181000 });
   assert.equal(state.deliveries.length, 1);
-  assert.equal(state.deliveries[0].arrivesAt, 901000);
-  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 901000);
-  assert.equal(restored.ingredients.coffeeBeans, 35);
+  assert.equal(state.deliveries[0].arrivesAt, 301000);
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 301000);
+  assert.equal(restored.ingredients.coffeeBeans, 30);
   assert.equal(restored.currency, 2500);
   assert.equal(restored.deliveries.length, 0);
   assert.equal(restored.lifetimeStats.ingredientPurchases.coffeeBeans, 5);
-  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(restored)), 901000).ingredients, restored.ingredients);
+  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(restored)), 301000).ingredients, restored.ingredients);
   assert.equal(restored.lifetimeStats.totalRevenue, 0);
 });
 
@@ -869,9 +782,9 @@ test('invalid or unaffordable procurement cannot create deliveries, and new reci
   assert.equal(rejected.deliveries.length, 0);
   const ordered = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 1000 });
   assert.equal(ordered.unlockedRecipes.includes('latte'), false);
-  const arrived = receiveSupplies(ordered, 181000);
+  const arrived = receiveSupplies(ordered, 61000);
   assert.equal(arrived.unlockedRecipes.includes('latte'), true);
-  assert.equal(arrived.ingredients.milk, 5);
+  assert.equal(arrived.ingredients.milk, 4);
 });
 
 test('a v5 save keeps all possessions and cooking progress when upgraded to deliveries', () => {
@@ -917,14 +830,14 @@ test('a request waits for delivery, cooks serially, earns its bonus only on serv
   assert.equal(cancelled.currency, state.currency);
   assert.equal(cancelled.lifetimeStats.totalOrders, 0);
   state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 1000 });
-  state = reducer(state, { type: 'TICK', deltaMs: 100, now: 181000 });
+  state = reducer(state, { type: 'TICK', deltaMs: 100, now: 61000 });
   state = start(state, 'request');
   assert.equal(state.orders[0].status, 'cooking');
   assert.equal(reducer(state, { type: 'DECLINE_ORDER', orderId: 'request' }), state);
   state = tick(state, 30000);
   const coins = state.currency;
   const served = reducer(state, { type: 'COLLECT_ORDER', orderId: 'request' });
-  assert.equal(served.currency - coins, 84);
+  assert.equal(served.currency - coins, Math.round(salePrice('latte') * GAME_CONFIG.requestOrderBonus));
   assert.equal(served.lifetimeStats.totalOrders, 1);
   assert.equal(reducer(served, { type: 'COLLECT_ORDER', orderId: 'request' }), served);
 });
@@ -941,14 +854,14 @@ test('one global procurement lane blocks different items without charging or gra
   }
   const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 2000);
   assert.ok(procurementQuote(restored, 'milk', 1, 2000).blocking);
-  const next = reducer(restored, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 361000 });
-  assert.equal(next.ingredients.bread, state.ingredients.bread + 10, 'overdue batch settles before next purchase');
+  const next = reducer(restored, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 121000 });
+  assert.equal(next.ingredients.bread, state.ingredients.bread + 8, 'overdue batch settles before next purchase');
   assert.equal(next.deliveries.length, 1);
   assert.equal(next.deliveries[0].ingredientId, 'milk');
-  assert.equal(next.deliveries[0].arrivesAt, 541000);
+  assert.equal(next.deliveries[0].arrivesAt, 181000);
 });
 
-test('each supplier speeds up from 180 to 30 seconds per pack on both routes, without changing existing deadlines', () => {
+test('each supplier speeds up from 60 to 30 seconds per pack on both routes, without changing existing deadlines', () => {
   for (const character of characters) {
     const ingredient = ingredients.find(item => item.supplierId === character.supplierId && !item.unlockEventId);
     for (const route of ['romance', 'friendship']) {
@@ -956,24 +869,76 @@ test('each supplier speeds up from 180 to 30 seconds per pack on both routes, wi
         const initial = isolated();
         const state = { ...initial, characterProgress: { ...initial.characterProgress, [character.id]: { ...initial.characterProgress[character.id], met: true, route, relationshipStage: level } } };
         const rate = procurementRate(state, ingredient.id);
-        assert.equal(rate.perPackMs, 180000 - 15000 * level);
+        assert.equal(rate.perPackMs, 60000 - 3000 * level);
         const ordered = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: ingredient.id, packs: 3, now: 1000 });
         assert.equal(ordered.deliveries[0].arrivesAt, 1000 + rate.perPackMs * 3);
         const other = ingredients.find(item => item.supplierId !== character.supplierId && !item.unlockEventId);
-        assert.equal(procurementRate(state, other.id).perPackMs, 180000);
+        assert.equal(procurementRate(state, other.id).perPackMs, 60000);
       }
     }
   }
   let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', now: 1000 });
   state = { ...state, characterProgress: { ...state.characterProgress, ren: { ...state.characterProgress.ren, relationshipStage: 10 } } };
   state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 2000 });
-  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [181000]);
-  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 181000 });
-  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [271000]);
-  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 270999);
-  assert.equal(restored.ingredients.coffeeBeans, 15);
-  assert.equal(restored.deliveries[0].arrivesAt, 271000);
-  assert.equal(receiveSupplies(restored, 271000).ingredients.coffeeBeans, 30);
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [61000]);
+  state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 61000 });
+  assert.deepEqual(state.deliveries.map(item => item.arrivesAt), [151000]);
+  const restored = migrateSavedState(JSON.parse(JSON.stringify(state)), 150999);
+  assert.equal(restored.ingredients.coffeeBeans, 14);
+  assert.equal(restored.deliveries[0].arrivesAt, 151000);
+  assert.equal(receiveSupplies(restored, 151000).ingredients.coffeeBeans, 26);
+});
+
+test('each supplier improvement changes only that suppliers packs from four servings to five',()=>{
+  let state={...createInitialState(),currency:1000};
+  assert.equal(supplyPackSize(state,'coffeeBeans'),4);
+  assert.equal(supplyPackSize(state,'milk'),4);
+  state={...state,viewedGrowthEvents:['ren-growth1']};
+  assert.equal(supplyPackSize(state,'coffeeBeans'),5);
+  assert.equal(supplyPackSize(state,'teaLeaves'),5);
+  assert.equal(supplyPackSize(state,'milk'),4);
+  state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans',now:1000});
+  assert.equal(state.deliveries[0].servingsPerPack,5);
+  state=receiveAll(state);
+  assert.equal(state.ingredients.coffeeBeans,5);
+});
+
+test('every character unlocks three safe date destinations at level eight',()=>{
+  assert.equal(dateEvents.length,characters.length*3);
+  assert.deepEqual(dateLocations.map(location=>location.id),['amusement','walk','home']);
+  for(const character of characters){
+    const dates=dateEvents.filter(event=>event.characterId===character.id);
+    assert.equal(dates.length,3);
+    assert.ok(dates.every(event=>event.dialogue.length>=2));
+  }
+  const date=dateEvents.find(event=>event.id==='ren-date-home');
+  let state=createInitialState();
+  state={...state,characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,met:true,relationshipStage:7,affection:200}}};
+  assert.equal(reducer(state,{type:'COMPLETE_DATE',eventId:date.id}),state,'level seven cannot date');
+  state={...state,characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,relationshipStage:8,affection:245}}};
+  const completed=reducer(state,{type:'COMPLETE_DATE',eventId:date.id});
+  assert.ok(completed.viewedDateEvents.includes(date.id));
+  assert.equal(completed.characterProgress.ren.affection,245+GAME_CONFIG.dateAffection);
+  assert.equal(reducer(completed,{type:'COMPLETE_DATE',eventId:date.id}),completed,'replaying a date cannot farm affection');
+});
+
+test('three trusted staff unlock automatic one-pack replenishment and record full automation',()=>{
+  let state={...createInitialState(),currency:10000,spawnRemainingMs:1e12,viewedGrowthEvents:['ren-growth1'],ingredients:{coffeeBeans:2}};
+  for(const id of characters.slice(0,3).map(c=>c.id))state={...state,characterProgress:{...state.characterProgress,[id]:{...state.characterProgress[id],met:true,relationshipStage:6}},staff:[...state.staff,{characterId:id,role:id==='ren'?'cook':id==='sota'?'server':'rest',remainingMs:0}]};
+  assert.ok(autoProcurementUnlocked(state));
+  state=reducer(state,{type:'TOGGLE_AUTO_PROCUREMENT',enabled:true});
+  state=runAutoProcurement(state,1000);
+  assert.equal(state.deliveries.length,1);
+  assert.equal(state.deliveries[0].ingredientId,'coffeeBeans');
+  assert.equal(state.deliveries[0].automatic,true);
+  assert.equal(state.deliveries[0].servingsPerPack,5);
+  const affection=state.characterProgress.ren.affection;
+  state=receiveAll(state);
+  assert.equal(state.lifetimeStats.automaticPacks,1);
+  assert.equal(state.characterProgress.ren.affection,affection,'automatic purchases do not farm affection');
+  state={...state,ingredients:{coffeeBeans:1},deliveries:[],orders:[order('auto')]};
+  state=tick(state,32000);
+  assert.equal(state.lifetimeStats.automatedOrders,1);
 });
 
 test('previously paid parallel deliveries preserve their deadlines and settle exactly once', () => {
@@ -983,7 +948,7 @@ test('previously paid parallel deliveries preserve their deadlines and settle ex
     { id: 'old-milk', ingredientId: 'milk', packs: 2, orderedAt: 2000, arrivesAt: 182000 },
   ] };
   const restored = migrateSavedState(JSON.parse(JSON.stringify(old)), 100000);
-  assert.deepEqual(restored.deliveries, old.deliveries);
+  assert.deepEqual(restored.deliveries, old.deliveries.map(item=>({...item,servingsPerPack:5})));
   assert.ok(procurementQuote(restored, 'coffeeBeans', 1, 100000).blocking);
   assert.ok(procurementQuote(restored, 'milk', 1, 100000).blocking);
   const arrived = receiveSupplies(restored, 182000);
@@ -1009,8 +974,8 @@ test('order requirements expose all blockers and preserve consumed ingredient sa
   assert.match(conditions.find(item => item.id === 'ingredient-milk').detail, /白樺牧場/);
   assert.equal(conditions.find(item => item.id === 'equipment-coffeeCounter').met, true);
   state = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'milk', now: 1000 });
-  assert.match(orderRequirements(state, order).find(item => item.id === 'ingredient-milk').detail, /入荷まで 3:00/);
-  state = receiveSupplies(state, 181000);
+  assert.match(orderRequirements(state, order).find(item => item.id === 'ingredient-milk').detail, /入荷まで 1:00/);
+  state = receiveSupplies(state, 61000);
   state = { ...state, ingredients: { ...state.ingredients, coffeeBeans: 1, milk: 1 } };
   state = reducer(state, { type: 'START_COOKING', orderId: order.id });
   conditions = orderRequirements(state, state.orders[0]);

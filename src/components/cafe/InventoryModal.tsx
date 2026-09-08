@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { ingredients } from "../../data/ingredients";
 import { suppliers } from "../../data/suppliers";
-import { GAME_CONFIG } from "../../game/config";
 import { deliveryCountdown } from "../../game/procurement";
 import type { GameState } from "../../types/game";
 
@@ -29,7 +28,7 @@ export function InventoryModal({ state, onClose, onTown }: {
         <dl>{items.map(item => {
           const stock = state.ingredients[item.id] || 0;
           const pending = state.deliveries.filter(delivery => delivery.ingredientId === item.id);
-          const incoming = pending.reduce((sum, delivery) => sum + delivery.packs * GAME_CONFIG.ingredientPackSize, 0);
+          const incoming = pending.reduce((sum, delivery) => sum + delivery.packs * delivery.servingsPerPack, 0);
           return <div className={`inventory-row ${stock === 0 ? "inventory-empty" : ""}`} key={item.id}>
             <dt><span aria-hidden="true">{item.icon}</span>{item.name}</dt>
             <dd className="inventory-count"><b>{stock.toLocaleString()}</b> 食分</dd>

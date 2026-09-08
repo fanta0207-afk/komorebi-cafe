@@ -15,6 +15,7 @@
 .mission-notebook>header>div { min-width:0; }
 .mission-scroll { min-height:0; min-width:0; padding:12px; overflow-y:auto; overscroll-behavior:contain; }
 .mission-notebook h2 { margin:0; font-size:22px; }
+.mission-notebook>header span { display:block; margin-top:2px; color:var(--mission-green); font-size:14px; font-weight:700; }
 .mission-notebook>header p { font-size:14px; margin:6px 0; }
 .mission-notebook>header button { flex:none; border:0; background:none; font-size:26px; width:44px; height:44px; cursor:pointer; }
 .mission-intro { font-size:14px; line-height:1.8; }
@@ -26,8 +27,35 @@
 .mission-notebook li.mission-claimed { background:#efeee5; }
 .mission-group { display:block; margin-bottom:4px; font-size:14px; color:var(--mission-green); }
 .mission-notebook h3 { font-size:16px; line-height:1.45; margin:0 0 6px; }
+.mission-hint { margin:0 0 8px; color:#746959; font-size:14px; line-height:1.55; }
 .mission-status { display:flex; flex-direction:column; font-size:14px; line-height:1.5; }
 .mission-claimed .mission-status { flex-direction:row; flex-wrap:wrap; width:100%; justify-content:space-between; gap:4px 8px; }
 .investment-note { border:1px solid var(--mission-border); background:var(--mission-paper); padding:14px; border-radius:10px; margin:12px 0; font-size:16px; }
 .investment-note p { font-size:14px; line-height:1.8; margin:8px 0 0; }
 .mission-launcher:focus-visible,.mission-notebook button:focus-visible { outline:3px solid #276950; outline-offset:3px; }
+.mission-complete { padding:42px 18px; text-align:center; }
+.mission-complete>span { display:grid; place-items:center; width:54px; height:54px; margin:0 auto 12px; border-radius:50%; background:#dcead7; color:#476247; font-size:28px; }
+.mission-complete h3 { font-size:20px; }
+.mission-complete p { margin:8px 0 0; color:#746959; font-size:14px; }
+
+.mission-celebration { position:relative; isolation:isolate; min-height:min(520px,calc(100dvh - 64px)); display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:40px 28px; overflow:hidden; text-align:center; background:radial-gradient(circle at 50% 40%,#fffdf2 0 24%,#f6e8bd 62%,#dec17f 100%); }
+.mission-celebration::before,.mission-celebration::after { content:""; position:absolute; z-index:-1; width:260px; aspect-ratio:1; border:1px solid #b28a3d66; border-radius:50%; animation:mission-halo 1.8s ease-out infinite; }
+.mission-celebration::after { width:330px; animation-delay:.45s; }
+.mission-seal { display:grid; place-items:center; width:88px; height:88px; margin-bottom:18px; border:2px solid #a9772d; border-radius:50%; color:#fffaf0; background:linear-gradient(145deg,#4f725d,#29483a); box-shadow:0 10px 30px #78571f42,0 0 0 8px #fff8df; animation:mission-seal-arrive .62s cubic-bezier(.2,.9,.25,1.3) both; }
+.mission-seal span { font-size:42px; line-height:1; }
+.mission-celebration-step { margin:0 0 5px; color:#88601e; font-size:13px; font-weight:800; letter-spacing:.13em; }
+.mission-celebration h2 { margin:0; color:#2d4b3d; font-size:30px; line-height:1.35; }
+.mission-celebration>p:not(.mission-celebration-step) { max-width:280px; margin:12px 0 24px; color:#655844; font-size:15px; line-height:1.75; }
+.mission-celebration>button { min-width:180px; min-height:48px; border:1px solid #244334; border-radius:999px; color:white; background:#304c3f; box-shadow:0 6px 16px #2941373d; font-size:16px; font-weight:800; cursor:pointer; }
+.mission-sparkles { position:absolute; inset:0; pointer-events:none; }
+.mission-sparkles span { position:absolute; color:#c38c24; font-size:24px; opacity:0; animation:mission-sparkle 1.5s ease-in-out infinite; }
+.mission-sparkles span:nth-child(1) { top:16%; left:19%; animation-delay:.1s; }
+.mission-sparkles span:nth-child(2) { top:24%; right:16%; font-size:34px; animation-delay:.55s; }
+.mission-sparkles span:nth-child(3) { top:45%; left:10%; font-size:18px; animation-delay:.85s; }
+.mission-sparkles span:nth-child(4) { top:52%; right:9%; animation-delay:.25s; }
+.mission-sparkles span:nth-child(5) { bottom:18%; left:23%; font-size:30px; animation-delay:.7s; }
+.mission-sparkles span:nth-child(6) { right:25%; bottom:15%; font-size:18px; animation-delay:1.05s; }
+@keyframes mission-seal-arrive { from { opacity:0; transform:scale(.35) rotate(-12deg); } to { opacity:1; transform:scale(1) rotate(0); } }
+@keyframes mission-sparkle { 0%,100% { opacity:0; transform:scale(.45) rotate(0); } 45%,65% { opacity:1; transform:scale(1.15) rotate(22deg); } }
+@keyframes mission-halo { 0% { opacity:.6; transform:scale(.66); } 100% { opacity:0; transform:scale(1.05); } }
+@media (prefers-reduced-motion:reduce) { .mission-celebration::before,.mission-celebration::after,.mission-seal,.mission-sparkles span { animation:none; } .mission-sparkles span { opacity:1; } }

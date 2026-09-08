@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { characters, getCharacter } from "../data/characters";
 import { relationshipEvents } from "../data/events";
-import { getDecoration } from "../data/decorations";
 import { getEquipment } from "../data/equipment";
 import { getIngredient } from "../data/ingredients";
 import { getRecipe } from "../data/recipes";
@@ -12,7 +11,7 @@ import { GAME_CONFIG } from "../game/config";
 import { tableCapacity, tableSlots } from "../game/seating";
 import { GameProvider, useGame } from "../game/GameContext";
 import { availableEvent, availableGrowthEvent, pickWeightedRecipe } from "../game/logic";
-import type { GrowthEvent, RelationshipEvent } from "../types/game";
+import type { DateEvent, GrowthEvent, RelationshipEvent } from "../types/game";
 import { BottomNav, Portrait, StatusBar } from "./GameUI";
 import { StoryModal } from "./StoryModal";
 import { CafeScreen } from "../screens/CafeScreen";
@@ -43,6 +42,7 @@ function GameContent() {
   const [event,setEvent]=useState<RelationshipEvent>();
   const [replay,setReplay]=useState<RelationshipEvent>();
   const [growthEvent,setGrowthEvent]=useState<GrowthEvent>();
+  const [dateEvent,setDateEvent]=useState<DateEvent>();
   const [eventPage,setEventPage]=useState(0);
   const stateRef=useRef(state); stateRef.current=state;
 
@@ -58,12 +58,12 @@ function GameContent() {
   },[dispatch]);
 
   useEffect(()=>{
-    if(event||growthEvent||replay||devOpen)return;
+    if(event||growthEvent||dateEvent||replay||devOpen)return;
     const next=availableEvent(state,relationshipEvents);
     if(next){setEvent(next);setEventPage(0);return;}
     const growth=availableGrowthEvent(state);
     if(growth){setGrowthEvent(growth);setEventPage(0);}
-  },[state,event,growthEvent,replay,devOpen]);
+  },[state,event,growthEvent,dateEvent,replay,devOpen]);
 
   const navigate=(id:string)=>{setScreen(id as Screen);setSupplierId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
   const openSupplier=(id:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});setSupplierId(id);setScreen("supplier");};
@@ -82,13 +82,13 @@ function GameContent() {
     else navigate(destination);
   };
 
-  const missionControl=!event&&!growthEvent&&!replay?<MissionGuide onGo={missionGo}/>:undefined;
+  const missionControl=!event&&!growthEvent&&!dateEvent&&!replay?<MissionGuide onGo={missionGo}/>:undefined;
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
     {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
     <div className="screen-wrap">
-      {screen==="cafe"&&<CafeScreen missionControl={missionControl} storyOpen={!!(event||growthEvent||replay)} panelRequest={cafePanel} onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}}/>}
+      {screen==="cafe"&&<CafeScreen missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay)} panelRequest={cafePanel} onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame} onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})} onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}}/>}
       {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
-      {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")}/>}
+      {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} onBack={()=>setScreen("town")} onDate={setDateEvent}/>}
       {screen==="gifts"&&<GiftShopScreen/>}
       {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
@@ -109,18 +109,45 @@ function GameContent() {
       page={eventPage}
       onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
     />}
+    {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
     {devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)}/>}
   </main>;
 }
 
+function DateEventModal({event,completed,onClose,onComplete}:{event:DateEvent;completed:boolean;onClose:()=>void;onComplete:()=>void}) {
+  const character=getCharacter(event.characterId)!;const [page,setPage]=useState(0);const [artFailed,setArtFailed]=useState(false);const dialog=useRef<HTMLDialogElement>(null);
+  const finalPage=page===event.dialogue.length-1;
+  useEffect(()=>{const element=dialog.current;element?.showModal();return()=>element?.close();},[]);
+  const next=()=>{if(!finalPage)setPage(value=>value+1);else if(completed)onClose();else onComplete();};
+  return <dialog ref={dialog} className="story-modal story-player date-story-player" aria-labelledby="date-story-title" onCancel={event=>{event.preventDefault();onClose();}}>
+    <button className="story-close-button" aria-label="デートを閉じる" onClick={onClose}>×</button>
+    <header className="story-player-heading"><div className="story-header"><span>{completed?"デートの思い出":"DATE"} · {event.icon} {event.title}</span></div><h2 id="date-story-title">{character.shortName}と{event.title}</h2></header>
+    <div className={`story-stage is-speaking date-location-${event.locationId}`} data-character={character.id}>
+      {character.image&&!artFailed?<img className="story-standing-art" src={character.image} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>:<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
+    </div>
+    <div className="story-dialogue-panel"><div key={page} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&!completed&&<div className="story-reward date-reward"><strong>好感度 +{GAME_CONFIG.dateAffection}</strong><p>初めての{event.title}の思い出が増えます。</p></div>}</div>
+      <div className="story-footer"><span>{page+1} / {event.dialogue.length}</span><button className="primary-button" onClick={next}>{finalPage?(completed?"閉じる":"デートを終える"):"次へ →"}</button></div>
+    </div>
+  </dialog>;
+}
+
 function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onNext:()=>void}) {
   const character=getCharacter(event.characterId)!;const finalPage=page===event.dialogue.length-1;
-  const rewardNames=[...(event.rewards.ingredientIds || []).map(id=>getIngredient(id)?.name),...(event.rewards.recipeIds || []).map(id=>getRecipe(id)?.name),...(event.rewards.equipmentIds || []).map(id=>getEquipment(id)?.name),...(event.rewards.decorationIds || []).map(id=>getDecoration(id)?.name)].filter(Boolean);
-  return <div className="event-overlay growth-event-overlay"><div className="event-scene"><div className="event-banner"><span>共同成長 {event.routeStage}/5</span><h2>{event.title}</h2></div><Portrait character={character}/><div className="event-dialogue"><b>{character.name}</b><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="event-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}<button onClick={onNext}>{finalPage?"完了":"次へ"} →</button></div><div className="page-dots">{event.dialogue.map((_,i)=><i className={i===page?"active":""} key={i}/>)}</div></div></div>;
+  const [artFailed,setArtFailed]=useState(false);
+  const rewardNames=[...(event.routeStage===1?["仕入れ効率アップ"]:[]),...(event.rewards.ingredientIds || []).map(id=>getIngredient(id)?.name),...(event.rewards.recipeIds || []).map(id=>getRecipe(id)?.name),...(event.rewards.equipmentIds || []).map(id=>getEquipment(id)?.name)].filter(Boolean);
+  return <div className="event-overlay growth-event-overlay"><div className="event-scene story-player growth-story-scene" role="dialog" aria-label={`${event.title}のイベント`}>
+    <div className="story-stage is-speaking" data-character={character.id}>
+      {character.image&&!artFailed
+        ?<img className="story-standing-art" src={character.image} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
+        :<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
+    </div>
+    <div className="event-dialogue growth-story-dialogue"><b>{character.name}</b><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="event-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}<button onClick={onNext}>{finalPage?"完了":"次へ"} →</button></div>
+    <div className="page-dots">{event.dialogue.map((_,i)=><i className={i===page?"active":""} key={i}/>)}</div>
+  </div></div>;
 }
 
 function DevMenu({selected,onSelect,onClose,onSpawn,onRefresh}:{selected:string;onSelect:(id:string)=>void;onClose:()=>void;onSpawn:()=>void;onRefresh:()=>void}) {
   const {dispatch}=useGame();
   const reset=()=>{if(window.confirm("セーブデータを初期化します。最初からやり直しますか？")){window.localStorage.removeItem(GAME_CONFIG.saveKey);dispatch({type:"RESET"});onClose();}};
-  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>贈物ショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button></div><label>好感度を上げる人物<select value={selected} onChange={e=>onSelect(e.target.value)}>{characters.map(c=><option value={c.id} key={c.id}>{c.name}（{c.occupation}）</option>)}</select></label><button className="dev-affection" onClick={()=>dispatch({type:"DEV_AFFECTION",characterId:selected})}>好感度 +100・物語条件を解放</button><button className="danger-button" onClick={reset}>セーブデータ初期化</button></div></div>;
+  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button></div><label>好感度を上げる人物<select value={selected} onChange={e=>onSelect(e.target.value)}>{characters.map(c=><option value={c.id} key={c.id}>{c.name}（{c.occupation}）</option>)}</select></label><button className="dev-affection" onClick={()=>dispatch({type:"DEV_AFFECTION",characterId:selected})}>好感度 +1,000・物語条件を解放</button><button className="danger-button" onClick={reset}>セーブデータ初期化</button></div></div>;
 }

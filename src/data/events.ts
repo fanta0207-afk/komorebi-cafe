@@ -25,7 +25,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "袋の裏のメモ",
     "dialogue": [
       {
@@ -49,7 +49,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "雨宿り、一杯分",
     "dialogue": [
       {
@@ -77,7 +77,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "ふたつのカップ",
     "dialogue": [
       {
@@ -147,7 +147,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "君の好みを覚えた",
     "dialogue": [
       {
@@ -172,7 +172,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "守る味、作る味",
     "dialogue": [
       {
@@ -216,7 +216,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "店を出た朝",
     "dialogue": [
       {
@@ -240,7 +240,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "冷める前に",
     "dialogue": [
       {
@@ -269,7 +269,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "ren",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "明日の一杯",
     "dialogue": [
       {
@@ -325,7 +325,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "子牛の歩幅",
     "dialogue": [
       {
@@ -349,7 +349,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "草の上の昼休み",
     "dialogue": [
       {
@@ -377,7 +377,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "いい人の予定表",
     "dialogue": [
       {
@@ -455,7 +455,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "君の隣は眠くなる",
     "dialogue": [
       {
@@ -479,7 +479,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "大丈夫じゃない日",
     "dialogue": [
       {
@@ -523,7 +523,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "何もしない約束",
     "dialogue": [
       {
@@ -547,7 +547,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "帰り道を、もう少し",
     "dialogue": [
       {
@@ -576,7 +576,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sota",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "おやすみを分け合う",
     "dialogue": [
       {
@@ -592,10 +592,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       "recipeIds": [
         "doubleMilkPudding"
       ],
-      "decorationIds": [
-        "milkFlowerVase"
-      ],
-      "note": "二層の濃厚ミルクプリン・ミルク瓶の花器を解放しました"
+      "note": "二層の濃厚ミルクプリンを解放しました"
     },
     "friendshipTitle": "牧場からの新作",
     "friendshipDialogue": [
@@ -632,7 +629,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "曲がった野菜の作戦会議",
     "dialogue": [
       {
@@ -660,7 +657,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "収穫勝負",
     "dialogue": [
       {
@@ -684,7 +681,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "友達なら、平気？",
     "dialogue": [
       {
@@ -748,7 +745,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "いつもの呼び名が違う",
     "dialogue": [
       {
@@ -772,7 +769,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "冗談で終わらせない",
     "dialogue": [
       {
@@ -812,7 +809,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "デートの練習、おしまい",
     "dialogue": [
       {
@@ -839,7 +836,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "笑わない告白",
     "dialogue": [
       {
@@ -868,7 +865,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "aki",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "次の季節の約束",
     "dialogue": [
       {
@@ -936,7 +933,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "二度目の試食",
     "dialogue": [
       {
@@ -960,7 +957,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "初めての合格",
     "dialogue": [
       {
@@ -990,7 +987,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "紙袋の秘密",
     "dialogue": [
       {
@@ -1065,7 +1062,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "あなたの席だけ",
     "dialogue": [
       {
@@ -1089,7 +1086,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "ひびの入った自信",
     "dialogue": [
       {
@@ -1133,7 +1130,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "あなたに教わる午後",
     "dialogue": [
       {
@@ -1161,7 +1158,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "用意していない言葉",
     "dialogue": [
       {
@@ -1190,7 +1187,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "itsuki",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "ふたり分の余白",
     "dialogue": [
       {
@@ -1210,10 +1207,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       "recipeIds": [
         "earlGreyCake"
       ],
-      "decorationIds": [
-        "pairedDessertPlates"
-      ],
-      "note": "共同開発のアールグレイケーキ・ペアのデザート皿を解放しました"
+      "note": "共同開発のアールグレイケーキを解放しました"
     },
     "friendshipTitle": "店に似合うケーキ",
     "friendshipDialogue": [
@@ -1254,7 +1248,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "売れ残りの相談",
     "dialogue": [
       {
@@ -1278,7 +1272,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "閉店後の試作会",
     "dialogue": [
       {
@@ -1305,7 +1299,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "来ない朝",
     "dialogue": [
       {
@@ -1380,7 +1374,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "いつもの席",
     "dialogue": [
       {
@@ -1408,7 +1402,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "任せとけ、の続き",
     "dialogue": [
       {
@@ -1452,7 +1446,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "パンを持たない休日",
     "dialogue": [
       {
@@ -1476,7 +1470,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "帰りたくない理由",
     "dialogue": [
       {
@@ -1505,7 +1499,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "haru",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "同じ朝を選ぶ",
     "dialogue": [
       {
@@ -1560,10 +1554,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       }
     ],
     "reward": {
-      "decorationIds": [
-        "tableGreen"
-      ],
-      "note": "ミントの仕入れ・小さな卓上グリーンを解放しました"
+      "note": "静との新しい物語を読み終えました"
     }
   },
   {
@@ -1571,7 +1562,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "葉っぱの近況報告",
     "dialogue": [
       {
@@ -1595,7 +1586,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "雨の日の温室",
     "dialogue": [
       {
@@ -1620,7 +1611,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "君の店に似合う色",
     "dialogue": [
       {
@@ -1633,10 +1624,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       }
     ],
     "reward": {
-      "decorationIds": [
-        "seasonalVase"
-      ],
-      "note": "季節の一輪挿し装飾を解放しました"
+      "note": "静との新しい物語を読み終えました"
     },
     "choices": [
       {
@@ -1690,7 +1678,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "咲いたら、知らせて",
     "dialogue": [
       {
@@ -1703,10 +1691,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       }
     ],
     "reward": {
-      "decorationIds": [
-        "herbShelf"
-      ],
-      "note": "花とハーブのカフェ棚を解放しました"
+      "note": "静との新しい物語を読み終えました"
     }
   },
   {
@@ -1714,7 +1699,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "変えられなかった温室",
     "dialogue": [
       {
@@ -1758,7 +1743,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "新しい鉢の置き場所",
     "dialogue": [
       {
@@ -1771,11 +1756,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       }
     ],
     "reward": {
-      "decorationIds": [
-        "greenhouseWindow",
-        "herbTeapot"
-      ],
-      "note": "温室風の窓辺装飾・ハーブティーポットを解放しました"
+      "note": "静との新しい物語を読み終えました"
     }
   },
   {
@@ -1783,7 +1764,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "枯れないものを探すより",
     "dialogue": [
       {
@@ -1812,7 +1793,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "nagisa",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "次の春の予約",
     "dialogue": [
       {
@@ -1828,10 +1809,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       "recipeIds": [
         "promiseTea"
       ],
-      "decorationIds": [
-        "flowerHerbWindow"
-      ],
-      "note": "二人で名づけるブレンドティー・花とハーブの窓辺セットを解放しました"
+      "note": "二人で名づけるブレンドティーを解放しました"
     },
     "friendshipTitle": "窓辺に育つ時間",
     "friendshipDialogue": [
@@ -1862,7 +1840,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 1,
     "toStage": 2,
-    "requiredAffection": 20,
+    "requiredAffection": 10,
     "title": "無言の温度計",
     "dialogue": [
       { "speaker": "narrator", "text": "届いたアイスの箱に、保存温度と食べ頃を記したメモが入っていた。感謝を伝えると、冴は視線を逸らす。" },
@@ -1875,7 +1853,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 2,
     "toStage": 3,
-    "requiredAffection": 45,
+    "requiredAffection": 30,
     "title": "半解凍のベリー",
     "dialogue": [
       { "speaker": "narrator", "text": "冴は溶け方まで計算したベリーアイスを差し出す。あなたが急がず味わうと、マフラーの奥で口元がわずかに緩んだ。" },
@@ -1888,7 +1866,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 3,
     "toStage": 4,
-    "requiredAffection": 75,
+    "requiredAffection": 65,
     "title": "温かい一杯の距離",
     "dialogue": [
       { "speaker": "narrator", "text": "風邪気味の冴に、あなたは温かいコーヒーを渡す。冴は受け取らず帰そうとするが、打ち合わせのために席へ戻った。" },
@@ -1917,7 +1895,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 5,
     "toStage": 6,
-    "requiredAffection": 150,
+    "requiredAffection": 170,
     "title": "日だまりの席",
     "dialogue": [
       { "speaker": "narrator", "text": "冴は閉店前のカフェを訪れ、店の奥の日だまりに座る。厚着を一枚脱ぎ、何もせず同じ時間を過ごした。" },
@@ -1930,7 +1908,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 6,
     "toStage": 7,
-    "requiredAffection": 195,
+    "requiredAffection": 245,
     "title": "閉じた扉の向こう",
     "dialogue": [
       { "speaker": "narrator", "text": "納品のミスを一人で抱えた冴は、倉庫にこもってしまう。あなたは扉の外から、彼が話せるまで待った。" },
@@ -1946,7 +1924,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 7,
     "toStage": 8,
-    "requiredAffection": 245,
+    "requiredAffection": 335,
     "title": "初めての外出",
     "dialogue": [
       { "speaker": "narrator", "text": "冴が休日にカフェへ来て、人の少ない湖へ誘う。マフラーを少し下げ、倉庫の外で並んで食べるアイスに、小さく笑った。" },
@@ -1959,7 +1937,7 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 8,
     "toStage": 9,
-    "requiredAffection": 300,
+    "requiredAffection": 450,
     "title": "溶けた言葉",
     "dialogue": [
       { "speaker": "narrator", "text": "冴はカフェの外で待ち、帰り道を一緒に歩く。誰かを求めることが怖かったと明かし、あなたにだけは隣にいてほしいと告げる。" },
@@ -1976,13 +1954,13 @@ export const relationshipEvents: RelationshipEvent[] = [
     "characterId": "sae",
     "fromStage": 9,
     "toStage": 10,
-    "requiredAffection": 360,
+    "requiredAffection": 600,
     "title": "冬の先の約束",
     "dialogue": [
       { "speaker": "narrator", "text": "冴の特製アイスに、あなたが温かいコーヒーを注ぐ。相反する温度が一つの味になり、二人は来年の冬も同じ席で食べる約束をする。" },
       { "speaker": "character", "text": "溶ける前に食べろ。……来年も、俺が作る" }
     ],
-    "reward": { "ingredientIds": ["saeIce"], "recipeIds": ["thawingAffogato"], "decorationIds": ["iceMenuBoard"], "note": "冴の特製アイス・ほどける心のアフォガートを解放しました" },
+    "reward": { "ingredientIds": ["saeIce"], "recipeIds": ["thawingAffogato"], "note": "冴の特製アイス・ほどける心のアフォガートを解放しました" },
     "friendshipTitle": "二人の温度レシピ",
     "friendshipDialogue": [
       { "speaker": "narrator", "text": "冴の特製アイスとカフェのコーヒーを合わせ、二人の定番メニューを完成させた。" },

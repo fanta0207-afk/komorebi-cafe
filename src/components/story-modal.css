@@ -74,11 +74,14 @@
   opacity:.88;
   transition:opacity .2s ease;
 }
-.story-player .story-stage[data-character="ren"] { --story-height:72%; --story-top:10%; --story-left:-14px; }
-.story-player .story-stage[data-character="sota"] { --story-height:75%; --story-top:5%; --story-left:16px; }
-.story-player .story-stage[data-character="itsuki"] { --story-height:80%; --story-top:8%; --story-left:-12px; }
-.story-player .story-stage[data-character="haru"] { --story-height:78%; --story-top:4%; --story-left:22px; }
-.story-player .story-stage[data-character="sae"] { --story-height:90%; --story-top:5%; }
+/* 三ツ葉葵（デフォルト100%）を基準に、人物の余白込みで頭身をそろえる。 */
+.story-player .story-stage[data-character="ren"] { --story-height:97%; --story-top:1%; }
+.story-player .story-stage[data-character="sota"] { --story-height:90%; --story-top:5%; }
+.story-player .story-stage[data-character="itsuki"] { --story-height:91%; --story-top:8%; }
+.story-player .story-stage[data-character="haru"] { --story-height:95%; --story-top:1%; }
+.story-player .story-stage[data-character="nagisa"] { --story-height:99%; --story-top:0%; }
+.story-player .story-stage[data-character="sae"] { --story-height:90%; --story-top:10%; }
+.story-player .story-stage[data-character="cacao"] { --story-height:91%; --story-top:5%; }
 .story-player .is-speaking .story-standing-art { opacity:1; }
 .story-player .story-art-fallback { align-self:center; text-align:center; padding:20px; }
 .story-player .story-art-fallback span { display:block; font-size:14px; color:#e2ceb0; }

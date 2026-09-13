@@ -71,6 +71,7 @@ button { font:inherit; color:inherit; }
 .gift-card h3{font-size:13px;margin:0 0 12px}
 .gift-card-actions{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px}
 .gift-card-actions b{font-size:12px;color:#8a5f24}
+.gift-card.gift-sold-out{filter:saturate(.55);background:#eee9df}.gift-card.gift-sold-out::after{content:"SOLD OUT";position:absolute;inset:37% -12% auto;transform:rotate(-8deg);border-block:2px solid #9a665e;background:#fff9;color:#90554e;text-align:center;font-size:13px;font-weight:900;letter-spacing:.12em;pointer-events:none}
 .people-list{display:grid;gap:9px}
 .person-row{width:100%;display:grid;grid-template-columns:54px 1fr auto 10px;align-items:center;gap:9px;text-align:left;border:1px solid #d9c5ae;border-radius:12px;padding:8px;background:#fffdf8;box-shadow:0 4px 0 #ecdecc;cursor:pointer}
 .person-row>div:nth-child(2)>span,.person-row>div:nth-child(2)>strong{display:block}
@@ -101,7 +102,9 @@ button { font:inherit; color:inherit; }
 .inventory-list button small{font-size:12px;color:#806f61}
 .inventory-list button>b{font-size:12px;color:var(--rarity)}
 .recipe-list{display:grid;gap:9px}
+.recipe-catalog-summary{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px;margin:0 0 12px;padding:13px 14px;border:1px solid #d2b88d;border-radius:13px;background:linear-gradient(135deg,#fff8e7,#f0e1c2);box-shadow:0 3px 0 #e2d0b2}.recipe-catalog-summary>div:first-child span,.recipe-catalog-summary>div:first-child strong{display:block}.recipe-catalog-summary>div:first-child span{font-size:12px;color:#806b4d}.recipe-catalog-summary>div:first-child strong{margin-top:2px;font:800 20px Georgia,"Yu Mincho",serif;color:#73502f}.catalog-rate{display:grid;gap:5px}.catalog-rate b{text-align:right;font-size:13px;color:#9a6330}.catalog-rate progress{width:100%;height:9px;accent-color:#b57b3d}
 .recipe-card{display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:10px;border:1px solid #d9c5ab;background:#fffdf8;border-radius:11px;padding:10px}
+.recipe-info{min-width:0}.recipe-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.recipe-title-row h3{min-width:0}.recipe-level{flex:0 0 auto;padding:3px 7px;border-radius:999px;background:#f0dfbd;color:#8a5c27;font-size:12px;font-weight:800}.recipe-mastery{margin-top:8px;padding-top:7px;border-top:1px dashed #ddccb5}.recipe-mastery>div{display:flex;justify-content:space-between;gap:8px}.recipe-mastery span,.recipe-mastery b,.recipe-mastery small{font-size:12px;line-height:1.45}.recipe-mastery b{color:#a45f3c}.recipe-mastery progress{display:block;width:100%;height:7px;margin-top:5px;accent-color:#b77743}.recipe-mastery small{display:block;margin-top:2px;color:#8a7766}.recipe-mastery>strong{display:block;margin-top:4px;color:#a16a32;font:800 12px Georgia,serif;letter-spacing:.1em}
 .recipe-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:9px;background:#f2e2c9;font-size:29px}
 .recipe-card small{font:700 7px Georgia;color:var(--green);letter-spacing:.12em}
 .recipe-card h3{font-size:13px;margin:3px 0}
@@ -114,6 +117,7 @@ button { font:inherit; color:inherit; }
 
 /* モーダル・イベント・一日結果 */
 .modal-backdrop,.event-overlay{position:absolute;z-index:70;inset:0;background:#3c2d28a8;display:grid;place-items:center;padding:18px;backdrop-filter:blur(3px);animation:fade-in .2s ease}.modal-card,.dev-panel{width:100%;max-height:88%;overflow-y:auto;background:var(--cream);border:2px solid #76594a;border-radius:16px;padding:22px 18px;box-shadow:0 14px 0 #4e382d55;text-align:center}.modal-card h2{font:800 23px Georgia,"Yu Mincho",serif;margin:5px}.offline-card .sun-icon{display:grid;place-items:center;margin:0 auto 10px;width:60px;height:60px;border-radius:50%;background:#f8df99;font-size:31px}.offline-card>strong{display:block;font:800 26px Georgia;color:#a56c24;margin:15px}.offline-card>p{font-size:11px;line-height:1.7;color:#806d61}.gift-picker{text-align:left}.gift-picker h2{margin-left:0}.empty-state{text-align:center;padding:25px 12px}.empty-state>span{display:block;font-size:36px}.empty-state strong{display:block;margin:9px}.empty-state p{font-size:10px;color:#887468}.event-overlay{background:linear-gradient(#4c3938d9,#201819e8)}.event-scene{position:relative;width:100%;height:92%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:radial-gradient(circle at 50% 30%,#f0d7b6,#bd8879 55%,#795d53);border:2px solid #f3ddc2;border-radius:16px;overflow:hidden}.event-scene::before{content:"✽  ·  ✽  ·  ✽";position:absolute;top:95px;color:#fff7;letter-spacing:.4em}.event-banner{position:absolute;top:26px;left:20px;right:20px;text-align:center;color:white}.event-banner span{font:700 8px Georgia;letter-spacing:.18em}.event-banner h2{font:800 22px Georgia,"Yu Mincho",serif;margin:5px}.event-scene>.portrait{position:absolute;bottom:125px;width:180px;height:260px;background:transparent;border:0;overflow:visible}.event-scene>.portrait>span{font-size:170px;color:#4e5f57}.event-dialogue{position:relative;z-index:3;width:calc(100% - 24px);min-height:126px;margin-bottom:18px;background:#fffaf1f2;border:2px solid #705348;border-radius:13px;padding:14px 15px;box-shadow:0 7px 0 #38272042}.event-dialogue b{font-size:11px;color:#bd625e}.event-dialogue p{font:500 13px/1.8 Georgia,"Yu Mincho",serif;margin:5px 0 8px}.event-dialogue button{float:right;border:0;background:transparent;font-size:10px;font-weight:800;color:#9b5a54;padding:8px}.page-dots{position:absolute;bottom:5px;z-index:5}.page-dots i{display:inline-block;width:5px;height:5px;border-radius:50%;background:#e9cfc6;margin:3px}.page-dots i.active{background:white}.result-screen{text-align:center;padding:50px 0 30px}.result-flower{display:grid;place-items:center;width:66px;height:66px;border-radius:50%;background:#e7efe0;color:#6d846d;font-size:34px;margin:0 auto 13px}.result-screen h1{font:800 29px/1.35 Georgia,"Yu Mincho",serif;margin:7px}.receipt{margin:22px 0 13px;border:1px solid #d3bda0;background:#fffdf7;border-radius:12px;padding:5px 14px;box-shadow:0 5px 0 #eadcc8}.receipt>div{display:flex;justify-content:space-between;align-items:center;padding:13px 2px;border-bottom:1px dashed #dbc8b0}.receipt>div:last-child{border:0}.receipt span{font-size:10px;color:#8c7768}.receipt strong{font-size:12px}.receipt>div:first-child strong{font:800 20px Georgia;color:#a76d27}.news-box{text-align:left;background:#f4ead8;border-radius:10px;padding:13px;margin-bottom:17px}.news-box b{font-size:10px;color:#a55e54}.news-box p{font-size:10px;margin:7px 0 0;line-height:1.5}.dev-panel{text-align:left}.dev-head{display:flex;justify-content:space-between;align-items:start}.dev-head h2{font:800 23px Georgia;margin:4px 0 12px}.dev-head button{border:0;background:transparent;font-size:25px}.dev-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.dev-grid button,.dev-affection{min-height:42px;border:1px solid #cbb59d;background:#fffdf8;border-radius:8px;font-size:10px;font-weight:700}.dev-panel label{display:block;font-size:10px;font-weight:700;margin:16px 0 7px}.dev-panel select{width:100%;display:block;margin-top:5px;height:40px;border:1px solid #cbb59d;border-radius:7px;background:white;padding:0 8px}.dev-affection{width:100%}.danger-button{width:100%;min-height:40px;margin-top:17px;border:1px solid #bc6c66;color:#a44f4b;background:#fff5f3;border-radius:8px;font-size:10px;font-weight:800}.dev-panel>p{font-size:8px;color:#907d6c;text-align:center}
+.dev-reset-confirm{margin-top:17px;padding:12px;border:1px solid #d6a09b;border-radius:9px;background:#fff5f3;text-align:center}.dev-reset-confirm p{margin:0 0 10px;font-size:10px;line-height:1.6;color:#814d49}.dev-reset-confirm>div{display:grid;grid-template-columns:1fr 1fr;gap:7px}.dev-reset-confirm button{min-height:40px;border:1px solid #cbb59d;border-radius:8px;background:#fffdf8;font-size:10px;font-weight:800}.dev-reset-confirm .danger-button{margin:0;border-color:#bc6c66;color:#fff;background:#a95a55}
 .gift-backdrop{position:fixed;z-index:100;inset:0 max(0px,calc((100vw - 430px)/2));padding:calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom))}.gift-backdrop .gift-picker{width:min(100%,394px);max-height:min(82dvh,620px);margin:auto}
 
 @media (max-width:380px){.slot-3{display:none}.slot-2{right:28px;left:auto}.supplier-hero .portrait{flex-basis:112px;width:112px}.gift-card p{height:38px}}
@@ -180,9 +184,9 @@ body { background:#241c16; }
 .table-set>img { inset:auto; left:0; top:-38.5%; width:100%; height:auto; object-fit:contain; }
 .photo-cafe .scene-light { opacity:.13; }
 .photo-cafe .scene-vignette { box-shadow:none; }
-.photo-cafe .scene-guest { width:12%; height:17cqw; }
-.photo-cafe .scene-manager { width:11%; height:16cqw; }
-.photo-cafe .scene-staff { width:10%; height:15cqw; }
+.photo-cafe .scene-guest { width:13%; height:22.35cqw; }
+.photo-cafe .scene-manager,
+.photo-cafe .scene-staff { width:16%; height:27.5cqw; }
 .photo-cafe .manager-name { font-size:12px; bottom:-15px; padding:1px 5px; background:#513a26d9; border-color:#c3a875; }
 .photo-cafe .manager-name small,.photo-cafe .staff-name,.photo-cafe .staff-talk { display:none; }
 .photo-cafe .equipment-layout .scene-equipment { width:10%; height:8cqw; }
@@ -193,7 +197,7 @@ body { background:#241c16; }
 .photo-cafe .equipment-uninstalled .equipment-state-label { font-size:10px; }
 .photo-cafe .equipment-done { width:17px; height:17px; font-size:12px; }
 .photo-cafe .equipment-uninstalled { opacity:.65; }
-.photo-cafe .manager-bubble { transform:translate(-50%,calc(-100% - 17cqw)); padding:4px 7px; font-size:12px; }
+.photo-cafe .manager-bubble { transform:translate(-50%,calc(-100% - 29cqw)); padding:4px 7px; font-size:12px; }
 .photo-cafe .manager-bubble progress { display:none; }
 .photo-cafe .scene-order { min-width:66px; min-height:54px; padding:6px 10px; border-radius:13px; background:#fff4daf2; box-shadow:0 3px 8px #4e311733; }
 .photo-cafe .bubble-ready { background:#eff6d8; }
@@ -222,7 +226,6 @@ body { background:#241c16; }
 .scene-kitchen-entry span { margin-left:5px; color:#e6c795; }
 
 /* Original customer artwork: three transparent portraits, selected without editing the PNG. */
-.photo-cafe .scene-guest { width:13%; height:22.35cqw; }
 .guest-motion { position:relative; }
 .customer-facing,.customer-sway { width:100%; height:100%; transform-origin:50% 92%; }
 .customer-facing { transform:scaleX(var(--guest-facing,1)); }
@@ -263,7 +266,10 @@ body { background:#241c16; }
 .manager-bubble strong { display:block; max-width:180px; white-space:normal; font-size:13px; }
 .procurement-guide { font-size:14px; line-height:1.8; color:#79654d; }
 .supply-item { padding:15px 0; border-bottom:1px solid #ddceb5; }
+.supply-item-highlight { margin:6px -10px; padding:15px 10px; border-radius:12px; outline:3px solid #d39b43; background:#fff6d9; box-shadow:0 0 0 6px #f4cf7759,0 8px 24px #a86f2d2e; }
 .supply-item-heading { display:flex; align-items:center; gap:12px; }
+.supply-item-heading>div { flex:1; min-width:0; }
+.supply-target-badge { margin-left:auto; flex-shrink:0; border-radius:999px; background:#d7902f; color:#fffaf0; padding:5px 8px; font-size:11px; }
 .supply-item-heading .item-icon { font-size:30px; }
 .supply-item h3 { margin:0 0 5px; font-size:16px; }
 .supply-item small,.supply-item em { color:#817157; font-size:12px; }
@@ -273,11 +279,13 @@ body { background:#241c16; }
 .supply-quantity>span { min-width:35px; text-align:center; font-size:16px; }
 .supply-quantity small { display:block; font-size:10px; }
 .supply-order-button { flex:1; min-height:44px; border:1px solid #49603b; border-radius:8px; background:#526749; color:#fff3d8; font-size:13px; padding:8px; }
+.supply-order-highlight { animation:supply-button-glow 1.15s ease-in-out infinite; }
 .supply-order-button b { display:block; margin-top:3px; }
 .supply-quantity button:disabled,.supply-order-button:disabled { opacity:.45; }
 .supply-delivery { display:flex; justify-content:space-between; gap:6px; border-radius:7px; background:#f0e4cc; padding:9px 11px; margin:9px 0 0; font-size:12px; }
 .supply-delivery b { font-variant-numeric:tabular-nums; color:#836331; }
-.cafe-delivery-status { pointer-events:auto; border:1px solid #d2b981; border-radius:8px; background:#fff0d6eb; color:#634628; min-height:32px; padding:4px 10px; font-size:12px; font-variant-numeric:tabular-nums; }
+.cafe-delivery-list { display:grid; justify-items:start; gap:4px; pointer-events:auto; }
+.cafe-delivery-status { width:max-content; max-width:100%; pointer-events:auto; border:1px solid #d2b981; border-radius:8px; background:#fff0d6eb; color:#634628; min-height:28px; padding:3px 9px; font-size:12px; font-variant-numeric:tabular-nums; text-align:left; }
 .bubble-request { font-size:10px; color:#97702c; margin-top:3px; }
 .notebook-order .notebook-action { grid-column:3; grid-row:1; }
 .decline-order { grid-column:2 / 4; justify-self:start; border:0; background:transparent; color:#8b765e; text-decoration:underline; padding:8px 0; min-height:36px; font-size:12px; }
@@ -300,6 +308,9 @@ body { background:#241c16; }
 .order-conditions li>span { flex:0 0 14px; font-weight:700; }
 .order-conditions li>div { min-width:0; overflow-wrap:anywhere; }
 .order-conditions small { display:block; font-size:11px; font-weight:400; color:#776a56; }
+.missing-supply-link { display:block; margin-top:5px; border:0; border-radius:7px; background:#68784c; color:#fffbed; min-height:34px; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer; }
+@keyframes supply-button-glow { 0%,100% { box-shadow:0 0 0 0 #d99a42a8; transform:scale(1); } 50% { box-shadow:0 0 0 7px #d99a4200; transform:scale(1.025); } }
+@media(prefers-reduced-motion:reduce) { .supply-order-highlight { animation:none; } }
 
 .cafe-hud-right { display:flex; gap:8px; }
 .cafe-inventory { position:fixed; inset:0; margin:auto auto 0; max-height:calc(100dvh - 24px - env(safe-area-inset-top)); }
@@ -318,12 +329,15 @@ body { background:#241c16; }
 .inventory-incoming { grid-column:1 / -1; padding:7px 9px; border-radius:6px; background:#ece3cd; color:#776039; font-size:12px; line-height:1.6; font-variant-numeric:tabular-nums; }
 .portrait-face { --face-scale:2.35; --face-y:0%; --face-shift-x:0px; --face-shift-y:0px; background:#f3eadc; }
 .portrait-face img { object-position:50% var(--face-y); transform:translate(var(--face-shift-x),var(--face-shift-y)) scale(var(--face-scale)); mix-blend-mode:multiply; }
-.portrait-face[data-character="ren"] { --face-scale:2.05; --face-shift-x:-14%; }
-.portrait-face[data-character="sota"] { --face-scale:1.7; --face-shift-y:-4%; }
-.portrait-face[data-character="itsuki"] { --face-scale:2.2; --face-shift-x:-7%; --face-shift-y:4%; }
-.portrait-face[data-character="haru"] { --face-scale:1.65; --face-shift-x:12.5%; }
-.portrait-face[data-character="nagisa"] { --face-scale:2.75; --face-shift-y:4%; }
-.portrait-face[data-character="sae"] { --face-scale:2.3; --face-shift-y:4%; }
+/* 三ツ葉葵を基準に、顔の大きさと中心位置をそろえる。 */
+.portrait-face[data-character="aki"] { --face-scale:2.35; }
+.portrait-face[data-character="ren"] { --face-scale:2.35; }
+.portrait-face[data-character="sota"] { --face-scale:2.15; --face-shift-y:5%; }
+.portrait-face[data-character="itsuki"] { --face-scale:2.45; --face-shift-y:18%; }
+.portrait-face[data-character="haru"] { --face-scale:2.35; }
+.portrait-face[data-character="nagisa"] { --face-scale:2.35; }
+.portrait-face[data-character="sae"] { --face-scale:2.05; --face-shift-y:10%; }
+.portrait-face[data-character="cacao"] { --face-scale:2.15; --face-shift-y:2%; }
 .staff-heading>.portrait-face { flex:0 0 58px; width:58px; height:58px; border-radius:50%; }
 .profile-card>.person-summary>.portrait-face,
 .supplier-hero>.portrait-face { flex:0 0 96px; width:96px; height:96px; border-radius:50%; margin:0; align-self:center; }

@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useGame } from "../game/GameContext";
-import { activeMissionChapter, missionChapters, sortedMissions, missionRank, type MissionDestination } from "../game/missions";
+import { activeMissionChapter, activeSideMissions, missionChapters, sortedMissions, missionRank, type MissionDestination } from "../game/missions";
 
-const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",coffee:"蓮のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",gifts:"ギフトのお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
+const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",coffee:"蓮のお店へ",bakery:"太陽のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",chocolaterie:"カカオのお店へ",gifts:"ギフトのお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
 
 export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void}) {
   const {state}=useGame();
   const [open,setOpen]=useState(false);
-  const done=sortedMissions(state).some(m=>missionRank(state,m)===0);
+  const done=sortedMissions(state).some(m=>missionRank(state,m)===0)||activeSideMissions(state).some(m=>m.value(state)>=m.target);
   return <>
     <button type="button" className="mission-launcher" onClick={()=>setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={done?"ミッションを開く・受け取れる報酬があります":"ミッションを開く"}>
       <span aria-hidden="true">☑</span> ミッション
@@ -29,6 +29,7 @@ function MissionNotebook({onClose,onGo}:{onClose:()=>void;onGo:(destination:Miss
   const chapter=activeMissionChapter(state);
   const chapterIndex=chapter?missionChapters.findIndex(item=>item.id===chapter.id):-1;
   const ready=list.filter(m=>missionRank(state,m)===0).length;
+  const side=activeSideMissions(state);
   useEffect(()=>{const dialog=ref.current;dialog?.showModal();return ()=>dialog?.close();},[]);
   useEffect(()=>{if(celebration)celebrationButtonRef.current?.focus();},[celebration]);
   const claim=(missionId:string)=>{
@@ -57,7 +58,7 @@ function MissionNotebook({onClose,onGo}:{onClose:()=>void;onGo:(destination:Miss
       return <li key={mission.id} data-mission-id={mission.id} data-mission-status={rank} className={`${done&&!claimed?"mission-active":""} ${claimed?"mission-claimed":""}`}>
         <article>
           <h3>{mission.title}</h3>
-          {!done&&<p className="mission-hint">{mission.hint}</p>}
+          {!done&&mission.hint&&<p className="mission-hint"><strong>達成条件</strong><span>{mission.hint}</span></p>}
           {!done&&mission.target>1&&<progress max={mission.target} value={value} aria-label={mission.title}/>}
           <div className="mission-footer">
           <div className="mission-status"><span>{claimed?"✓ 受取済み":done?"✓ 達成":`${value} / ${mission.target}`}</span><b>+{mission.reward} コイン</b></div>
@@ -66,6 +67,7 @@ function MissionNotebook({onClose,onGo}:{onClose:()=>void;onGo:(destination:Miss
         </article>
       </li>;
     })}</ol></>:<div className="mission-complete"><span>✓</span><h3>すべてのミッション達成</h3><p>全員との物語と、全自動のカフェが完成しました。</p></div>}
+    {side.length>0&&<section className="side-missions" aria-labelledby="side-mission-title"><header><div><small>ストーリー進行には影響しません</small><h3 id="side-mission-title">サブミッション</h3></div></header><ul>{side.map(mission=>{const value=Math.min(mission.target,mission.value(state)),done=value>=mission.target;return <li key={mission.id} className={done?"side-mission-ready":""}><div><b>{mission.title}</b><span>{value.toLocaleString()} / {mission.target.toLocaleString()}</span></div><progress max={mission.target} value={value}/><footer><strong>+{mission.reward} コイン</strong>{done&&<button className="mission-claim" onClick={()=>dispatch({type:"CLAIM_SIDE_MISSION",missionId:mission.id})}>受け取る</button>}</footer></li>})}</ul></section>}
     </div>
     </>}
   </dialog>;

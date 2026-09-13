@@ -8,6 +8,7 @@ export const suppliers: Supplier[] = [
   { id:"patisserie", name:"菓子店シュクレ", icon:"🍰", description:"甘い香りの洋菓子材料店", characterId:"itsuki" },
   { id:"herb", name:"草花店ミモザ", icon:"🌿", description:"花とハーブに囲まれた店", characterId:"nagisa" },
   { id:"freezer", name:"雪白冷凍倉庫", icon:"🧊", description:"アイスと冷凍果実が眠る静かな倉庫", characterId:"sae" },
+  { id:"chocolaterie", name:"ショコラトリー・ノワール", icon:"🍫", description:"カカオの香りと緊張感が満ちるチョコレート専門店", characterId:"cacao" },
 ];
 
 export const getSupplier = (id:string) => suppliers.find(item => item.id === id);

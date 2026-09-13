@@ -18,8 +18,9 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
   const [choiceId,setChoiceId]=useState<string|undefined>(readOnly?progress.eventChoices[event.id]:undefined);
   useEffect(()=>{const element=dialog.current;element?.showModal();return()=>element?.close();},[]);
   const character=getCharacter(event.characterId)!;
+  const storyImage=character.storyImage||character.image;
   const choosingRoute=event.toStage===9 && route==="undecided";
-  const friendship=route==="friendship" && event.toStage>=9;
+  const friendship=route==="friendship" && (event.toStage>=9 || event.kind==="staff");
   const title=friendship?event.friendshipTitle || event.title:event.title;
   const baseLines=friendship?event.friendshipDialogue || event.dialogue:event.dialogue;
   const choice=event.choices?.find(item=>item.id===choiceId);
@@ -37,12 +38,12 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
   return <dialog ref={dialog} className="story-modal story-player" aria-labelledby="story-title" onCancel={e=>{if(readOnly)onClose?.();else e.preventDefault();}}>
     {readOnly&&<button className="story-close-button" aria-label="思い出を閉じる" onClick={onClose}>×</button>}
     <header className="story-player-heading">
-      <div className="story-header"><span>{readOnly?"思い出を読み返す":"ふたりの物語"} · 好感度 {event.toStage}/10</span></div>
+      <div className="story-header"><span>{readOnly?"思い出を読み返す":"ふたりの物語"} · {event.kind==="staff"?"カフェを手伝う日":`好感度 ${event.toStage}/10`}</span></div>
       <h2 id="story-title">{choosingRoute?"これからのふたり":title}</h2>
     </header>
     <div className={`story-stage ${!choosingRoute&&line.speaker==="character"?"is-speaking":""}`} data-character={character.id}>
-      {character.image&&!artFailed
-        ?<img className="story-standing-art" src={character.image} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
+      {storyImage&&!artFailed
+        ?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
         :<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
     </div>
     <div className="story-dialogue-panel" ref={dialoguePanel}>

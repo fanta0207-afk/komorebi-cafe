@@ -4,24 +4,25 @@ import { getIngredient, ingredients } from "../data/ingredients";
 import { getRecipe, recipes } from "../data/recipes";
 import { baseEquipmentIds, initialEquipmentIds, equipment, getEquipment } from "../data/equipment";
 import { getGrowthEvent } from "../data/growthEvents";
-import { getRelationshipEvent, relationshipEvents } from "../data/events";
+import { getRelationshipEvent, getStaffStoryEvent, relationshipEvents } from "../data/events";
 import { getDateEvent } from "../data/dates";
 import { conditionForDay } from "../data/dailyConditions";
 import type { CharacterProgress, EventReward, GameState, GiftReaction, MissionPlace, Order, RelationshipRoute, StaffRole } from "../types/game";
-import { claimMission, emptyMissions, missions, milestoneMissions, restoreOngoing, updateMissions } from "./missions";
-import { startCooking, serveOrder, equipmentPrice, upgradePrice } from "./operations";
+import { claimMission, claimSideMission, emptyMissions, missions, milestoneMissions, restoreOngoing, updateMissions } from "./missions";
+import { startCooking, serveOrder, equipmentPrice, upgradePrice, normalizeCookingTimes } from "./operations";
 import { advanceGame } from "./simulation";
 import { nextTableUpgrade, tableCapacity, tableUpgradeUnlocked } from "./seating";
-import { orderSupplies, receiveSupplies, runAutoProcurement } from "./procurement";
-import { autoProcurementUnlocked } from "./automation";
+import { orderSupplies, receiveSupplies, requestStaffSupply, runAutoProcurement } from "./procurement";
+import { autoProcurementUnlocked, staffHirePrice, staffHireStage, staffRoleAvailable } from "./automation";
 import { stationOccupied } from "./kitchen";
 import { GAME_CONFIG, giftRequirementTargets, relationshipLabel } from "./config";
-import { availableEvent, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftAffectionAmount, giftReaction, relationshipRequirementTargets } from "./logic";
+import { availableEvent, availableStaffStory, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftAffectionAmount, giftReaction, relationshipRequirementTargets } from "./logic";
 
 export type Action =
   | {type:"BUY_TABLE"; expectedCount:number}
   | {type:"MISSION_VIEW"; place:MissionPlace}
   | {type:"CLAIM_MISSION"; missionId:string}
+  | {type:"CLAIM_SIDE_MISSION"; missionId:string}
   | {type:"HYDRATE"; state:GameState}
   | {type:"VISIT"; characterId:string}
   | {type:"BUY_INGREDIENT"; ingredientId:string; packs?:number; now?:number}
@@ -34,12 +35,14 @@ export type Action =
   | {type:"TICK"; deltaMs:number; now?:number}
   | {type:"REFRESH_SHOP"; items:string[]; costAction:boolean}
   | {type:"COMPLETE_EVENT"; eventId:string; route?:Exclude<RelationshipRoute,"undecided">; choiceId?:string}
+  | {type:"COMPLETE_STAFF_STORY"; eventId:string}
   | {type:"COMPLETE_GROWTH_EVENT"; eventId:string}
   | {type:"COMPLETE_DATE"; eventId:string}
   | {type:"BUY_EQUIPMENT"; equipmentId:string}
   | {type:"UPGRADE_EQUIPMENT"; stationId:string}
   | {type:"HIRE_STAFF"; characterId:string; role:StaffRole}
   | {type:"ASSIGN_STAFF"; characterId:string; role:StaffRole}
+  | {type:"REQUEST_STAFF_SUPPLY"; orderId:string; ingredientId:string; staffId:string; now?:number}
   | {type:"TOGGLE_AUTO_PROCUREMENT"; enabled:boolean}
   | {type:"CLAIM_OFFLINE"}
   | {type:"NEXT_DAY"}
@@ -47,11 +50,13 @@ export type Action =
   | {type:"DEV_COINS"}
   | {type:"DEV_AFFECTION"; characterId:string}
   | {type:"DEV_UNLOCK_ALL"}
+  | {type:"DEV_COMPLETE_DELIVERIES"}
+  | {type:"DEV_COMPLETE_COOKING"}
   | {type:"DEV_ACTIONS"}
   | {type:"RESET"};
 
 const emptyStats = () => ({ sales:0, orders:0, recipeSales:{} });
-const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSales:{},totalOrders:0,totalRevenue:0,automaticPacks:0,automatedOrders:0});
+const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSales:{},totalOrders:0,totalRevenue:0,giftPurchases:0,staffProcurementOrders:0,automaticPacks:0,automatedOrders:0});
 
 export function createInitialState():GameState {
   const condition=conditionForDay(1);
@@ -61,7 +66,7 @@ export function createInitialState():GameState {
     saveVersion:GAME_CONFIG.saveVersion, season:"春", day:1, currency:GAME_CONFIG.initialCurrency,
     stations:initialEquipmentIds.map(id=>({id:`${id}-1`,equipmentId:id,level:1})),staff:[],activeMs:0,spawnRemainingMs:1000,nextOrderNumber:1,
     deliveries:[], ingredients:{}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
-    giftShopItems:giftsForFirstDay(), giftShopRefreshAt:Date.now(), dailyTalkStatus:{}, dailyGiftStatus:{},
+    giftShopItems:giftsForFirstDay(), giftShopSoldOut:[], giftShopRefreshAt:Date.now(), dailyTalkStatus:{}, dailyGiftStatus:{},
     lastPlayedAt:Date.now(), dailyStats:emptyStats(), dayNews:[], orders:[], offlineOffer:0,
     maxActions:0, actionsRemaining:0,
     dailyWeatherId:condition.weatherId,dailyCustomerGroupId:condition.customerGroupId,dailyEventId:condition.dailyEventId,
@@ -131,9 +136,11 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
         claimed:[...new Set((saved.missions?.claimed||[]).filter(id=>missionIds.has(id)))],
         visited:(saved.missions?.visited||[]).filter(id=>["town","inventory","gifts","ren","recipes","equipment"].includes(id)),
         receivedPacks:saved.missions?.receivedPacks||{},
+        sideClaimed:(saved.missions?.sideClaimed||[]).filter(id=>id.startsWith("side-")),
       },
       characterProgress,
       giftShopItems:sortGiftIdsByRarity((saved.giftShopItems || fresh.giftShopItems).filter(id=>!!getGift(id)).slice(0,GAME_CONFIG.giftShopSize)),
+      giftShopSoldOut:(saved.giftShopSoldOut||[]).filter(id=>(saved.giftShopItems||fresh.giftShopItems).includes(id)&&!!getGift(id)),
       dailyStats:{ ...emptyStats(), ...(saved.dailyStats || {}) },
       lifetimeStats:{...emptyLifetimeStats(),...(saved.lifetimeStats || {}),recipeSales:saved.lifetimeStats?.recipeSales || {},ingredientPurchases:saved.lifetimeStats?.ingredientPurchases || {},tagSales:saved.lifetimeStats?.tagSales || {}},
       unlockedIngredients:saved.unlockedIngredients || [],
@@ -150,7 +157,14 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
         && Number.isFinite(item.orderedAt) && Number.isFinite(item.arrivesAt) && item.arrivesAt >= item.orderedAt)
         .map(item=>({...item,servingsPerPack:Number.isInteger(item.servingsPerPack)&&item.servingsPerPack>0?item.servingsPerPack:5})) : [],
       orders:savedOrders,
-      staff:(saved.staff||[]).map(person=>person.servingOrderId&&!keptOrderIds.has(person.servingOrderId)?{...person,servingOrderId:undefined,remainingMs:0}:person),
+      staff:(saved.staff||[]).slice(0,GAME_CONFIG.maxStaff).map(person=>{
+        const role:StaffRole=["cook","server","procurement","rest"].includes(person.role)?person.role:"rest";
+        const {returningFromSlot:savedReturnSlot,...base}=person;
+        const returningFromSlot=typeof savedReturnSlot==="number"&&Number.isInteger(savedReturnSlot)&&savedReturnSlot>=0&&savedReturnSlot<GAME_CONFIG.maxOrders?savedReturnSlot:undefined;
+        if(person.servingOrderId&&!keptOrderIds.has(person.servingOrderId))return {...base,role,servingOrderId:undefined,remainingMs:0};
+        if(person.servingOrderId)return {...base,role,remainingMs:Number.isFinite(person.remainingMs)?Math.max(0,person.remainingMs):0};
+        return returningFromSlot!==undefined?{...base,role,servingOrderId:undefined,returningFromSlot,remainingMs:Number.isFinite(person.remainingMs)?Math.max(0,person.remainingMs):0}:{...base,role,remainingMs:0};
+      }),
       lastPlayedAt:now,
       autoProcurementEnabled:!!saved.autoProcurementEnabled,
       offlineOffer:0, notice:undefined,
@@ -181,7 +195,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       // Paid purchases minus pending packs are evidence of already completed deliveries.
       migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
     }
-    return updateMissions(receiveSupplies(migrated, now));
+    return updateMissions(receiveSupplies(normalizeCookingTimes(migrated), now));
 }
 
 const notice = (type:NonNullable<GameState["notice"]>["type"], text:string) => ({ id:Date.now()+Math.random(), type, text });
@@ -194,6 +208,7 @@ export function reducer(state:GameState, action:Action):GameState {
 function reduceAction(state:GameState, action:Action):GameState {
   switch(action.type) {
     case "CLAIM_MISSION": return claimMission(state,action.missionId);
+    case "CLAIM_SIDE_MISSION": return claimSideMission(state,action.missionId);
     case "MISSION_VIEW": {
       if(!["town","inventory","gifts","ren","recipes","equipment"].includes(action.place)||state.missions.visited.includes(action.place))return state;
       return {...state,missions:{...state.missions,visited:[...state.missions.visited,action.place]}};
@@ -213,8 +228,11 @@ function reduceAction(state:GameState, action:Action):GameState {
     case "BUY_INGREDIENT": return orderSupplies(state, action.ingredientId, action.packs, action.now);
     case "BUY_GIFT": {
       const item=getGift(action.giftId);
-      if (!item || state.currency<item.price) return { ...state, notice:notice("info","コインが足りません") };
-      return { ...state, missions:{...state.missions,boughtBook:state.missions.boughtBook||item.id==="book"},currency:state.currency-item.price, inventory:{ ...state.inventory,[item.id]:(state.inventory[item.id]||0)+1 }, notice:notice("info",`${item.name}を購入しました`) };
+      if(!item||!state.giftShopItems.includes(item.id)||state.giftShopSoldOut.includes(item.id))return {...state,notice:notice("info","このギフトは売り切れです")};
+      if(state.currency<item.price)return { ...state, notice:notice("info","コインが足りません") };
+      return { ...state, missions:{...state.missions,boughtBook:state.missions.boughtBook||item.id==="book"},currency:state.currency-item.price,
+        giftShopSoldOut:[...state.giftShopSoldOut,item.id],inventory:{ ...state.inventory,[item.id]:(state.inventory[item.id]||0)+1 },
+        lifetimeStats:{...state.lifetimeStats,giftPurchases:state.lifetimeStats.giftPurchases+1},notice:notice("info",`${item.name}を購入しました。売り切れになりました`) };
     }
     case "GIVE_GIFT": {
       const item=getGift(action.giftId); const current=state.characterProgress[action.characterId];
@@ -245,7 +263,7 @@ function reduceAction(state:GameState, action:Action):GameState {
       return next===state?state:{...next,lastPlayedAt:now};
     }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);
-    case "REFRESH_SHOP": return {...state,giftShopItems:sortGiftIdsByRarity(state.characterProgress.ren.relationshipStage<2?[...new Set(["book",...action.items])].slice(0,GAME_CONFIG.giftShopSize):action.items.slice(0,GAME_CONFIG.giftShopSize)),giftShopRefreshAt:Date.now(),notice:notice("info","ギフトが入れ替わりました")};
+    case "REFRESH_SHOP": return {...state,giftShopItems:sortGiftIdsByRarity(state.characterProgress.ren.relationshipStage<2?[...new Set(["book",...action.items])].slice(0,GAME_CONFIG.giftShopSize):action.items.slice(0,GAME_CONFIG.giftShopSize)),giftShopSoldOut:[],giftShopRefreshAt:Date.now(),notice:notice("info","ギフトが入れ替わりました")};
     case "COMPLETE_EVENT": {
       const event=getRelationshipEvent(action.eventId);
       if (!event || !availableEvent(state,[event])) return state;
@@ -259,6 +277,14 @@ function reduceAction(state:GameState, action:Action):GameState {
         characterProgress:{ ...state.characterProgress,[event.characterId]:{ ...current,route,relationshipStage:event.toStage,viewedEvents:[...current.viewedEvents,event.id],eventChoices:{...current.eventChoices,...(action.choiceId?{[event.id]:action.choiceId}:{})} } },
         dayNews:[...state.dayNews,`${getCharacter(event.characterId)?.name}との好感度が${event.toStage}「${relationshipLabel(event.toStage,route)}」になりました`,...(event.reward?[event.reward.note]:[])],
         notice:notice(event.reward?"unlock":"heart",event.reward?.note || "関係が深まりました ♡") };
+    }
+    case "COMPLETE_STAFF_STORY": {
+      const event=getStaffStoryEvent(action.eventId);
+      if(!event || !availableStaffStory(state,[event]))return state;
+      const current=state.characterProgress[event.characterId];
+      return {...state,characterProgress:{...state.characterProgress,[event.characterId]:{
+        ...current,viewedEvents:[...current.viewedEvents,event.id],
+      }}};
     }
     case "COMPLETE_GROWTH_EVENT": {
       const event=getGrowthEvent(action.eventId);if(!event||state.viewedGrowthEvents.includes(event.eventId))return state;
@@ -304,13 +330,15 @@ function reduceAction(state:GameState, action:Action):GameState {
     }
     case "HIRE_STAFF": {
       const current=state.characterProgress[action.characterId];
-      if(!current||current.relationshipStage<3||state.staff.some(person=>person.characterId===action.characterId)||state.currency<GAME_CONFIG.hirePrice||!["cook","server","rest"].includes(action.role))return state;
-      return {...state,currency:state.currency-GAME_CONFIG.hirePrice,staff:[...state.staff,{characterId:action.characterId,role:action.role,remainingMs:0}],notice:notice("heart",`${getCharacter(action.characterId)?.name}が店を手伝ってくれます`)};
+      const price=staffHirePrice(action.characterId);
+      if(!current||current.relationshipStage<staffHireStage(action.characterId)||state.staff.length>=GAME_CONFIG.maxStaff||state.staff.some(person=>person.characterId===action.characterId)||state.currency<price||!["cook","server","procurement","rest"].includes(action.role)||!staffRoleAvailable(state,action.role))return state;
+      return {...state,currency:state.currency-price,staff:[...state.staff,{characterId:action.characterId,role:action.role,remainingMs:0}],notice:notice("heart",`${getCharacter(action.characterId)?.name}が店を手伝ってくれます`)};
     }
     case "ASSIGN_STAFF": {
-      if(!["cook","server","rest"].includes(action.role))return state;
+      if(!["cook","server","procurement","rest"].includes(action.role)||!staffRoleAvailable(state,action.role,action.characterId))return state;
       return {...state,staff:state.staff.map(person=>person.characterId===action.characterId?{...person,role:action.role}:person)};
     }
+    case "REQUEST_STAFF_SUPPLY": return requestStaffSupply(state,action.orderId,action.ingredientId,action.staffId,action.now);
     case "TOGGLE_AUTO_PROCUREMENT": {
       if(action.enabled&&!autoProcurementUnlocked(state))return state;
       return {...state,autoProcurementEnabled:action.enabled,notice:notice("info",action.enabled?"自動仕入れを開始しました":"自動仕入れを停止しました")};
@@ -322,14 +350,22 @@ function reduceAction(state:GameState, action:Action):GameState {
     case "DEV_AFFECTION": {
       const current=state.characterProgress[action.characterId],character=getCharacter(action.characterId); if(!current||!character)return state;
       const supplierIngredient=ingredients.find(item=>item.supplierId===character.supplierId&&!item.unlockEventId);
-      const {orderTarget,purchaseTarget}=relationshipRequirementTargets(10);
+      const {orderTarget,purchaseTarget,giftTarget}=relationshipRequirementTargets(10);
       const ingredientPurchases=supplierIngredient?{...state.lifetimeStats.ingredientPurchases,[supplierIngredient.id]:Math.max(state.lifetimeStats.ingredientPurchases[supplierIngredient.id]||0,purchaseTarget)}:state.lifetimeStats.ingredientPurchases;
       return { ...state,
-        characterProgress:{...state.characterProgress,[action.characterId]:{...current,met:true,affection:current.affection+1000}},
+        characterProgress:{...state.characterProgress,[action.characterId]:{...current,met:true,affection:current.affection+1000,giftsGiven:Math.max(current.giftsGiven,giftTarget)}},
         lifetimeStats:{...state.lifetimeStats,totalOrders:Math.max(state.lifetimeStats.totalOrders,orderTarget),ingredientPurchases},
-        notice:notice("heart","好感度 +100・物語条件を解放") };
+        notice:notice("heart","好感度 +1,000・物語条件を解放") };
     }
     case "DEV_UNLOCK_ALL": return {...state,unlockedRecipes:recipes.map(item=>item.id),unlockedEquipment:equipment.map(item=>item.id),ownedEquipment:equipment.map(item=>item.id),stations:equipment.map(item=>({id:`${item.id}-1`,equipmentId:item.id,level:1})),notice:notice("unlock","料理と設備をすべて解放しました")};
+    case "DEV_COMPLETE_DELIVERIES": {
+      if(!state.deliveries.length)return state;
+      return receiveSupplies(state,Math.max(...state.deliveries.map(delivery=>delivery.arrivesAt)));
+    }
+    case "DEV_COMPLETE_COOKING": {
+      if(!state.orders.some(order=>order.status==="cooking"))return state;
+      return {...state,orders:state.orders.map(order=>order.status==="cooking"?{...order,status:"ready",remainingMs:0}:order),notice:notice("info","調理中の料理をすべて完成しました")};
+    }
     case "RESET": return createInitialState();
     default:return state;
   }

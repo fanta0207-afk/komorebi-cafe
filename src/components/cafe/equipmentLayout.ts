@@ -15,7 +15,7 @@ export function equipmentLayout(state: GameState) {
     const position = { x: 30 + (index % 5 + .5) * 65 / count, y: visible.length > 5 ? 32.2 + row * 3.5 : 35.7 };
     const stations = state.stations.filter(station => station.equipmentId === item.id);
     const activities = stations.map(station => ({ station, ...stationActivity(state, station.id) }));
-    const activity = activities.find(entry => entry.status === "cooking") ?? activities.find(entry => entry.status === "waiting")
+    const activity = activities.find(entry => entry.status === "cooking")
       ?? activities.find(entry => entry.status === "ready") ?? activities.find(() => true);
     return { item, position, workPosition: { x: position.x - 3, y: 44.5 }, stations, activities,
       status: activity?.status ?? "uninstalled", label: activity?.label ?? "未設置", order: activity?.order };

@@ -29,13 +29,13 @@
 | `assets/cafe/furniture/` | `{装飾ID}.png` | 128〜256px。解放済み装飾だけ表示 |
 | `assets/cafe/equipment/` | `{設備ID}.png` | 256×256px。解放時に未設置の姿を表示。購入後に稼働可能 |
 | `assets/customers/` | `moss.png`, `rose.png`, `navy.png`, `ochre.png` | 240×320px。一般客4種の全身 |
-| `assets/characters/` | `ren.png`, `sota.png`, `aki.png`, `itsuki.png`, `haru.png`, `nagisa.png` | 240×360px。既存キャラクターの店内用全身 |
+| `assets/cafe/characters/` | `manager.png`, `ren.png`, `sota.png`, `aki.png`, `itsuki.png`, `haru.png`, `nagisa.png`, `sae.png`, `cacao.png` | 512×768px。一般客と同じ頭身の店内用全身 |
 | `assets/foods/` | `{料理ID}.png` | 128×128px。例 `coffee.png`, `toast.png` |
 | `assets/effects/` | `sunlight.png`, `serve.png` | 600×800 / 256×256px。透過素材 |
 
 客は `{look}-{phase}.png` があると優先します。例：`moss-entering.png`, `moss-seated.png`, `moss-enjoying.png`, `moss-leaving.png`。ない状態は `moss.png`、それもなければCSSへ戻ります。
 
-キャラクターは `{id}-cook.png` / `{id}-server.png` を優先し、次に `{id}.png`、次に既存の `character.image`、最後にCSSの人物を使用します。静止PNGでも移動・作業の演出は付けられます。表情を含むスプライトシートの自動分割は行いません。
+店内キャラクターは `assets/cafe/characters/{id}.png` を使います。人物・物語画面の立ち絵とは分離しているため、店内に立ち絵の背景が現れることはありません。静止PNGに位置移動・左右反転・足踏み・作業中の揺れを付けています。
 
 設備ID：`coffeeCounter`, `toastGrill`, `prepTable`, `espressoMachine`, `bakeryOven`, `chilledCase`, `seasonalCounter`, `parfaitStation`, `herbInfuser`。
 
@@ -55,7 +55,7 @@
 
 ### 店長（プレイヤー）素材
 
-`public/assets/characters/manager.png` を追加すると、店長（あなた）のCSS人物から画像へ置き換わります。動作別の画像を使う場合は、`manager-idle.png`, `manager-walking.png`, `manager-cooking.png`, `manager-ready.png`, `manager-pickup.png`, `manager-carrying.png`, `manager-serving.png`, `manager-returning.png` を追加してください。動作別画像がない場合は `manager.png`、それもない場合はCSS人物を使用します。おすすめは透過PNG・240×360pxです。
+店長は `public/assets/cafe/characters/manager.png` の透過キャラクターを使います。移動・調理・配膳は同じ画像に画面側の動きを付け、読み込めない場合だけCSS人物へ戻ります。
 
 店長の操作待ちは一時的な演出データで、セーブ形式には追加されません。リロードした場合、未着手の注文や完成済み料理は従来どおり残り、もう一度吹き出しから店長へ指示できます。調理時間・食材消費・売上は既存のゲーム処理が担当し、店長は移動後にその処理を呼び出します。
 

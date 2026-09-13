@@ -1,307 +1,12 @@
 import type { RelationshipEvent } from "../types/game";
+import { renRelationshipEvents, renStaffStories } from "./renEpisodes";
+
+export const staffStoryEvents = renStaffStories;
+export const getStaffStoryEvent = (id:string) => staffStoryEvents.find(event=>event.id===id);
 
 // Based on docs/キャラクター設定・恋愛ストーリー案.md. One event for each of 10 levels.
 export const relationshipEvents: RelationshipEvent[] = [
-  {
-    "id": "ren-stage1",
-    "characterId": "ren",
-    "fromStage": 0,
-    "toStage": 1,
-    "requiredAffection": 0,
-    "title": "苦い初仕入れ",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "あなたが高価な豆を選ぼうとすると、蓮は使う器具を尋ね、扱いやすい豆を勧める。無愛想さの裏に誠実さがあると分かる。"
-      },
-      {
-        "speaker": "character",
-        "text": "高けりゃ、合うわけじゃない"
-      }
-    ]
-  },
-  {
-    "id": "ren-stage2",
-    "characterId": "ren",
-    "fromStage": 1,
-    "toStage": 2,
-    "requiredAffection": 10,
-    "title": "袋の裏のメモ",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "抽出に苦戦するあなたへ、豆袋の裏に湯温と挽き目の助言が添えられている。試して感想を返すと、次の袋には一言だけ返事が増える。"
-      },
-      {
-        "speaker": "character",
-        "text": "……試したのか。なら、次はこれ"
-      }
-    ],
-    "reward": {
-      "recipeIds": [
-        "carefulDrip"
-      ],
-      "note": "ハンドドリップの改良レシピを解放しました"
-    }
-  },
-  {
-    "id": "ren-stage3",
-    "characterId": "ren",
-    "fromStage": 2,
-    "toStage": 3,
-    "requiredAffection": 30,
-    "title": "雨宿り、一杯分",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "豪雨で足止めされ、店で雨宿り。無理に会話せず同じコーヒーを飲むあなたに、蓮は初めて閉店後の試飲を誘う。"
-      },
-      {
-        "speaker": "narrator",
-        "text": "帰りには傘を貸す。"
-      },
-      {
-        "speaker": "character",
-        "text": "雨、止むまでいればいい"
-      }
-    ],
-    "reward": {
-      "ingredientIds": [
-        "singleOrigin"
-      ],
-      "note": "高級シングルオリジン豆を解放しました"
-    }
-  },
-  {
-    "id": "ren-stage4",
-    "characterId": "ren",
-    "fromStage": 3,
-    "toStage": 4,
-    "requiredAffection": 65,
-    "title": "ふたつのカップ",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "カフェの抽出器具を見に来た蓮に、あなたが休憩を勧める。仕事の話が終わっても二人で座り、休日の過ごし方を初めて話す。"
-      },
-      {
-        "speaker": "character",
-        "text": "用事が終わったら、帰らなきゃ駄目か"
-      }
-    ],
-    "choices": [
-      {
-        "id": "choice-1",
-        "label": "もう少し一緒に休んでいって",
-        "response": [
-          {
-            "speaker": "character",
-            "text": "……ああ。次の予定は、ない。"
-          }
-        ]
-      },
-      {
-        "id": "choice-2",
-        "label": "休みの日は、何をしているの？",
-        "response": [
-          {
-            "speaker": "character",
-            "text": "豆を触ってることが多い。……でも、今度は外に出てもいいな。"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ren-stage5",
-    "characterId": "ren",
-    "fromStage": 4,
-    "toStage": 5,
-    "requiredAffection": 110,
-    "title": "名前のないブレンド",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "奥の試作豆を見つけたあなたに、蓮は父との出来事を話す。無理に褒めず味の感想を伝えると、「もう一度飲みたい」という願いを受け入れる。"
-      },
-      {
-        "speaker": "character",
-        "text": "それは、俺が作った。……まだ、売ってない"
-      }
-    ],
-    "reward": {
-      "ingredientIds": [
-        "espressoBlend"
-      ],
-      "equipmentIds": [
-        "espressoMachine"
-      ],
-      "recipeIds": [
-        "espresso"
-      ],
-      "note": "エスプレッソ向け豆・マシン購入権・基本レシピを解放しました。設備はメニューの「設備」で購入できます"
-    }
-  },
-  {
-    "id": "ren-stage6",
-    "characterId": "ren",
-    "fromStage": 5,
-    "toStage": 6,
-    "requiredAffection": 170,
-    "title": "君の好みを覚えた",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "あなたが仕入れを一度休むと、次の来店で好みに合わせた試飲が用意されている。蓮は閉店後のカフェにも客として訪れ、会えなかった寂しさを自覚する。"
-      },
-      {
-        "speaker": "character",
-        "text": "今日は来るかと思って、残してた"
-      }
-    ],
-    "reward": {
-      "recipeIds": [
-        "craftLatte",
-        "cappuccino"
-      ],
-      "note": "カフェラテ、カプチーノのレシピを解放しました"
-    }
-  },
-  {
-    "id": "ren-stage7",
-    "characterId": "ren",
-    "fromStage": 6,
-    "toStage": 7,
-    "requiredAffection": 245,
-    "title": "守る味、作る味",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "常連に父の味だけを求められ、蓮は試作を片づける。あなたは定番を残して試作も試飲に出す案を伝える。"
-      },
-      {
-        "speaker": "narrator",
-        "text": "蓮は自分で小さな試飲会の開催を決める。"
-      },
-      {
-        "speaker": "character",
-        "text": "あの味を残したまま、俺の豆も置いていいんだな"
-      }
-    ],
-    "choices": [
-      {
-        "id": "choice-1",
-        "label": "定番と一緒に、少しだけ試飲に出してみる？",
-        "response": [
-          {
-            "speaker": "character",
-            "text": "……それなら、試せる。自分で聞いてみたい。"
-          }
-        ]
-      },
-      {
-        "id": "choice-2",
-        "label": "蓮は、本当はどうしたい？",
-        "response": [
-          {
-            "speaker": "character",
-            "text": "俺の味も、飲んでもらいたい。……やってみる。"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ren-stage8",
-    "characterId": "ren",
-    "fromStage": 7,
-    "toStage": 8,
-    "requiredAffection": 335,
-    "title": "店を出た朝",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "試飲会で賛否を聞いた蓮は改良を続けると決め、あなたを休日の散歩へ誘う。仕事の話が途切れた後も隣にいたくて、そっと手を差し出す。"
-      },
-      {
-        "speaker": "character",
-        "text": "今日は、豆の相談じゃない"
-      }
-    ],
-    "reward": {
-      "ingredientIds": [
-        "originalRoast"
-      ],
-      "note": "蓮のオリジナル焙煎豆を解放しました"
-    }
-  },
-  {
-    "id": "ren-stage9",
-    "characterId": "ren",
-    "fromStage": 8,
-    "toStage": 9,
-    "requiredAffection": 450,
-    "title": "冷める前に",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "閉店後、コーヒーを淹れては言葉を探す。あなたが顔を見て待つと、蓮はカップを置き、納品に隠していた気持ちを自分の言葉で告げる。"
-      },
-      {
-        "speaker": "character",
-        "text": "会う理由を、豆のせいにしたくない。好きだ"
-      }
-    ],
-    "friendshipTitle": "これからの試飲相手",
-    "friendshipDialogue": [
-      {
-        "speaker": "narrator",
-        "text": "率直に話せる仕事仲間として、次の試飲を約束した。"
-      },
-      {
-        "speaker": "character",
-        "text": "これからも、俺の豆の感想を聞かせてほしい。"
-      }
-    ]
-  },
-  {
-    "id": "ren-stage10",
-    "characterId": "ren",
-    "fromStage": 9,
-    "toStage": 10,
-    "requiredAffection": 600,
-    "title": "明日の一杯",
-    "dialogue": [
-      {
-        "speaker": "narrator",
-        "text": "恋人になった二人が、父の定番とは別に新しいブレンドを完成させる。蓮は互いの営業予定を見ながら、毎週一緒に朝の一杯を飲む約束をする。"
-      },
-      {
-        "speaker": "character",
-        "text": "明日も淹れる。お前が飲みに来るなら"
-      }
-    ],
-    "reward": {
-      "ingredientIds": [
-        "houseBlend"
-      ],
-      "recipeIds": [
-        "signatureEspresso"
-      ],
-      "note": "二人で名づけるハウスブレンド・シグネチャーエスプレッソを解放しました"
-    },
-    "friendshipTitle": "カフェのための一杯",
-    "friendshipDialogue": [
-      {
-        "speaker": "narrator",
-        "text": "蓮とカフェ専用の豆を完成させ、定期的に味を確かめる約束をした。"
-      },
-      {
-        "speaker": "character",
-        "text": "店の名前をつけよう。こもれびハウスブレンド。"
-      }
-    ]
-  },
+  ...renRelationshipEvents,
   {
     "id": "sota-stage1",
     "characterId": "sota",
@@ -1888,7 +1593,7 @@ export const relationshipEvents: RelationshipEvent[] = [
       { "speaker": "narrator", "text": "試作中、アイスを失敗した冴はフードを深く被る。あなたが責めずに原因を一緒に探すと、彼は初めて自分のことを少し話した。" },
       { "speaker": "character", "text": "人とやると、失敗の数が増えると思ってた。……違うんだな" }
     ],
-    "reward": { "equipmentIds": ["iceCreamMaker"], "recipeIds": ["frozenChocolate"], "note": "アイスクリームメーカー購入権・氷温ショコラアイスを解放しました" }
+    "reward": { "equipmentIds": ["iceCreamMaker"], "recipeIds": ["frozenChocolate"], "note": "アイスクリームメーカー購入権・氷温ミルクアイスを解放しました" }
   },
   {
     "id": "sae-stage6",
@@ -1965,6 +1670,112 @@ export const relationshipEvents: RelationshipEvent[] = [
     "friendshipDialogue": [
       { "speaker": "narrator", "text": "冴の特製アイスとカフェのコーヒーを合わせ、二人の定番メニューを完成させた。" },
       { "speaker": "character", "text": "温度は俺が見る。味はお前が見ろ。……それでいい" }
+    ]
+  },
+  {
+    "id":"cacao-stage1","characterId":"cacao","fromStage":0,"toStage":1,"requiredAffection":0,
+    "title":"舌を見せて",
+    "dialogue":[
+      {"speaker":"narrator","text":"ショコラトリーの扉を開けると、カカオは挨拶より先に小さなボンボンを差し出した。"},
+      {"speaker":"character","text":"僕がカカオ・ショコラ。君、本当に僕のチョコを扱える舌を持ってるのか？　まずは答えを聞かせて"}
+    ]
+  },
+  {
+    "id":"cacao-stage2","characterId":"cacao","fromStage":1,"toStage":2,"requiredAffection":10,
+    "title":"三粒の試験",
+    "dialogue":[
+      {"speaker":"narrator","text":"甘さの違う三粒を食べ比べ、あなたは飾らずに感じた順を伝えた。カカオは意地悪く笑いながらも、最後までメモを取る。"},
+      {"speaker":"character","text":"知ったふりをしないのは合格。君の言葉、僕の次の一粒に使ってあげる"}
+    ],
+    "reward":{"recipeIds":["bonbonPlate"],"note":"三粒のボンボンショコラを解放しました"}
+  },
+  {
+    "id":"cacao-stage3","characterId":"cacao","fromStage":2,"toStage":3,"requiredAffection":30,
+    "title":"苦味の輪郭",
+    "dialogue":[
+      {"speaker":"narrator","text":"カカオは焙煎したカカオニブを持ち込み、カフェの客に届く苦味を一緒に探した。"},
+      {"speaker":"character","text":"僕の技術に君の店の感覚を足す。勘違いしないで、対等に扱うのは君だけだよ"}
+    ],
+    "reward":{"ingredientIds":["cacaoNib"],"recipeIds":["cacaoNibCookie"],"note":"焙煎カカオニブ・カカオニブクッキーを解放しました"}
+  },
+  {
+    "id":"cacao-stage4","characterId":"cacao","fromStage":3,"toStage":4,"requiredAffection":65,
+    "title":"一粒だけの場所",
+    "dialogue":[
+      {"speaker":"narrator","text":"カカオはカウンターの一番目立つ場所を測り、ショコラ一粒だけを置くガラスケースを用意した。"},
+      {"speaker":"character","text":"数でごまかす必要はない。僕の一粒と、君の説明があれば十分だ"}
+    ],
+    "choices":[
+      {"id":"choice-1","label":"一緒に一番きれいな位置を探す","response":[{"speaker":"character","text":"いい返事。君の店で僕の一粒が一番に見える場所を選ぼう"}]},
+      {"id":"choice-2","label":"お客様が見やすい位置を優先する","response":[{"speaker":"character","text":"僕より客を優先するんだ。……正しいよ。だから君に任せたい"}]}
+    ],
+    "reward":{"decorationIds":["cacaoBonbonCase"],"note":"一粒ショコラのガラスケースを解放しました"}
+  },
+  {
+    "id":"cacao-stage5","characterId":"cacao","fromStage":4,"toStage":5,"requiredAffection":110,
+    "title":"甘さの命令",
+    "dialogue":[
+      {"speaker":"narrator","text":"閉店後、カカオは深い苦味のクーベルチュールを温め、あなたに甘さを決めるよう命じた。"},
+      {"speaker":"character","text":"遠慮は不合格。君が飲みたい甘さを言って。僕が完璧に仕上げる"}
+    ],
+    "reward":{"ingredientIds":["bitterCouverture"],"recipeIds":["bitterHotChocolate"],"note":"深煎りビタークーベルチュール・深煎りホットショコラを解放しました"}
+  },
+  {
+    "id":"cacao-stage6","characterId":"cacao","fromStage":5,"toStage":6,"requiredAffection":170,
+    "title":"預けた温度",
+    "dialogue":[
+      {"speaker":"narrator","text":"カカオは温度計をあなたに渡し、これまで誰にも任せなかったテンパリングの最後を託した。"},
+      {"speaker":"character","text":"一度でも外せば艶は消える。……それでも君なら、僕のチョコを預けられる"}
+    ],
+    "reward":{"equipmentIds":["temperingMachine"],"recipeIds":["chocolateTerrine"],"note":"精密テンパリングマシン購入権・艶やかショコラテリーヌを解放しました"}
+  },
+  {
+    "id":"cacao-stage7","characterId":"cacao","fromStage":6,"toStage":7,"requiredAffection":245,
+    "title":"天才の失敗作",
+    "dialogue":[
+      {"speaker":"narrator","text":"ひびの入った試作品を隠すカカオに、あなたは完成品だけでなく迷った理由も聞かせてほしいと伝えた。"},
+      {"speaker":"character","text":"失敗した僕を見ても帰らない？　……なら最後までここにいて。君だけは、勝手に離れないで"}
+    ],
+    "choices":[
+      {"id":"choice-1","label":"成功するまで隣で味見する","response":[{"speaker":"character","text":"言ったね。今夜は長いよ。僕の隣、君の指定席にするから"}]},
+      {"id":"choice-2","label":"今日は休んで、明日また作ろう","response":[{"speaker":"character","text":"僕を止めるなんて生意気だ。……でも、明日も来るなら従ってあげる"}]}
+    ],
+    "reward":{"decorationIds":["cacaoThermometer"],"note":"金縁のショコラ温度計を解放しました"}
+  },
+  {
+    "id":"cacao-stage8","characterId":"cacao","fromStage":7,"toStage":8,"requiredAffection":335,
+    "title":"君だけの色",
+    "dialogue":[
+      {"speaker":"narrator","text":"淡い紅色のチョコを前に、カカオはあなたのためだけに配合を変えたと打ち明ける。"},
+      {"speaker":"character","text":"似合うと思ったのは君だけ。ほかの誰かに同じものを作る気はないよ"}
+    ],
+    "reward":{"ingredientIds":["rubyChocolate"],"recipeIds":["rubyChocolateParfait"],"note":"ルビーチョコレート・ルビーショコラパフェを解放しました"}
+  },
+  {
+    "id":"cacao-stage9","characterId":"cacao","fromStage":8,"toStage":9,"requiredAffection":450,
+    "title":"独占の告白",
+    "dialogue":[
+      {"speaker":"narrator","text":"カカオは新作発表を断り、最初の一粒をあなたに差し出す。強い視線の奥には、選ばれないことへの怖さがあった。"},
+      {"speaker":"character","text":"君の舌も、言葉も、隣の席も、全部僕が一番近くにいたい。僕だけを選んで――嫌なら、今ここで止めて"}
+    ],
+    "friendshipTitle":"唯一の共同開発者",
+    "friendshipDialogue":[
+      {"speaker":"narrator","text":"あなたは恋ではなく、互いの仕事を預けられる唯一の共同開発者として隣にいる道を選んだ。"},
+      {"speaker":"character","text":"僕に対等を選ばせるなんて、やっぱり君は生意気だ。いいよ、最高の相棒になって"}
+    ]
+  },
+  {
+    "id":"cacao-stage10","characterId":"cacao","fromStage":9,"toStage":10,"requiredAffection":600,
+    "title":"ただ一人のシグネチャー",
+    "dialogue":[
+      {"speaker":"narrator","text":"カカオは自分の名を冠した一粒を、あなたのカフェだけに卸す契約書とともに差し出した。"},
+      {"speaker":"character","text":"僕の最高傑作も、これからの失敗も、最初に君へ渡す。君の一番近くは、ずっと僕の場所にして"}
+    ],
+    "reward":{"ingredientIds":["cacaoSignature"],"recipeIds":["onlyOneBonbon"],"decorationIds":["pairedChocolateBoxes"],"note":"カカオのシグネチャーショコラ・ただ一人のシグネチャーボンボンを解放しました"},
+    "friendshipTitle":"対等な二つの署名",
+    "friendshipDialogue":[
+      {"speaker":"narrator","text":"二人はショコラとカフェ、双方の名前を並べた共同メニューを完成させた。"},
+      {"speaker":"character","text":"僕の名前の隣に置けるのは君だけ。次の最高傑作も、二人で更新するよ"}
     ]
   }
 ];

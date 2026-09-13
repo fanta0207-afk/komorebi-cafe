@@ -24,6 +24,9 @@ export const decorations:Decoration[] = [
   {"id": "greenhouseWindow", "name": "温室風の窓辺飾り", "icon": "🌿", "characterId": "nagisa", "placement": "wall"},
   {"id": "herbTeapot", "name": "ハーブティーポット", "icon": "🫖", "characterId": "nagisa", "placement": "counter"},
   {"id": "flowerHerbWindow", "name": "花とハーブの窓辺セット", "icon": "💐", "characterId": "nagisa", "placement": "wall"},
+  {"id": "cacaoBonbonCase", "name": "一粒ショコラのガラスケース", "icon": "🍫", "characterId": "cacao", "placement": "counter"},
+  {"id": "cacaoThermometer", "name": "金縁のショコラ温度計", "icon": "🌡️", "characterId": "cacao", "placement": "wall"},
+  {"id": "pairedChocolateBoxes", "name": "ふたりのショコラ箱", "icon": "🎁", "characterId": "cacao", "placement": "shelf"},
 ];
 
 export const getDecoration=(id:string)=>decorations.find(item=>item.id===id);

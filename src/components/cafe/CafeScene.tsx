@@ -3,8 +3,8 @@
 import { useState, type CSSProperties } from "react";
 import { getCharacter } from "../../data/characters";
 import { getRecipe } from "../../data/recipes";
-import { hasIngredients, startProblem } from "../../game/operations";
-import { activeCookingOrder } from "../../game/kitchen";
+import { hasIngredients, serveDuration, startProblem } from "../../game/operations";
+import { orderSalePrice } from "../../game/logic";
 import { tableCapacity } from "../../game/seating";
 import { equipmentLayout, equipmentWorkPosition } from "./equipmentLayout";
 import type { GameState, Order } from "../../types/game";
@@ -12,7 +12,7 @@ import { CafeAsset } from "./CafeAsset";
 import { cafeAsset, customerFacing, makeVisit, reconcileVisits, TABLE_POSITIONS, visitPhase, VISIT_TIMING } from "./sceneModel";
 import { CustomerSprite } from "./CustomerSprite";
 import { CafeManager } from "./CafeManager";
-import { createManager, managerFrame, managerPending, type ManagerModel, type ManagerFrame } from "./managerModel";
+import { aislePosition, createManager, managerFrame, managerPending, type ManagerModel, type ManagerFrame } from "./managerModel";
 import { PersonFallback } from "./PersonFallback";
 
 type SceneProps = { state: GameState; manager?: ManagerModel; managerPose?: ManagerFrame; onOrder: (id: string) => void; onCharacter: (id: string) => void; onEquipment: () => void };
@@ -34,10 +34,10 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
   const managerView = managerPose ?? managerFrame(createManager(state.activeMs), state);
   const visits = useVisits(state.orders, state.activeMs);
   const activeVisits = visits.flatMap(visit => { const phase = visitPhase(visit, state.activeMs); return phase ? [{ ...visit, phase }] : []; });
-  const workingStaff = state.staff.filter(person => person.role !== "rest");
+  const workingStaff = state.staff.filter(person => person.role === "cook"||person.role === "server");
   const layout = equipmentLayout(state);
-  const activeOrder = activeCookingOrder(state);
   const serving = workingStaff.some(person => person.servingOrderId);
+  const kitchenCountdownOrderId=layout.find(entry=>entry.status==="cooking"&&entry.order)?.order?.id;
   return <div className={`cafe-scene photo-cafe ${layout.length > 5 ? "has-expanded-kitchen" : ""}`} style={{ "--guest-enter-duration": `${VISIT_TIMING.enter}ms`, "--guest-leave-duration": `${VISIT_TIMING.leave}ms` } as CSSProperties} role="group" aria-label="こもれび喫茶の店内。お客さまの吹き出しから注文を操作できます。">
     <div className="scene-layer layer-background" data-layer="background" aria-hidden="true">
       <CafeAsset src={`${cafeAsset.background("room")}?v=d9fba6fd`} className="room-art" fallbackDuringLoad={false} priority><div className="room-wall"><CafeAsset src={cafeAsset.background("wall")}><i className="wall-paper"/><i className="wall-panels"/></CafeAsset></div>
@@ -62,10 +62,10 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
           const busy = status === "cooking";
           return <button key={item.id} type="button" className={`scene-equipment equipment-${status}`} data-equipment={item.id} data-equipment-status={status}
             style={place(position.x, position.y)} onClick={onEquipment}
-            aria-label={`${item.name} ${stations.length}台・${label}${busy && order ? `・あと${Math.ceil(order.remainingMs / 1000)}秒` : ""}。設備・料理を開く`}>
+            aria-label={`${item.name} ${stations.length}台・${busy&&order&&order.id===kitchenCountdownOrderId?`あと${Math.ceil(order.remainingMs/1000)}秒`:label}。設備・料理を開く`}>
             <CafeAsset src={cafeAsset.equipment(item.id)}><span className={`equipment-prop prop-${item.id}`}><i>{item.icon}</i></span></CafeAsset>
             {stations.length > 1 && <small>×{stations.length}</small>}
-            <span className="equipment-state-label">{busy && order ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : label}</span>
+            <span className="equipment-state-label">{busy&&order&&order.id===kitchenCountdownOrderId?`あと${Math.ceil(order.remainingMs/1000)}秒`:busy?"調理中":label}</span>
             {busy && <><span className="equipment-steam"><i/><i/><i/></span><progress max={order!.totalMs} value={order!.totalMs - order!.remainingMs} aria-label={`${item.name}の調理進捗`}/></>}
             {status === "ready" && <span className="equipment-done">✓</span>}
           </button>;
@@ -94,16 +94,26 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
     <div className="scene-layer layer-characters" data-layer="characters">
       {workingStaff.map((person, index) => {
         const character = getCharacter(person.characterId); if (!character) return null;
-        const cooking = activeOrder?.cookId === person.characterId;
-        const workPosition = cooking && activeOrder ? equipmentWorkPosition(state, activeOrder) : undefined;
+        const cookingOrder = state.orders.find(order => order.status === "cooking" && order.cookId === person.characterId);
+        const cooking = !!cookingOrder;
+        const workPosition = cookingOrder ? equipmentWorkPosition(state, cookingOrder) : undefined;
         const target = person.servingOrderId && state.orders.find(order => order.id === person.servingOrderId);
-        const position = target ? place(TABLE_POSITIONS[target.customerSlot].x + (target.customerSlot % 2 ? -15 : 15), TABLE_POSITIONS[target.customerSlot].y + 7) : workPosition ? place(workPosition.x, workPosition.y) : place(36 + index * 7, 44);
-        return <button className={`scene-staff ${target ? "staff-serving" : ""} ${cooking ? "staff-cooking" : ""}`} type="button"
-          key={person.characterId} style={position} onClick={() => onCharacter(person.characterId)}
-          aria-label={`${character.name}・${person.role === "cook" ? "調理担当" : "提供担当"}。人物の詳細を開く`}>
-          <CafeAsset src={cafeAsset.character(person.characterId, person.role)} alternatives={[cafeAsset.character(person.characterId), character.image]}>
+        const home={x:36+index*7,y:44};
+        const destination=target?{x:TABLE_POSITIONS[target.customerSlot].x+(target.customerSlot%2?-15:15),y:TABLE_POSITIONS[target.customerSlot].y+7}:undefined;
+        const returnDestination=person.returningFromSlot!==undefined?{x:TABLE_POSITIONS[person.returningFromSlot].x+(person.returningFromSlot%2?-15:15),y:TABLE_POSITIONS[person.returningFromSlot].y+7}:undefined;
+        const duration=serveDuration(state,person.characterId);
+        const serviceProgress=target?1-Math.max(0,person.remainingMs)/duration:0;
+        const returnProgress=returnDestination?1-Math.max(0,person.remainingMs)/duration:0;
+        const walkingPosition=destination?aislePosition(home,destination,serviceProgress):returnDestination?aislePosition(returnDestination,home,returnProgress):undefined;
+        const position = walkingPosition ? place(walkingPosition.x,walkingPosition.y) : workPosition ? place(workPosition.x, workPosition.y) : place(home.x,home.y);
+        const facing = target ? (target.customerSlot % 2 ? -1 : 1) : returnDestination ? (home.x>=returnDestination.x?1:-1) : workPosition ? (workPosition.x < 50 ? 1 : -1) : 1;
+        const returning=!!returnDestination;
+        return <button className={`scene-staff ${target ? "staff-serving staff-moving" : returning?"staff-returning staff-moving":""} ${cooking ? "staff-cooking" : ""}`} type="button"
+          key={person.characterId} style={{...position,"--staff-facing":facing} as CSSProperties} onClick={() => onCharacter(person.characterId)}
+          aria-label={`${character.name}・${returning?"提供後、カウンターへ戻っています":person.role === "cook" ? "調理担当" : person.role === "server" ? "提供担当" : "仕入れ担当"}。人物の詳細を開く`}>
+          <span className="staff-character"><CafeAsset src={cafeAsset.character(person.characterId)}>
             <PersonFallback look={person.characterId} apron/>
-          </CafeAsset><span className="staff-name">{character.shortName} <b>♡</b></span>
+          </CafeAsset></span><span className="staff-name">{character.shortName} <b>♡</b></span>
         </button>;
       })}
       <CafeManager frame={managerView} now={state.activeMs}/>
@@ -117,14 +127,14 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
         const { x, y } = TABLE_POSITIONS[order.customerSlot];
         const problem = order.status === "queued" ? startProblem(state, recipe) : "";
         const pending = manager && managerPending(manager, order.id);
-        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? activeOrder?.id === order.id ? `あと${Math.ceil(order.remainingMs / 1000)}秒` : "順番待ち" : !state.unlockedRecipes.includes(recipe.id) ? "解放待ち" : !hasIngredients(state, recipe) ? "食材待ち" : problem ? "順番待ち" : "調理開始";
+        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? "調理中" : !state.unlockedRecipes.includes(recipe.id) ? "解放待ち" : !hasIngredients(state, recipe) ? "食材待ち" : problem ? "設備待ち" : "調理開始";
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
         return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
           style={{ ...place(x + 1, y - 2), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
           aria-label={`テーブル${order.customerSlot + 1}、${recipe.name}、${problem || label}`}>
           <span className="bubble-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
-          {order.request && <span className="bubble-request">リクエスト +25%</span>}<span className="bubble-recipe-name">{recipe.name}</span><span className="bubble-label">{label}</span>
+          {order.request && <span className="bubble-request">リクエスト +25%</span>}<span className="bubble-recipe-name">{recipe.name}</span><span className="bubble-sale">+{orderSalePrice(order,state)}コイン</span><span className="bubble-label">{label}</span>
           {order.status === "cooking" && <progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/>}
           {order.status === "ready" && <i className="ready-star">✦</i>}
         </button>;

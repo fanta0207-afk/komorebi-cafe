@@ -52,7 +52,7 @@ export const cafeAsset = {
   furniture: (id: string) => `/assets/cafe/furniture/${id}.png`,
   equipment: (id: string) => `/assets/cafe/equipment/${id}.png${id === "coffeeCounter" ? "?v=dc73b59a" : ""}`,
   customer: (look: string, phase?: VisitPhase) => `/assets/customers/${look}${phase ? `-${phase}` : ""}.png`,
-  character: (id: string, role?: string) => `/assets/characters/${id}${role ? `-${role}` : ""}.png`,
+  character: (id: string, role?: string) => `/assets/cafe/characters/${id}${role ? `-${role}` : ""}.png`,
   food: (id: string) => `/assets/foods/${id}.png`,
   effect: (id: string) => `/assets/effects/${id}.png`,
 };

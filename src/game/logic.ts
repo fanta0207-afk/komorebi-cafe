@@ -4,8 +4,10 @@ import { gifts, sortGiftIdsByRarity } from "../data/gifts";
 import { ingredients } from "../data/ingredients";
 import { recipes, recipeEquipmentId } from "../data/recipes";
 import { growthEvents } from "../data/growthEvents";
+import { staffStoryEvents } from "../data/events";
 import { hiddenUnlocks } from "../data/hiddenUnlocks";
 import { tutorialRecipe } from "./missions";
+import { menuMastery } from "./menuMastery";
 import type { Character, Gift, GiftReaction, GameState, GrowthEvent, GrowthStatRequirement, RelationshipEvent, Order } from "../types/game";
 
 export const initialRecipeIds = recipes.filter(item => item.initiallyUnlocked).map(item => item.id);
@@ -45,6 +47,15 @@ export function availableEvent(state:GameState, events:RelationshipEvent[]) {
   return events.find(event => {
     const progress=state.characterProgress[event.characterId];
     return progress?.met && progress.relationshipStage===event.fromStage && progress.affection>=event.requiredAffection && relationshipRequirements(event,state).every(item=>item.met) && !progress.viewedEvents.includes(event.id);
+  });
+}
+
+export function availableStaffStory(state:GameState, events=staffStoryEvents) {
+  return events.find(event=>{
+    const progress=state.characterProgress[event.characterId];
+    return progress?.met && progress.relationshipStage>=event.requiredRelationshipStage
+      && state.staff.some(person=>person.characterId===event.characterId)
+      && !progress.viewedEvents.includes(event.id);
   });
 }
 
@@ -101,15 +112,16 @@ export function bestSeller(recipeSales:Record<string,number>) {
   return Object.entries(recipeSales).sort((a,b)=>b[1]-a[1])[0]?.[0];
 }
 
-export function salePrice(recipeId:string) {
+export function salePrice(recipeId:string,state?:GameState) {
   const recipe=recipes.find(item=>item.id===recipeId);
   if(!recipe)return 0;
-  const cost=ingredientCost(recipeId);
-  return cost+Math.max(1,Math.round((recipe.price-cost)*GAME_CONFIG.profitMultiplier));
+  const bonus=state?menuMastery(recipeId,state).current.bonus:0;
+  return Math.max(1,Math.round(recipe.price*GAME_CONFIG.saleMultiplier*(1+bonus)));
 }
 
 export function ingredientCost(recipeId:string) {
-  return (recipes.find(item=>item.id===recipeId)?.requiredIngredients||[]).reduce((sum,id)=>sum+(ingredients.find(item=>item.id===id)?.price||0)/GAME_CONFIG.ingredientPackSize,0);
+  void recipeId;
+  return 0;
 }
 
 export function isRecipeUsable(recipeId:string,state:GameState) {
@@ -118,30 +130,31 @@ export function isRecipeUsable(recipeId:string,state:GameState) {
 }
 
 export function pickWeightedRecipe(state:GameState) {
-  // Prefer unreserved stock, but guests can wait for supplies when everything is out.
-  const remaining={...state.ingredients};
-  for(const order of state.orders.filter(item=>item.status==="queued"))for(const id of recipes.find(item=>item.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
-  const usable=recipes.filter(recipe=>isRecipeUsable(recipe.id,state));
-  const stocked=usable.filter(recipe=>recipe.requiredIngredients.every(id=>(remaining[id]||0)>0));
-  const options=stocked.length?stocked:usable;
+  // Orders represent the unlocked menu, not only today's stock. Prefer dishes
+  // that are not already waiting and have been sold less often to keep variety.
+  const usable=recipes.filter(recipe=>isRecipeUsable(recipe.id,state)&&recipe.requiredIngredients.every(id=>{
+    const ingredient=ingredients.find(item=>item.id===id);
+    return !!ingredient&&(!ingredient.unlockEventId||state.unlockedIngredients.includes(id));
+  }));
+  if(!usable.length)return;
+  const activeCount=(recipeId:string)=>state.orders.filter(order=>order.recipeId===recipeId).length;
+  const leastActive=Math.min(...usable.map(recipe=>activeCount(recipe.id)));
+  let options=usable.filter(recipe=>activeCount(recipe.id)===leastActive);
+  const leastSold=Math.min(...options.map(recipe=>state.lifetimeStats.recipeSales[recipe.id]||0));
+  options=options.filter(recipe=>(state.lifetimeStats.recipeSales[recipe.id]||0)===leastSold);
   return options[Math.floor(Math.random()*options.length)]?.id;
 }
 
-export function orderSalePrice(order: Order) {
-  return Math.round(salePrice(order.recipeId) * (order.request ? GAME_CONFIG.requestOrderBonus : 1));
+export function orderSalePrice(order: Order,state?:GameState) {
+  return Math.round(salePrice(order.recipeId,state) * (order.request ? GAME_CONFIG.requestOrderBonus : 1));
 }
 
 /** Occasional attainable requests: one at a time, no unrevealed story/secret recipes. */
 export function pickIncomingOrder(state: GameState): { recipeId: string; request?: boolean } | undefined {
   const guided=tutorialRecipe(state);
-  if(guided&&isRecipeUsable(guided,state)) {
-    const remaining={...state.ingredients};
-    for(const order of state.orders.filter(o=>o.status==="queued"))for(const id of recipes.find(r=>r.id===order.recipeId)?.requiredIngredients||[])remaining[id]=(remaining[id]||0)-1;
-    const ready=recipes.find(recipe=>recipe.id===guided)!.requiredIngredients.every(id=>(remaining[id]||0)>0);
-    // Keep earning on simple coffee until all ingredients for the tutorial's new dish arrive.
-    if(ready||guided==="coffee")return {recipeId:guided};
-    if(isRecipeUsable("coffee",state))return {recipeId:"coffee"};
-  }
+  // A mission dish arrives before its supplies or equipment are ready, so the
+  // player can see the short path to fulfilling it. Keep only one such order.
+  if(guided&&!state.orders.some(order=>order.recipeId===guided)&&recipes.some(recipe=>recipe.id===guided))return {recipeId:guided};
   const introFinished=state.missions.claimed.includes("serve-mocha")||(state.lifetimeStats.recipeSales.cafeMocha||0)>0;
   if (introFinished && state.lifetimeStats.totalOrders >= 3 && !state.orders.some(order => order.request)
     && Math.random() < GAME_CONFIG.requestOrderChance) {
@@ -155,19 +168,11 @@ export function pickIncomingOrder(state: GameState): { recipeId: string; request
       if (!state.stations.some(station=>station.equipmentId===recipeEquipmentId(recipe))) return false;
       if (!(recipe.requiredEquipmentIds || []).every(id => state.ownedEquipment.includes(id))) return false;
       if (unlocked && recipe.requiredIngredients.every(id => (available[id] || 0) > 0)) return false;
-      let cost = 0;
       for (const id of recipe.requiredIngredients) {
         const ingredient = ingredients.find(item => item.id === id);
         if (!ingredient || (ingredient.unlockEventId && !state.unlockedIngredients.includes(id))) return false;
-        const incoming = state.deliveries.filter(item => item.ingredientId === id).reduce((sum, item) => sum + item.packs * item.servingsPerPack, 0);
-        if ((available[id] || 0) + incoming <= 0) cost += ingredient.price;
       }
-      // A legacy save may hold all ingredients without having discovered this basic recipe.
-      // Reserve enough budget for one delivery that will run recipe discovery.
-      if (!unlocked && cost === 0 && !state.deliveries.length) {
-        cost = Math.min(...recipe.requiredIngredients.map(id => ingredients.find(item => item.id === id)!.price));
-      }
-      return cost <= state.currency;
+      return true;
     });
     const recipe = options[Math.floor(Math.random() * options.length)];
     if (recipe) return { recipeId: recipe.id, request: true };

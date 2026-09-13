@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { characters, getCharacter } from "../data/characters";
-import { relationshipEvents } from "../data/events";
+import { relationshipEvents, staffStoryEvents } from "../data/events";
 import { compareGiftIds, getGift, gifts } from "../data/gifts";
 import { useGame } from "../game/GameContext";
 import { giftReaction, relationshipRequirements } from "../game/logic";
@@ -34,6 +34,7 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
   const {state,dispatch}=useGame();
   const character=getCharacter(characterId)!; const p=state.characterProgress[characterId];
   const stories=relationshipEvents.filter(event=>event.characterId===characterId);
+  const staffStories=staffStoryEvents.filter(event=>event.characterId===characterId);
   const nextStory=stories.find(event=>event.toStage===p.relationshipStage+1);
   const [choosing,setChoosing]=useState(false); const [reaction,setReaction]=useState<string>();
   const inventory=Object.entries(state.inventory).filter(([,count])=>count>0).sort(([left],[right])=>compareGiftIds(left,right));
@@ -60,6 +61,16 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
             <span className="memory-level">{story.toStage}</span><span>{title}</span><small>{viewed?"読み返す ›":"未解放"}</small>
           </button></li>;
         })}</ol>
+        {staffStories.length>0&&<>
+          <h2>カフェを手伝う物語</h2>
+          <ol className="memory-list">{staffStories.map(story=>{
+            const viewed=p.viewedEvents.includes(story.id);
+            const title=p.route==="friendship"?story.friendshipTitle||story.title:story.title;
+            return <li key={story.id}><button disabled={!viewed} onClick={()=>onReplay(story)} aria-label={`${title}${viewed?"を読み返す":" 未解放"}`}>
+              <span className="memory-level">＋</span><span>{title}</span><small>{viewed?"読み返す ›":`好感度${story.requiredRelationshipStage}・雇用後`}</small>
+            </button></li>;
+          })}</ol>
+        </>}
       </div>
       <section className="gift-tastes" aria-labelledby="gift-tastes-title"><header><h2 id="gift-tastes-title">ギフトの好み</h2><span>{Object.keys(p.giftReactions).length}/{gifts.length}</span></header>
         <div className="gift-taste-grid">{reactionGroups.map(group=>{const discovered=gifts.filter(gift=>p.giftReactions[gift.id]===group.id);return <article className={`gift-taste taste-${group.id}`} key={group.id}><h3><span>{group.mark}</span>{group.label}</h3>{discovered.length?<ul>{discovered.map(gift=><li key={gift.id}><span>{gift.icon}</span>{gift.name}</li>)}</ul>:<p>未発見</p>}</article>})}</div>

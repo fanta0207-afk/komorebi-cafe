@@ -40,8 +40,8 @@ test('the supplied Ren artwork is used for full portraits and face selectors',()
   assert.equal(ren.image,'/assets/characters/ren.png');
   const png=readFileSync(new URL('../public/assets/characters/ren.png',import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-  assert.equal(png.readUInt32BE(16),512);
-  assert.equal(png.readUInt32BE(20),812);
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
 });
 
 test('the supplied Shizuka artwork is used for full portraits and face selectors',()=>{
@@ -58,8 +58,8 @@ test('the supplied Earl Grey artwork is used for full portraits and face selecto
   assert.equal(earlGrey.image,'/assets/characters/earl-grey.png');
   const png=readFileSync(new URL('../public/assets/characters/earl-grey.png',import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-  assert.equal(png.readUInt32BE(16),512);
-  assert.equal(png.readUInt32BE(20),812);
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
 });
 
 test('the supplied Shirakawa Maki artwork is used for full portraits and face selectors',()=>{
@@ -67,8 +67,8 @@ test('the supplied Shirakawa Maki artwork is used for full portraits and face se
   assert.equal(maki.image,'/assets/characters/shirakawa-maki.png');
   const png=readFileSync(new URL('../public/assets/characters/shirakawa-maki.png',import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-  assert.equal(png.readUInt32BE(16),512);
-  assert.equal(png.readUInt32BE(20),812);
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
 });
 
 test('the supplied Mugino Taiyo artwork is used for full portraits and face selectors',()=>{
@@ -77,8 +77,8 @@ test('the supplied Mugino Taiyo artwork is used for full portraits and face sele
   assert.equal(taiyo.silhouette,'太');
   const png=readFileSync(new URL('../public/assets/characters/mugino-taiyo.png',import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-  assert.equal(png.readUInt32BE(16),512);
-  assert.equal(png.readUInt32BE(20),812);
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
 });
 
 test('the supplied Toudou Sae artwork is used for full portraits and face selectors',()=>{
@@ -86,8 +86,47 @@ test('the supplied Toudou Sae artwork is used for full portraits and face select
   assert.equal(sae.image,'/assets/characters/toudou-sae.png');
   const png=readFileSync(new URL('../public/assets/characters/toudou-sae.png',import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
+});
+
+test('Cacao keeps the watercolor storefront art and uses the supplied original for stories',()=>{
+  const cacao=characters.find(character=>character.id==='cacao');
+  assert.equal(cacao.image,'/assets/characters/cacao.png');
+  assert.equal(cacao.storyImage,'/assets/characters/cacao-story.png');
+  assert.equal(cacao.supplierId,'chocolaterie');
+  const png=readFileSync(new URL('../public/assets/characters/cacao.png',import.meta.url));
+  assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
   assert.equal(png.readUInt32BE(16),512);
-  assert.equal(png.readUInt32BE(20),857);
+  assert.equal(png.readUInt32BE(20),812);
+  const storyPng=readFileSync(new URL('../public/assets/characters/cacao-story.png',import.meta.url));
+  assert.deepEqual([...storyPng.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+  assert.equal(storyPng.readUInt32BE(16),1024);
+  assert.equal(storyPng.readUInt32BE(20),1536);
+});
+
+test('cafe staff and manager use separate transparent chibi sprites instead of full portraits',()=>{
+  for(const id of [...characters.map(character=>character.id),'manager']){
+    const asset=`/assets/cafe/characters/${id}.png`;
+    assert.equal(cafeAsset.character(id),asset);
+    const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
+    assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    assert.equal(png.readUInt32BE(16),512);
+    assert.equal(png.readUInt32BE(20),768);
+    assert.equal(png[25],6);
+  }
+  const state={...stockedCafe(),staff:[{characterId:'ren',role:'cook',remainingMs:0}]};
+  const html=renderToStaticMarkup(React.createElement(CafeScene,{state,onOrder(){},onCharacter(){},onEquipment(){}}));
+  assert.match(html,/src="\/assets\/cafe\/characters\/ren\.png"/);
+  assert.match(html,/src="\/assets\/cafe\/characters\/manager\.png"/);
+  assert.doesNotMatch(html,/src="\/assets\/characters\/ren\.png"/);
+  const css=readFileSync(new URL('../src/components/cafe/cafe-scene.css',import.meta.url),'utf8');
+  assert.match(css,/\.scene-guest \{[^}]*width:14%; height:19cqw;/);
+  assert.match(css,/\.scene-staff \{[^}]*width:14%; height:19cqw;/);
+  assert.match(css,/\.scene-manager \{[^}]*width:14%; height:19cqw;/);
+  const globals=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+  assert.match(globals,/\.photo-cafe \.scene-guest \{ width:13%; height:22\.35cqw; \}/);
+  assert.match(globals,/\.photo-cafe \.scene-manager,\s*\.photo-cafe \.scene-staff \{ width:16%; height:27\.5cqw; \}/);
 });
 
 test('the supplied coffee machine is used in idle, cooking and ready states without changing equipment',()=>{
@@ -127,8 +166,8 @@ test('seating purchase card shows mission gates, prices and the maximum',()=>{
   const render=()=>renderToStaticMarkup(React.createElement(MenuScreen,{tab:'equipment',onTabChange(){}}));
   context.useGame=()=>({state,dispatch(){}});
   try{
-    assert.match(render(),/最初の一皿を届ける/);assert.match(render(),/ミッションで解放.*300/);
-    state={...state,currency:300,missions:{...state.missions,completed:['first-serve']}};
+    assert.match(render(),/コーヒー豆を1パック受け取る/);assert.match(render(),/ミッションで解放.*100/);
+    state={...state,currency:100,missions:{...state.missions,completed:['beans-arrive']}};
     assert.match(render(),/class="secondary-button add-station">増設する/);
     state={...state,tableCount:6};assert.match(render(),/最大6セット/);
     assert.doesNotMatch(render(),/増設する/);
@@ -144,6 +183,16 @@ test('the actual new-game scene shows only the coffee machine and reveals other 
   const purchased=reducer({...state,currency:1000},{type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});
   assert.match(render(purchased),/data-equipment="toastGrill" data-equipment-status="idle"/);
   assert.doesNotMatch(render(purchased),/data-equipment="prepTable"/);
+});
+
+test('procurement workers stay outside while cooking and serving workers remain in the cafe',()=>{
+  const state={...stockedCafe(),staff:[
+    {characterId:'ren',role:'cook',remainingMs:0},
+    {characterId:'cacao',role:'procurement',remainingMs:0},
+  ]};
+  const html=renderToStaticMarkup(React.createElement(CafeScene,{state,onOrder(){},onCharacter(){},onEquipment(){}}));
+  assert.match(html,/\/assets\/cafe\/characters\/ren\.png/);
+  assert.doesNotMatch(html,/\/assets\/cafe\/characters\/cacao\.png/);
 });
 
 test('screens keep playable controls while removing decorative and repeated copy', () => {
@@ -163,6 +212,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     const gifts = render('screens/GiftShopScreen.js', 'GiftShopScreen');
     const { suppliers } = require(join(output, 'data/suppliers.js'));
     const supplier = render('screens/SupplierScreen.js', 'SupplierScreen', { supplierId: suppliers[0].id, onBack() {} });
+    const highlightedSupplier = render('screens/SupplierScreen.js', 'SupplierScreen', { supplierId: suppliers[0].id, highlightIngredientId: 'coffeeBeans', onBack() {} });
     const inventory = render('components/cafe/InventoryModal.js', 'InventoryModal', { state, onClose() {}, onTown() {} });
     const suppliedPortrait = render('components/GameUI.js', 'Portrait', { character: characters[0] });
     assert.match(people,/portrait-small portrait-face/);
@@ -180,7 +230,9 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(recipes, /食材代/);
     assert.match(recipes, /利益/);
     assert.doesNotMatch(recipes, /SECRET RECIPE|STORY RECIPE|1品につき各1食分|必要な設備を購入すると販売できます/);
-    assert.match(staff, /好感度3で雇用できます/);
+    assert.match(staff, /好感度4で雇用できます/);
+    assert.match(staff, /好感度7で雇用できます/);
+    assert.match(staff, /仕入れをお願いする/);
     assert.match(staff, /調理をお願いする/);
     assert.match(staff, /初回/);
     assert.match(gifts,/gift-rarity-common/);
@@ -198,7 +250,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(profile, /ふつう/);
     assert.match(profile, /苦手/);
     assert.doesNotMatch(profile, /共同成長|次の共同開発|調理をお願いする|提供をお願いする/);
-    assert.doesNotMatch(profile, new RegExp(`${characters[0].age}歳|${characters[0].occupation}|${characters[0].nameReading}`));
+    assert.doesNotMatch(profile, new RegExp(`${characters[0].occupation}|${characters[0].nameReading}`));
     assert.doesNotMatch(profile, new RegExp(characters[0].profile));
     state.characterProgress.ren.giftReactions={mug:'love',ribbon:'dislike'};
     const discoveredProfile=render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
@@ -212,9 +264,12 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.ok(supplier.indexOf("食材の仕入れ")<supplier.indexOf("デートに誘う"));
     assert.match(supplier, /入荷まで/);
     assert.doesNotMatch(supplier, /WHOLESALE|所要時間/);
-    assert.doesNotMatch(supplier, new RegExp(`${characters[0].age}歳|${characters[0].occupation}`));
+    assert.doesNotMatch(supplier, new RegExp(`${characters[0].occupation}`));
     assert.match(supplier, /class="dialogue-box"/);
     assert.match(supplier,/\/assets\/characters\/ren\.png/);
+    assert.match(highlightedSupplier,/supply-item-highlight/);
+    assert.match(highlightedSupplier,/supply-order-button supply-order-highlight/);
+    assert.match(highlightedSupplier,/この食材です/);
     assert.match(suppliedPortrait,/data-character="ren"/);
     assert.doesNotMatch(suppliedPortrait,/<span>蓮<\/span>/);
     assert.match(inventory, /食分/);
@@ -229,21 +284,36 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(storyModal,/className=\{`story-stage[\s\S]*data-character=\{character\.id\}/);
     const globalCss=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
     const cafeGame=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+    const cafeScreen=readFileSync(new URL('../src/screens/CafeScreen.tsx',import.meta.url),'utf8');
     const recipesSource=readFileSync(new URL('../src/data/recipes.ts',import.meta.url),'utf8');
     const missionsSource=readFileSync(new URL('../src/game/missions.ts',import.meta.url),'utf8');
     for(const rarity of ['common','rare','superRare','ultraRare'])assert.match(globalCss,new RegExp(`\\.gift-rarity-${rarity}\\{--rarity:`));
-    assert.match(globalCss,/\.portrait-face\[data-character="haru"\] \{ --face-scale:1\.65; --face-shift-x:12\.5%; \}/);
-    assert.match(globalCss,/\.portrait-face\[data-character="ren"\] \{ --face-scale:2\.05; --face-shift-x:-14%; \}/);
-    assert.match(globalCss,/\.portrait-face\[data-character="itsuki"\] \{ --face-scale:2\.2; --face-shift-x:-7%;/);
+    assert.match(globalCss,/三ツ葉葵を基準に、顔の大きさと中心位置をそろえる/);
+    assert.match(globalCss,/\.portrait-face\[data-character="aki"\] \{ --face-scale:2\.35; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="ren"\] \{ --face-scale:2\.35; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="sota"\] \{ --face-scale:2\.15; --face-shift-y:5%; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="itsuki"\] \{ --face-scale:2\.45; --face-shift-y:18%; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="cacao"\] \{ --face-scale:2\.15; --face-shift-y:2%; \}/);
     assert.match(globalCss,/\.portrait-face img \{[^}]*mix-blend-mode:multiply;/);
     assert.match(globalCss,/\.profile-card>\.person-summary>\.portrait-face,[\s\S]*\.supplier-hero>\.portrait-face \{[^}]*width:96px;[^}]*height:96px;/);
     assert.match(storyCss,/\.story-standing-art \{[\s\S]*height:var\(--story-height\);[\s\S]*object-position:50% 0;/);
-    assert.match(storyCss,/data-character="sota"\] \{ --story-height:75%; --story-top:5%; --story-left:16px; \}/);
-    assert.match(storyCss,/data-character="ren"\] \{ --story-height:72%; --story-top:10%; --story-left:-14px; \}/);
-    assert.match(storyCss,/data-character="itsuki"\] \{ --story-height:80%; --story-top:8%; --story-left:-12px; \}/);
-    assert.match(storyCss,/data-character="haru"\] \{ --story-height:78%; --story-top:4%; --story-left:22px; \}/);
+    assert.match(storyCss,/三ツ葉葵（デフォルト100%）を基準に、人物の余白込みで頭身をそろえる/);
+    assert.match(storyCss,/data-character="sota"\] \{ --story-height:90%; --story-top:5%; \}/);
+    assert.match(storyCss,/data-character="ren"\] \{ --story-height:97%; --story-top:1%; \}/);
+    assert.match(storyCss,/data-character="itsuki"\] \{ --story-height:91%; --story-top:8%; \}/);
+    assert.match(storyCss,/data-character="haru"\] \{ --story-height:95%; --story-top:1%; \}/);
+    assert.match(storyCss,/data-character="cacao"\] \{ --story-height:91%; --story-top:5%; \}/);
     assert.match(cafeGame,/className="story-stage is-speaking" data-character=\{character\.id\}/);
-    assert.match(cafeGame,/className="story-standing-art" src=\{character\.image\}/);
+    assert.match(cafeGame,/const screenKey=`\$\{screen\}:\$\{supplierId\|\|""\}:\$\{characterId\|\|""\}`;/);
+    assert.match(cafeGame,/<div key=\{screenKey\} className="screen-wrap">/);
+    assert.match(cafeGame,/const storyImage=character\.storyImage\|\|character\.image/);
+    assert.match(cafeGame,/className="story-standing-art" src=\{storyImage\}/);
+    assert.match(cafeScreen,/Number\(!!a\.staffId\)-Number\(!!b\.staffId\)/);
+    assert.match(cafeScreen,/delivery\.staffId\?deliveryRunner\(delivery\.staffId\):"仕入れ"\}：\{deliveryCountdown/);
+    assert.doesNotMatch(cafeScreen,/入荷まで(?:あと)?\{deliveryCountdown/);
+    assert.match(globalCss,/\.cafe-delivery-list \{[^}]*justify-items:start;/);
+    assert.match(globalCss,/\.cafe-delivery-status \{[^}]*width:max-content;/);
+    assert.doesNotMatch(cafeScreen,/・他\$\{state\.deliveries\.length-1\}件/);
     assert.match(globalCss,/\.growth-event-overlay \.story-stage\{[^}]*twilight-cafe-street\.png/);
     assert.doesNotMatch(globalCss,/\.growth-event-overlay \.event-scene\{background:radial-gradient/);
     assert.match(cafeGame,/className="story-modal story-player date-story-player"/);
@@ -325,23 +395,25 @@ test('priority artwork paints directly without flashing its legacy fallback', ()
 test('a fully developed cafe renders all equipment, staff and 4 usable order bubbles without decorative rewards', () => {
   const state = {
     ...stockedCafe(), activeMs: 5000,
-    orders: [order('a', 0), order('b', 1, 'cooking'), order('c', 2, 'ready'), order('d', 3)],
+    orders: [order('a', 0), { ...order('b', 1, 'cooking'), stationId: 'station-coffeeCounter' }, order('c', 2, 'ready'), order('d', 3)],
     ownedEquipment: equipment.map(item => item.id),
     stations: equipment.map(item => ({ id: `station-${item.id}`, equipmentId: item.id, level: 3 })),
     unlockedDecorations: decorations.map(item => item.id),
-    staff: characters.map((character, index) => ({ characterId: character.id, role: index % 2 ? 'server' : 'cook', remainingMs: 0 })),
+    staff: characters.slice(0,4).map((character, index) => ({ characterId: character.id, role: index % 2 ? 'server' : 'cook', remainingMs: 0 })),
   };
   const before = JSON.stringify(state);
   const html = renderToStaticMarkup(React.createElement(CafeScene, { state, onOrder() {}, onCharacter() {}, onEquipment() {} }));
   assert.deepEqual([...html.matchAll(/data-layer="([^"]+)"/g)].map(match => match[1]), ['background', 'furniture', 'equipment', 'seating', 'customers', 'characters', 'bubbles', 'effects']);
   for (const item of equipment) assert.ok(html.includes(`data-equipment="${item.id}"`));
   assert.doesNotMatch(html,/data-decoration=/);
-  for (const character of characters) assert.ok(html.includes(`aria-label="${character.name}・`));
+  for (const character of state.staff.map(person=>characters.find(item=>item.id===person.characterId))) assert.ok(html.includes(`aria-label="${character.name}・`));
   assert.match(html, /aria-label="店長（あなた）・いらっしゃいませ"/);
   assert.equal((html.match(/class="scene-order /g) || []).length, 4);
   assert.match(html, /src="\/assets\/cafe\/backgrounds\/room\.png\?v=d9fba6fd"/);
   assert.equal((html.match(/src="\/assets\/cafe\/furniture\/table-set\.png"/g) || []).length, 4);
   assert.match(html, /あと5秒/);
+  assert.ok((html.match(/あと\d+秒/g)||[]).length<=2,'the cafe contains no more than two countdown references');
+  assert.match(html,/\+25コイン/);
   assert.match(html, /提供する/);
   assert.equal(JSON.stringify(state), before);
 });
@@ -369,7 +441,30 @@ test('presentation does not alter v5 round trips, ingredient consumption or manu
   for (const key of ['currency', 'ingredients', 'orders', 'stations', 'staff', 'lifetimeStats', 'characterProgress', 'saveVersion']) assert.deepEqual(restored[key], state[key]);
 });
 
-const { createManager, enqueueManager, advanceManager, managerFrame, managerPending, MANAGER_TIMING } = require(join(output, 'components/cafe/managerModel.js'));
+const { aislePosition, createManager, enqueueManager, advanceManager, managerFrame, managerPending, MANAGER_TIMING } = require(join(output, 'components/cafe/managerModel.js'));
+
+test('調理側の移動時間は提供担当に近いゆっくりした速度で進む', () => {
+  assert.equal(MANAGER_TIMING.toMachine, 2100);
+  assert.equal(MANAGER_TIMING.toTable, 2100);
+  assert.equal(MANAGER_TIMING.return, 1600);
+});
+
+test('serving staff advances slowly through the center aisle instead of jumping to the table',()=>{
+  assert.deepEqual(aislePosition({x:36,y:44},{x:44,y:58},0),{x:36,y:44});
+  assert.deepEqual(aislePosition({x:36,y:44},{x:44,y:58},1),{x:44,y:58});
+  const state={...stockedCafe(),orders:[order('staff-route',0,'ready')],staff:[{characterId:'ren',role:'server',servingOrderId:'staff-route',remainingMs:2500}]};
+  const html=renderToStaticMarkup(React.createElement(CafeScene,{state,onOrder(){},onCharacter(){},onEquipment(){}}));
+  assert.match(html,/class="scene-staff staff-serving staff-moving [^"]*"[^>]*style="left:49%;top:47%/);
+  const returningState={...stockedCafe(),orders:[],staff:[{characterId:'ren',role:'server',returningFromSlot:0,remainingMs:2500}]};
+  const returningHtml=renderToStaticMarkup(React.createElement(CafeScene,{state:returningState,onOrder(){},onCharacter(){},onEquipment(){}}));
+  assert.match(returningHtml,/class="scene-staff staff-returning staff-moving [^"]*"[^>]*style="left:49%;top:47%/);
+  assert.match(returningHtml,/提供後、カウンターへ戻っています/);
+  const css=readFileSync(new URL('../src/components/cafe/cafe-scene.css',import.meta.url),'utf8');
+  assert.match(css,/\.scene-staff \{[^}]*transition:left \.14s linear,top \.14s linear;/);
+  assert.match(css,/\.manager-moving \.manager-body \{ animation:manager-walk 1\.2s linear infinite;/);
+  assert.match(css,/\.manager-moving \.person-legs \{ animation:manager-steps 1\.2s linear infinite;/);
+  assert.match(readFileSync(new URL('../src/components/cafe/CafeManager.tsx',import.meta.url),'utf8'),/now % 1200/);
+});
 
 test('the manager walks to the assigned machine before existing cooking starts', () => {
   let state = { ...stockedCafe(), activeMs: 0, spawnRemainingMs: 1e12 };
@@ -437,7 +532,7 @@ test('repeated requests and paused foreground time cannot replay a manager deliv
   }
   assert.deepEqual(managerFrame(manager, state), pausedFrame);
   const commands = [];
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 120; i++) {
     state = reducer(state, { type: 'TICK', deltaMs: 100 });
     const result = advanceManager(manager, state); manager = result.model;
     if (result.command) { commands.push(result.command); state = reducer(state, result.command); }
@@ -466,7 +561,7 @@ test('staff completing a pending order cancels the manager action without double
   assert.equal(state.lifetimeStats.totalOrders, 1);
 });
 
-test('one busy machine keeps the next manager preparation queued until it is free', () => {
+test('the manager starts two free coffee machines without waiting for the first brew', () => {
   let state = { ...stockedCafe(), activeMs: 0, orders: [order('first'), order('second', 1)], spawnRemainingMs: 1e12 };
   state = { ...state, stations: [...state.stations, { id: 'coffeeCounter-2', equipmentId: 'coffeeCounter', level: 1 }] };
   let manager = createManager();
@@ -478,7 +573,7 @@ test('one busy machine keeps the next manager preparation queued until it is fre
     state = reducer(state, { type: 'TICK', deltaMs: 100 });
   }
   assert.deepEqual(commands.map(command => command.orderId), ['first', 'second']);
-  assert.ok(commands[1].at - commands[0].at >= 30000);
+  assert.ok(commands[1].at - commands[0].at < 3000);
   assert.equal(state.ingredients.coffeeBeans, stockedCafe().ingredients.coffeeBeans - 2);
   assert.ok(state.orders.every(item => item.status === 'ready'));
 });
@@ -513,11 +608,13 @@ test('equipment and scene track idle, countdown, ready and served from the same 
   const station = state.stations.find(item => item.equipmentId === 'coffeeCounter');
   assert.equal(stationActivity(state, station.id).status, 'idle');
   state = reducer(state, { type: 'START_COOKING', orderId: 'one' });
-  assert.equal(stationActivity(state, station.id).order.remainingMs, 30000);
+  assert.equal(stationActivity(state, station.id).order.remainingMs, 10000);
   const render = () => renderToStaticMarkup(React.createElement(CafeScene, { state, onOrder() {}, onCharacter() {}, onEquipment() {} }));
   assert.match(render(), /data-equipment="coffeeCounter" data-equipment-status="cooking"/);
-  assert.match(render(), /あと30秒/);
-  for (let i = 0; i < 30; i++) state = reducer(state, { type: 'TICK', deltaMs: 1000 });
+  assert.match(render(), /あと10秒/);
+  assert.match(render(), /equipment-state-label">あと10秒/);
+  assert.match(render(), /bubble-label">調理中/);
+  for (let i = 0; i < 10; i++) state = reducer(state, { type: 'TICK', deltaMs: 1000 });
   assert.equal(stationActivity(state, station.id).status, 'ready');
   assert.match(render(), /data-equipment="coffeeCounter" data-equipment-status="ready"/);
   state = reducer(state, { type: 'COLLECT_ORDER', orderId: 'one' });

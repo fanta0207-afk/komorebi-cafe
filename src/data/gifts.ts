@@ -10,7 +10,7 @@ export const giftRarityInfo:Record<GiftRarity,{badge:string;label:string;effect:
 export const gifts: Gift[] = [
   { id:"bouquet", name:"野の花束", icon:"💐", price:280, rarity:"common", tags:["flower","nature"], description:"季節の小花を束ねた花束" },
   { id:"cookies", name:"焼き菓子", icon:"🍪", price:180, rarity:"common", tags:["sweet","handmade"], description:"素朴なバタークッキー" },
-  { id:"book", name:"短編集", icon:"📕", price:360, rarity:"common", tags:["book","art"], description:"珈琲に似合う静かな物語" },
+  { id:"book", name:"短編集", icon:"📕", price:300, rarity:"common", tags:["book","art"], description:"珈琲に似合う静かな物語" },
   { id:"mug", name:"陶器のマグ", icon:"☕", price:620, rarity:"rare", tags:["coffee","craft"], description:"手になじむ飴色のカップ" },
   { id:"handkerchief", name:"刺繍ハンカチ", icon:"◫", price:220, rarity:"common", tags:["practical","handmade"], description:"小さな葉の刺繍入り" },
   { id:"earlGrey", name:"アールグレイ", icon:"🫖", price:260, rarity:"common", tags:["tea","elegant"], description:"柑橘が香る茶葉" },

@@ -26,7 +26,8 @@ export interface ManagerFrame {
   progress?: number;
 }
 export const MANAGER_HOME: Point = { x: 40, y: 44 };
-export const MANAGER_TIMING = { toMachine: 900, startWork: 450, pickup: 350, toTable: 1100, handoff: 450, return: 900 };
+// 調理側の移動が速く見えないよう、提供担当に近いゆっくりした歩行時間にする。
+export const MANAGER_TIMING = { toMachine: 2100, startWork: 450, pickup: 500, toTable: 2100, handoff: 450, return: 1600 };
 const HANDOFF_AT = MANAGER_TIMING.toMachine + MANAGER_TIMING.pickup + MANAGER_TIMING.toTable;
 
 export function createManager(now = 0): ManagerModel {
@@ -41,7 +42,7 @@ function between(from: Point, to: Point, progress: number): Point {
 }
 
 // Service routes follow the center aisle rather than crossing neighboring tables.
-function walk(from: Point, to: Point, progress: number): Point {
+export function aislePosition(from: Point, to: Point, progress: number): Point {
   const points = from.y > 55 || to.y > 55
     ? [from, { x: 49, y: from.y }, { x: 49, y: to.y }, to] : [from, to];
   const lengths = points.slice(1).map((point, i) => Math.hypot(point.x - points[i].x, point.y - points[i].y));
@@ -60,24 +61,24 @@ export function managerFrame(model: ManagerModel, state: GameState): ManagerFram
     const elapsed = Math.max(0, now - run.startedAt);
     const order = state.orders.find(item => item.id === run.orderId);
     const base = { recipeId: run.recipeId, orderId: run.orderId };
-    if (elapsed < MANAGER_TIMING.toMachine) return { ...base, position: walk(run.from, run.machine, elapsed / MANAGER_TIMING.toMachine), phase: "walking", label: run.kind === "start" ? "マシンへ移動中" : "料理を取りに" };
+    if (elapsed < MANAGER_TIMING.toMachine) return { ...base, position: aislePosition(run.from, run.machine, elapsed / MANAGER_TIMING.toMachine), phase: "walking", label: run.kind === "start" ? "マシンへ移動中" : "料理を取りに" };
     if (run.kind === "start") {
-      const active = activeCookingOrder(state)?.id === order?.id;
+      const active = order?.status === "cooking";
       const ready = order?.status === "ready";
       return { ...base, position: run.machine, phase: ready ? "ready" : active ? "cooking" : "idle",
-        label: ready ? "できました！" : active ? `調理中 · あと${Math.ceil(order!.remainingMs / 1000)}秒` : "準備中",
+        label: ready ? "できました！" : active ? "調理中" : "準備中",
         progress: order?.totalMs ? 1 - order.remainingMs / order.totalMs : 0 };
     }
     if (elapsed < MANAGER_TIMING.toMachine + MANAGER_TIMING.pickup) return { ...base, position: run.machine, phase: "pickup", label: "できたてをお盆に" };
-    if (elapsed < HANDOFF_AT) return { ...base, position: walk(run.machine, run.table, (elapsed - MANAGER_TIMING.toMachine - MANAGER_TIMING.pickup) / MANAGER_TIMING.toTable), phase: "carrying", label: order ? `テーブル${order.customerSlot + 1}へお届け` : "客席へお届け" };
+    if (elapsed < HANDOFF_AT) return { ...base, position: aislePosition(run.machine, run.table, (elapsed - MANAGER_TIMING.toMachine - MANAGER_TIMING.pickup) / MANAGER_TIMING.toTable), phase: "carrying", label: order ? `テーブル${order.customerSlot + 1}へお届け` : "客席へお届け" };
     return { ...base, position: run.table, phase: "serving", label: "お待たせしました" };
   }
   const elapsed = now - model.rest.startedAt;
   if (elapsed < MANAGER_TIMING.return && (model.rest.from.x !== model.rest.to.x || model.rest.from.y !== model.rest.to.y)) {
-    return { position: walk(model.rest.from, model.rest.to, elapsed / MANAGER_TIMING.return), phase: "returning", label: "カウンターへ" };
+    return { position: aislePosition(model.rest.from, model.rest.to, elapsed / MANAGER_TIMING.return), phase: "returning", label: "カウンターへ" };
   }
   const focus = state.orders.find(order => order.id === model.focusId && !order.cookId);
-  if (focus?.status === "cooking" && activeCookingOrder(state)?.id === focus.id) return { position: model.rest.to, phase: "cooking", label: `調理中 · あと${Math.ceil(focus.remainingMs / 1000)}秒`, recipeId: focus.recipeId, orderId: focus.id, progress: 1 - focus.remainingMs / Math.max(1, focus.totalMs) };
+  if (focus?.status === "cooking") return { position: model.rest.to, phase: "cooking", label: "調理中", recipeId: focus.recipeId, orderId: focus.id, progress: 1 - focus.remainingMs / Math.max(1, focus.totalMs) };
   if (focus?.status === "ready") return { position: model.rest.to, phase: "ready", label: "できました！", recipeId: focus.recipeId, orderId: focus.id, progress: 1 };
   return { position: model.rest.to, phase: "idle", label: "いらっしゃいませ" };
 }
@@ -114,7 +115,7 @@ export function advanceManager(model: ManagerModel, state: GameState): { model: 
     const elapsed = now - run.startedAt;
     const order = state.orders.find(item => item.id === run.orderId);
     const invalid = !run.issued && !applicable(run, state);
-    const finished = run.issued && (run.kind === "start" ? order?.status !== "cooking" && elapsed >= MANAGER_TIMING.toMachine + MANAGER_TIMING.startWork : elapsed >= HANDOFF_AT + MANAGER_TIMING.handoff);
+    const finished = run.issued && (run.kind === "start" ? elapsed >= MANAGER_TIMING.toMachine + MANAGER_TIMING.startWork : elapsed >= HANDOFF_AT + MANAGER_TIMING.handoff);
     if (invalid || finished) {
       const position = managerFrame(next, state).position;
       const focus = state.orders.find(item => item.id === (run.kind === "start" ? run.orderId : next.focusId) && !item.cookId && item.status !== "queued");

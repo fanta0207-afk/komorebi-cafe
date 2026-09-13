@@ -2,7 +2,7 @@ import { GAME_CONFIG } from "./config";
 import type { GameState } from "../types/game";
 
 export const tableUpgrades = [
-  { count: 2, price: 300, missionId: "first-serve" },
+  { count: 2, price: 100, missionId: "beans-arrive" },
   { count: 3, price: 450, missionId: "coffee-three" },
   { count: 4, price: 650, missionId: "coffee-ten" },
   { count: 5, price: 900, missionId: "serve-mocha" },

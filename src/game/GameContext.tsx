@@ -1,12 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type Dispatch, type ReactNode } from "react";
 import type { GameState } from "../types/game";
 import { GAME_CONFIG } from "./config";
 import { randomShopItems } from "./logic";
 import { createInitialState, loadState, reducer, type Action } from "./state";
 
-interface GameContextValue { state:GameState; dispatch:Dispatch<Action>; refreshGiftShop:(costAction?:boolean)=>void; }
+interface GameContextValue { state:GameState; dispatch:Dispatch<Action>; refreshGiftShop:(costAction?:boolean)=>void; resetGame:()=>void; }
 const GameContext=createContext<GameContextValue|null>(null);
 
 export function GameProvider({children}:{children:ReactNode}) {
@@ -28,6 +28,12 @@ export function GameProvider({children}:{children:ReactNode}) {
     const timer=window.setTimeout(()=>dispatch({type:"CLEAR_NOTICE"}),2200);
     return ()=>window.clearTimeout(timer);
   },[state.notice]);
+  const resetGame=useCallback(()=>{
+    const fresh=createInitialState();
+    stateRef.current=fresh;
+    try{window.localStorage.removeItem(GAME_CONFIG.saveKey);setSaveError(false);}catch{setSaveError(true);}
+    dispatch({type:"HYDRATE",state:fresh});
+  },[]);
   useEffect(()=>{
     if(!hydrated)return;
     let previous=performance.now();
@@ -35,7 +41,7 @@ export function GameProvider({children}:{children:ReactNode}) {
     const reset=()=>{previous=performance.now();};document.addEventListener("visibilitychange",reset);
     return ()=>{window.clearInterval(timer);document.removeEventListener("visibilitychange",reset);};
   },[hydrated]);
-  const value=useMemo(()=>({ state,dispatch,refreshGiftShop:(costAction=true)=>dispatch({type:"REFRESH_SHOP",items:randomShopItems(),costAction}) }),[state]);
+  const value=useMemo(()=>({ state,dispatch,refreshGiftShop:(costAction=true)=>dispatch({type:"REFRESH_SHOP",items:randomShopItems(),costAction}),resetGame }),[state,resetGame]);
   return <GameContext.Provider value={value}>{saveError&&<div className="save-warning" role="alert">端末に保存できません。保存領域をご確認ください。</div>}{children}</GameContext.Provider>;
 }
 

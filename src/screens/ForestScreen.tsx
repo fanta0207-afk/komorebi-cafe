@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useGame } from '../game/GameContext';
-import { forestAreas, forestArea, forestIngredients, forestRecipes, handmadeGifts } from '../data/forest';
+import { FOREST_CONFIG, forestAreas, forestArea, forestIngredients, forestRecipes, handmadeGifts } from '../data/forest';
 import { getIngredient } from '../data/ingredients';
 import { basketCapacity, basketWeight, forestDeepUnlocked, forestSecret, forestRandom } from '../game/forest';
 import { salePrice } from '../game/logic';
@@ -18,7 +18,7 @@ export function ForestScreen({ onBook, onTown }: {
     const { state, dispatch } = useGame(), f = state.forest, e = f.expedition;
     const energy = <div className="forest-meter"><strong>🍃 体力 {f.energy} / 70</strong><span>{f.energy < 70 ? `あと${Math.max(1, Math.ceil((60000 - (state.lastPlayedAt - f.recoveredAt)) / 1000))}秒で +1` : '1分で1回復'}</span></div>;
     if (!e)
-        return <section className="screen forest-screen"><ScreenTitle title="こもれびの森"/>{energy}<div className="forest-card"><h2>ひとつ見つける、小さな冒険。</h2><p>森の分け合い箱には、街のみんなが届けた食材。草むらには季節の恵み。かごを持って探しに行こう。</p><p>普通の食材は毎回1個。最初の採取で調達券1〜2枚も見つかります。</p><p>🧺 かご {basketCapacity(f)}枠 · 帰還 {f.returns}回</p><button className="primary-button" disabled={state.lifetimeStats.totalOrders < 1 || f.energy < 1} onClick={() => dispatch({ type: 'FOREST_ENTER' })}>森へ出かける</button>{state.lifetimeStats.totalOrders < 1 && <p>最初の料理を提供すると出かけられます。</p>}</div>{f.lastReturn && <div className="forest-card"><h3>持ち帰ったもの</h3><FoodList items={f.lastReturn.food}/><p>🪙 +{f.lastReturn.coins} · 🎟 +{f.lastReturn.tickets}{f.lastReturn.fragment && ` · ${forestRecipes.find(r => r.id === f.lastReturn?.fragment)?.name}の切れ端`}</p></div>}<button className="secondary-button" onClick={onBook}>森の手帳を開く</button><button className="secondary-button" onClick={onTown}>街へ戻る</button></section>;
+        return <section className="screen forest-screen"><ScreenTitle title="こもれびの森"/>{energy}<div className="forest-card"><h2>ひとつ見つける、小さな冒険。</h2><p>森の分け合い箱には、街のみんなが届けた食材。草むらには季節の恵み。かごを持って探しに行こう。</p><p>普通の食材は毎回1個。採取ごとに{FOREST_CONFIG.ticketChance * 100}％の確率で調達券1枚が見つかります。</p><p>🧺 かご {basketCapacity(f)}枠 · 帰還 {f.returns}回</p><button className="primary-button" disabled={state.lifetimeStats.totalOrders < 1 || f.energy < 1} onClick={() => dispatch({ type: 'FOREST_ENTER' })}>森へ出かける</button>{state.lifetimeStats.totalOrders < 1 && <p>最初の料理を提供すると出かけられます。</p>}</div>{f.lastReturn && <div className="forest-card"><h3>持ち帰ったもの</h3><FoodList items={f.lastReturn.food}/><p>🪙 +{f.lastReturn.coins} · 🎟 +{f.lastReturn.tickets}{f.lastReturn.fragment && ` · ${forestRecipes.find(r => r.id === f.lastReturn?.fragment)?.name}の切れ端`}</p></div>}<button className="secondary-button" onClick={onBook}>森の手帳を開く</button><button className="secondary-button" onClick={onTown}>街へ戻る</button></section>;
     const area = forestArea(e.area), secret = forestSecret(f), capacity = basketCapacity(f), used = basketWeight(e.basket), ready = state.orders.filter(o => o.status === 'ready').length;
     if (e.returning)
         return <section className="screen forest-screen"><ScreenTitle title="森からのおみやげ"/>{energy}<div className="forest-card"><FoodList items={e.basket}/><p>🪙 {e.coins.toLocaleString()}コイン · 🎟 調達券 {e.tickets}枚</p>{e.fragment && <p>📜 {forestRecipes.find(r => r.id === e.fragment)?.name}の切れ端 {(f.fragments[e.fragment] || 0) + 1}/3</p>}<p>持ち帰ると在庫に加わります。</p><button className="primary-button" onClick={() => dispatch({ type: 'FOREST_CLAIM' })}>受け取る</button></div></section>;

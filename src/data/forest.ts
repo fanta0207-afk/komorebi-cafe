@@ -1,5 +1,5 @@
 import type { Ingredient, Recipe, Gift } from '../types/game';
-export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, basket: 10, coinChance: .3, coinMin: 300, coinMax: 2000, deepReturns: 5, deepOrders: 20 };
+export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, basket: 10, coinChance: .3, ticketChance: .15, coinMin: 300, coinMax: 2000, deepReturns: 5, deepOrders: 20 };
 export const forestIngredients: Ingredient[] = [['forestBerry', '野いちご', '🍓'], ['forestWalnut', '森くるみ', '🌰'], ['forestHerb', '香草', '🌿'], ['forestMint', '森ミント', '🍃'], ['forestPetal', '食用花', '🌸'], ['forestMushroom', '森きのこ', '🍄'], ['forestHoney', '琥珀花蜜', '🍯'], ['forestMoonBerry', '月しずくベリー', '🫐']].map(([id, name, icon]) => ({ id, name, icon, price: 0, supplierId: 'forest', limited: true }));
 const recipe = (id: string, name: string, icon: string, sale: number, seconds: number, materials: string[], equipment: string, tags: string[], secret = false): Recipe => ({ id, name, icon, price: sale * 2, cookingSeconds: seconds, requiredIngredients: materials, requiredEquipmentIds: [equipment], tags, limited: true, forest: true, hidden: secret, unlockHint: secret ? '森でレシピの切れ端を3枚集める' : '最初の料理を提供する' });
 export const forestRecipes: Recipe[] = [

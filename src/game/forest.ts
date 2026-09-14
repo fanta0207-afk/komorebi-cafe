@@ -123,7 +123,7 @@ export function reduceForest(state: GameState, a: ForestAction): GameState {
                 food.push(pity ? (e.area === 'stone' ? 'forestHoney' : 'forestMoonBerry') : story.length && random() < .25 ? story[Math.floor(random() * story.length)].id : weighted(area.bonus, random));
             }
             const coins = random() < C.coinChance ? C.coinMin + Math.floor(random() * (C.coinMax - C.coinMin + 1)) : 0;
-            const tickets = e.harvested ? 0 : forestRandom(e.seed, 'tickets')() < .5 ? 1 : 2;
+            const tickets = forestRandom(e.seed, `${key}:tickets`)() < C.ticketChance ? 1 : 0;
             return finish({ ...f, energy: f.energy - cost, tutorialDone: true, expedition: { ...e, used: [...e.used, key], harvested: true, deepGather, gotRare: e.gotRare || food.some(id => id === 'forestHoney' || id === 'forestMoonBerry'), coins: e.coins + coins, tickets: e.tickets + tickets, pending: { food, coins, tickets } } });
         }
         case 'FOREST_FRAGMENT': {

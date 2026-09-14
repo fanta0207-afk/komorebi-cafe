@@ -1974,15 +1974,15 @@ test('forest recovers real time with fractional minutes, cap and backward clock 
  assert.equal(forestModel.recoverForest(f,500),f);f=forestModel.recoverForest(f,9999999);assert.equal(f.energy,70);
  let s={...forestReady(),forest:{...f,expedition:forestReady().forest.expedition}};s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:10000000});assert.equal(s.forest.energy,68);assert.equal(forestModel.recoverForest(s.forest,10030000).energy,68);assert.equal(forestModel.recoverForest(s.forest,10060000).energy,69);
 });
-test('forest food, one or two tickets, coins, pending loot and claim are deterministic and idempotent',()=>{
+test('forest food, random tickets, coins, pending loot and claim are deterministic and idempotent',()=>{
  for(let seed=1;seed<=1500;seed++){
   let s=forestReady(seed),before=JSON.parse(JSON.stringify(s));s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});const e=s.forest.expedition;
-  assert.ok(e.pending.food.length>=1);assert.ok(!getForestIngredient(e.pending.food[0]));assert.ok([1,2].includes(e.tickets));assert.ok(e.coins===0||(e.coins>=300&&e.coins<=2000));
+  assert.ok(e.pending.food.length>=1);assert.ok(!getForestIngredient(e.pending.food[0]));assert.ok([0,1].includes(e.tickets));assert.ok(e.coins===0||(e.coins>=300&&e.coins<=2000));
   assert.deepEqual(reducer(before,{type:'FOREST_GATHER',spot:0,careful:false,now:1000}).forest.expedition,e);
   assert.equal(reducer(s,{type:'FOREST_GATHER',spot:0,careful:true,now:1000}),s);
   s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.deepEqual(s.forest.expedition.pending,e.pending);
-  s=reducer(s,{type:'FOREST_TAKE'});const tickets=s.forest.expedition.tickets;s=reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000});assert.equal(s.forest.expedition.tickets,tickets);
-  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const claimed=reducer(s,{type:'FOREST_CLAIM'});assert.equal(reducer(claimed,{type:'FOREST_CLAIM'}),claimed);assert.equal(claimed.forest.tickets,tickets);assert.ok(claimed.forest.returns===6);
+  s=reducer(s,{type:'FOREST_TAKE'});const tickets=s.forest.expedition.tickets;s=reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000});assert.ok([tickets,tickets+1].includes(s.forest.expedition.tickets));const totalTickets=s.forest.expedition.tickets;
+  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const claimed=reducer(s,{type:'FOREST_CLAIM'});assert.equal(reducer(claimed,{type:'FOREST_CLAIM'}),claimed);assert.equal(claimed.forest.tickets,totalTickets);assert.ok(claimed.forest.returns===6);
  }
 });
 function getForestIngredient(id){return forestData.forestIngredients.some(i=>i.id===id);}
@@ -2016,4 +2016,17 @@ test('handmade gifts craft exact quantities and diminish third consecutive gift 
  let s=forestReady();s.currency=1000;s.ingredients={forestHerb:8,forestMint:4,teaLeaves:4};for(let i=0;i<3;i++)s=reducer(s,{type:'FOREST_CRAFT',giftId:'forestTeaGift'});assert.equal(s.currency,700);assert.equal(s.ingredients.forestHerb,2);
  const gains=[];for(let i=0;i<3;i++){const before=s.characterProgress.nagisa.affection;s=closeGiftPopup(reducer(s,{type:'GIVE_GIFT',giftId:'forestTeaGift',characterId:'nagisa',reaction:'normal'}));gains.push(s.characterProgress.nagisa.affection-before);}assert.deepEqual(gains,[10,8,4]);
  s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(s.characterProgress.nagisa.giftStreak,3);assert.deepEqual(s.characterProgress.nagisa.handmadeFirst,['forestTeaGift']);
+});
+
+test('tickets drop at 15 percent on every gather, with no first-gather or method advantage',()=>{
+ const tries=6000,hits=[0,0];let sawEmpty=false,sawMultiple=false,sawLaterOnly=false;
+ for(let seed=0;seed<tries;seed++){
+  let s=forestReady(seed);s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});const first=s.forest.expedition.pending.tickets;hits[0]+=first;
+  const careful=reducer(forestReady(seed),{type:'FOREST_GATHER',spot:0,careful:true,now:1000});assert.equal(careful.forest.expedition.pending.tickets,first);
+  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000});const second=s.forest.expedition.pending.tickets;hits[1]+=second;
+  assert.ok([0,1].includes(second));assert.equal(s.forest.expedition.tickets,first+second);
+  sawEmpty ||= first+second===0;sawMultiple ||= first+second===2;sawLaterOnly ||= first===0&&second===1;
+ }
+ for(const hit of hits)assert.ok(Math.abs(hit/tries-.15)<.015,`observed ${hit/tries}`);
+ assert.ok(sawEmpty&&sawMultiple&&sawLaterOnly);
 });

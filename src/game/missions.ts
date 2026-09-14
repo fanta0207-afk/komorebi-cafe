@@ -9,7 +9,7 @@ import { autoProcurementUnlocked } from "./automation";
 import { GAME_CONFIG } from "./config";
 import { menuCatalogProgress, recipesAtMasteryLevel } from "./menuMastery";
 
-export type MissionDestination = "orders" | "inventory" | "town" | "coffee" | "bakery" | "ranch" | "patisserie" | "chocolaterie" | "gifts" | "ren" | "recipes" | "equipment" | "people" | "staff";
+export type MissionDestination = "orders" | "inventory" | "town" | "forest" | "coffee" | "bakery" | "ranch" | "patisserie" | "chocolaterie" | "gifts" | "ren" | "recipes" | "equipment" | "people" | "staff";
 export interface Mission {
   id:string; chapter:string; title:string; hint:string; reward:number;
   destination:MissionDestination; target:number; value:(state:GameState)=>number;
@@ -63,6 +63,9 @@ const introduction:Mission[]=[
   add("first-order","注文を1件開く","",5,"orders",s=>yes(s.orders.length||s.lifetimeStats.totalOrders)),
   add("first-cook","料理を1品調理する","",5,"orders",s=>yes(s.orders.some(o=>o.status!=="queued")||s.lifetimeStats.totalOrders)),
   add("first-serve","料理を1品提供する","",25,"orders",s=>s.lifetimeStats.totalOrders),
+  add("forest-enter","こもれびの森へ出かける","料理や仕入れを待つ間に、食材探しへ",5,"forest",s=>yes(s.forest.nextId>1||s.forest.expedition)),
+  add("forest-gather","森で食材を1回採集する","光る場所を調べて、採集方法を選ぼう",10,"forest",s=>yes(s.forest.tutorialDone||s.forest.expedition?.harvested||s.forest.discovered.length)),
+  add("forest-bring-home","森の食材を店へ持ち帰る","かごに入れ、店へ帰る → 受け取る",15,"forest",s=>yes(s.forest.discovered.length)),
   add("toast-order","トーストの注文を受ける","",5,"orders",s=>yes(s.orders.some(order=>order.recipeId==="toast")||(s.lifetimeStats.recipeSales.toast||0))),
   add("install-toaster","トースターを1台設置","",35,"equipment",s=>yes(s.stations.some(station=>station.equipmentId==="toastGrill"))),
   add("bread-first","焼きたてパンを1パック発注","",10,"bakery",s=>bought(s,"bread")),

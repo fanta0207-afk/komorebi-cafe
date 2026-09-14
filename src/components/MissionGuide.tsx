@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useGame } from "../game/GameContext";
 import { activeMissionChapter, activeSideMissions, missionChapters, sortedMissions, missionRank, type MissionDestination } from "../game/missions";
 
-const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",coffee:"蓮のお店へ",bakery:"太陽のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",chocolaterie:"カカオのお店へ",gifts:"ギフトのお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
+const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",forest:"森の入口へ",coffee:"蓮のお店へ",bakery:"太陽のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",chocolaterie:"カカオのお店へ",gifts:"ギフトのお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
 
 export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void}) {
   const {state}=useGame();

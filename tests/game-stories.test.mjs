@@ -661,8 +661,8 @@ test('supplies are free, starter coffee is cheap, and later recipes earn more',(
   assert.equal(upgradePrice(createInitialState().stations[0]),450);
   const state=createInitialState();
   assert.equal(reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:state.stations[0].id}),state);
-  assert.equal(missions.length,38+characters.length*11);
-  assert.equal(new Set(missions.map(m=>m.id)).size,126);
+  assert.equal(missions.length,41+characters.length*11);
+  assert.equal(new Set(missions.map(m=>m.id)).size,129);
   assert.ok(missions.every(m=>m.reward>0&&m.title.length<=30&&m.hint.length<=60),'mission copy stays short and uses hints only for unclear conditions');
   assert.equal(missions.find(mission=>mission.id==='beans-arrive').hint,'');
   assert.equal(missions.find(mission=>mission.id==='ren-growth2').hint,'蓮の好感度2以上\nコーヒー豆を累計2パック発注で発生');
@@ -670,11 +670,12 @@ test('supplies are free, starter coffee is cheap, and later recipes earn more',(
 });
 
 test('missions are generated in locked groups of three and later progress stays hidden',()=>{
-  assert.equal(missions.length,38+characters.length*11);
+  assert.equal(missions.length,41+characters.length*11);
   assert.equal(new Set(missions.map(m=>m.id)).size,missions.length);
   assert.ok(missionChapters.every(chapter=>chapter.missions.length===3));
   assert.deepEqual(missionChapters[2].missions.map(mission=>mission.id),['first-order','first-cook','first-serve']);
-  assert.deepEqual(missionChapters[3].missions.map(mission=>mission.id),['toast-order','install-toaster','bread-first']);
+  assert.deepEqual(missionChapters[3].missions.map(mission=>mission.id),['forest-enter','forest-gather','forest-bring-home']);
+  assert.deepEqual(missionChapters[4].missions.map(mission=>mission.id),['toast-order','install-toaster','bread-first']);
   for(const character of characters){
     for(const prefix of ['supply','bond3','bond6','growth5','bond10'])assert.ok(missions.some(m=>m.id===`${prefix}-${character.id}`));
     assert.ok(missions.some(m=>m.id===`install-${character.id}-equipment`));
@@ -686,11 +687,11 @@ test('missions are generated in locked groups of three and later progress stays 
     ['upgrade-toast-grill',2],['upgrade-prep-table',2],['upgrade-coffee-counter',2],
   ]);
   assert.equal(missions.filter(mission=>mission.id.startsWith('upgrade-')).length,3);
-  assert.deepEqual(missionChapters[9].missions.map(mission=>mission.id),['chocolate-arrive','serve-mocha','chocolate-three']);
-  assert.deepEqual(missionChapters[10].missions.map(mission=>mission.id),['bond3-ren','bond4-ren','hire-ren']);
-  assert.deepEqual(missionChapters[11].missions.map(mission=>mission.id),['assign-ren-procurement','ren-first-staff-supply','install-prep-table']);
-  assert.deepEqual(missionChapters[12].missions.map(mission=>mission.id),['upgrade-toast-grill','upgrade-prep-table','upgrade-coffee-counter']);
-  assert.equal(missionChapters[13].missions[0].id,'install-second-coffee-counter');
+  assert.deepEqual(missionChapters[10].missions.map(mission=>mission.id),['chocolate-arrive','serve-mocha','chocolate-three']);
+  assert.deepEqual(missionChapters[11].missions.map(mission=>mission.id),['bond3-ren','bond4-ren','hire-ren']);
+  assert.deepEqual(missionChapters[12].missions.map(mission=>mission.id),['assign-ren-procurement','ren-first-staff-supply','install-prep-table']);
+  assert.deepEqual(missionChapters[13].missions.map(mission=>mission.id),['upgrade-toast-grill','upgrade-prep-table','upgrade-coffee-counter']);
+  assert.equal(missionChapters[14].missions[0].id,'install-second-coffee-counter');
   assert.deepEqual(missions.filter(mission=>mission.id.startsWith('hire-')).map(mission=>mission.id),['hire-ren','hire-second','hire-third','hire-fourth']);
   let state=createInitialState();
   assert.deepEqual(getMissions(state).map(m=>m.id),['visit-town','meet-ren','ren-story1']);
@@ -739,6 +740,12 @@ test('mission UI renders only the current three goals and advances its step',()=
   assert.match(secondStep,new RegExp(`ステップ 2 \\/ ${missionChapters.length}`));
   assert.doesNotMatch(secondStep,/visit-town|class="mission-hint"/);
   assert.doesNotMatch(render(ui.MissionGuide),/class="mission-badge"/);
+  const prior=missionChapters.slice(0,3).flatMap(c=>c.missions.map(m=>m.id));
+  state={...state,lifetimeStats:{...state.lifetimeStats,totalOrders:1},missions:{...state.missions,claimed:prior,completed:prior}};
+  const forestStep=render(ui.MissionNotebook);
+  assert.match(forestStep,new RegExp(`ステップ 4 \/ ${missionChapters.length}`));
+  assert.equal((forestStep.match(/森の入口へ →/g)||[]).length,3);
+  assert.match(forestStep,/forest-enter/);assert.match(forestStep,/forest-bring-home/);assert.doesNotMatch(forestStep,/toast-order/);
 });
 
 test('old recurring mission data is removed while valid roadmap rewards survive migration',()=>{
@@ -784,7 +791,7 @@ test('mission dishes arrive before their remaining supplies and equipment are re
 });
 
 test('the early toast mission creates one actionable order before bread or a toaster is ready',()=>{
-  const claimed=missionChapters.slice(0,3).flatMap(chapter=>chapter.missions.map(mission=>mission.id));
+  const claimed=missionChapters.slice(0,4).flatMap(chapter=>chapter.missions.map(mission=>mission.id));
   let state={...createInitialState(),tableCount:2,missions:{...createInitialState().missions,claimed,completed:claimed},spawnRemainingMs:1e12};
   assert.equal(currentMission(state).id,'toast-order');
   assert.deepEqual(pickIncomingOrder(state),{recipeId:'toast'});
@@ -794,7 +801,7 @@ test('the early toast mission creates one actionable order before bread or a toa
   assert.deepEqual(pickIncomingOrder(state),{recipeId:'coffee'},'only one unmet mission order occupies the cafe');
 });
 
-test('a fresh player follows the first nine mission groups through the first developed recipe',t=>{
+test('a fresh player follows the early mission groups including forest exploration through the first developed recipe',t=>{
   let state=createInitialState(),now=1000000,elapsed=0,firstDevelopmentAt=0;
   const random=Math.random;Math.random=()=>.9;
   const act=action=>{state=reducer(state,action);assert.ok(state.currency>=0);assert.ok(Object.values(state.ingredients).every(n=>n>=0));};
@@ -830,6 +837,9 @@ test('a fresh player follows the first nine mission groups through the first dev
         case 'visit-town':view('town');break;
         case 'meet-ren':case 'talk-ren':case 'ren-story1':case 'ren-story2':act({type:'VISIT',characterId:'ren'});break;
         case 'beans-first':case 'beans-second':buy('coffeeBeans');break;
+        case 'forest-enter':act({type:'FOREST_ENTER',now});break;
+        case 'forest-gather':act({type:'FOREST_MOVE',area:'clearing',now});act({type:'FOREST_GATHER',spot:0,careful:false,now});break;
+        case 'forest-bring-home':act({type:'FOREST_TAKE'});act({type:'FOREST_RETURN'});act({type:'FOREST_CLAIM'});break;
         case 'second-table':act({type:'BUY_TABLE',expectedCount:state.tableCount});break;
         case 'install-toaster':act({type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});break;
         case 'bread-first':buy('bread');break;
@@ -849,7 +859,7 @@ test('a fresh player follows the first nine mission groups through the first dev
       }
     }
     assert.ok(state.missions.claimed.includes('serve-mocha'),`stuck on ${currentMission(state)?.id}, coins=${state.currency}, elapsed=${elapsed/1000}s`);
-    assert.equal(state.missions.claimed.length,29);
+    assert.equal(state.missions.claimed.length,32);
     assert.ok(firstDevelopmentAt>0&&firstDevelopmentAt<=15*60000,`development took ${firstDevelopmentAt/1000}s`);
     assert.ok(state.lifetimeStats.recipeSales.cafeMocha>=1);
     const claimedRewards=missions.filter(m=>state.missions.claimed.includes(m.id)).reduce((sum,m)=>sum+m.reward,0);
@@ -2067,4 +2077,30 @@ test('changing forest coin distribution never rewrites saved pending rewards or 
  assert.equal(reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000}),s);
  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const before=s.currency;
  s=reducer(s,{type:'FOREST_CLAIM'});assert.equal(s.currency-before,1999);assert.equal(s.forest.tickets,1);
+});
+
+
+test('early forest missions require one real gather and receiving food, without rare loot or tickets',()=>{
+ const prior=missionChapters.slice(0,3).flatMap(c=>c.missions.map(m=>m.id));
+ let s=createInitialState();s.missions.claimed=[...prior];s.missions.completed=[...prior];s.lifetimeStats.totalOrders=1;
+ assert.deepEqual(getMissions(s).map(m=>m.id),['forest-enter','forest-gather','forest-bring-home']);
+ assert.ok(getMissions(s).every(m=>m.destination==='forest'));
+ s=reducer(s,{type:'FOREST_ENTER',now:1000});assert.ok(s.missions.completed.includes('forest-enter'));assert.ok(!s.missions.completed.includes('forest-gather'));
+ s=reducer(s,{type:'FOREST_MOVE',area:'clearing',now:1000});s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});
+ assert.ok(s.missions.completed.includes('forest-gather'));assert.ok(!s.missions.completed.includes('forest-bring-home'));
+ s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});assert.ok(!s.missions.completed.includes('forest-bring-home'));
+ s=reducer(s,{type:'FOREST_CLAIM'});assert.ok(s.missions.completed.includes('forest-bring-home'));assert.ok(s.forest.discovered.includes('bread'));
+ const before=s.currency;
+ for(const m of [...getMissions(s)])s=reducer(s,{type:'CLAIM_MISSION',missionId:m.id});
+ assert.equal(s.currency-before,30);assert.equal(currentMission(s).id,'toast-order');assert.equal(reducer(s,{type:'CLAIM_MISSION',missionId:'forest-enter'}),s);
+});
+
+test('new forest missions recognize saved exploration while preserving existing claims and money',()=>{
+ let s=createInitialState();const previous=missions.filter(m=>!m.id.startsWith('forest-')).map(m=>m.id);
+ s.missions.claimed=[...previous];s.missions.completed=[...previous];s.currency=1234;s.lifetimeStats.totalOrders=20;
+ s.forest={...s.forest,nextId:3,returns:1,tutorialDone:true,discovered:['bread']};
+ s=migrateSavedState(JSON.parse(JSON.stringify(s)),Date.now());
+ assert.equal(s.currency,1234);assert.deepEqual(s.missions.claimed,previous);
+ assert.ok(['forest-enter','forest-gather','forest-bring-home'].every(id=>s.missions.completed.includes(id)));
+ const again=migrateSavedState(JSON.parse(JSON.stringify(s)),Date.now());assert.equal(again.currency,1234);assert.deepEqual(again.missions,s.missions);
 });

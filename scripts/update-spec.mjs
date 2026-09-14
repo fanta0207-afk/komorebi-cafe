@@ -66,6 +66,7 @@ const missionDestinationLabels = {
   orders: "注文",
   inventory: "在庫",
   town: "街",
+  forest: "こもれびの森",
   coffee: "珈琲豆店",
   bakery: "パン屋",
   ranch: "牧場",
@@ -81,7 +82,7 @@ const missionDestinationLabels = {
 const missionRows = (items) => items.map((mission) => `| ${clean(mission.id)} | ${clean(mission.title)} | ${clean(mission.hint || "—")} | ${mission.target} | ${mission.reward.toLocaleString("ja-JP")} | ${clean(missionDestinationLabels[mission.destination] ?? mission.destination)} |`).join("\n");
 const missionSections = missionChapters.map((chapter, index) => `### ${index + 1}. ${clean(chapter.title)}\n\n| ID | ミッション | 条件・補足 | 目標値 | 報酬 | 行き先 |\n|---|---|---|---:|---:|---|\n${missionRows(chapter.missions)}`).join("\n\n");
 const sideMissionRows = sideMissions.map((mission) => `| ${clean(mission.id)} | ${clean(mission.title)} | サブミッション。メイン進行とは別に達成・受取 | ${mission.target} | ${mission.reward.toLocaleString("ja-JP")} | — |`).join("\n");
-const missionSummary = `- 導入：街、仕入れ、在庫、調理、提供、ギフト、新料理\n- 設備：トースター、早期のキッチン作業台、基本3設備のLv.2強化、コーヒーカウンター増設、人物ごとの専用設備\n- 人物ごと：出会い、仕入れ改善、好感度3、段階的な雇用、好感度7、専用設備の設置、限定料理、好感度10\n- デート：好感度${GAME_CONFIG.dateUnlockStage}で解放、${list(dateLocations.map(location=>location.title))}\n- サブミッション：累計提供数、累計売上、累計ギフト購入数、メニュー解放率、複数料理の熟練度。メイン進行には影響しない\n- 自動化：注文ノートからの仕入れ依頼、好感度9で不足食材の自動仕入れ、全自動提供`;
+const missionSummary = `- 導入：街、仕入れ、在庫、調理、提供、森での採集と持ち帰り、ギフト、新料理\n- 設備：トースター、早期のキッチン作業台、基本3設備のLv.2強化、コーヒーカウンター増設、人物ごとの専用設備\n- 人物ごと：出会い、仕入れ改善、好感度3、段階的な雇用、好感度7、専用設備の設置、限定料理、好感度10\n- デート：好感度${GAME_CONFIG.dateUnlockStage}で解放、${list(dateLocations.map(location=>location.title))}\n- サブミッション：累計提供数、累計売上、累計ギフト購入数、メニュー解放率、複数料理の熟練度。メイン進行には影響しない\n- 自動化：注文ノートからの仕入れ依頼、好感度9で不足食材の自動仕入れ、全自動提供`;
 const seatingSource = readFileSync(join(projectRoot, "src", "game", "seating.ts"), "utf8");
 const tableUpgrades = [...seatingSource.matchAll(/\{ count: (\d+), price: (\d+), missionId: "([^"]+)" \}/g)]
   .map((match) => ({ count: Number(match[1]), price: Number(match[2]), missionId: match[3] }));
@@ -199,7 +200,7 @@ const spec = `# こもれびカフェ ゲーム仕様書
 - 料理一覧にはメニュー解放率、各料理の累計提供数、現在Lv.、次のLv.までの進捗、熟練売上ボーナスを表示する。未発見の隠し料理は解放率の分母に含めず、発見時に分子と分母へ加える。
 
 - メインミッションは全${missionCount}件。常に現在の3件だけを表示し、3件すべての報酬を受け取ると次の3件へ進む。別枠のサブミッションはメイン進行を止めず、累計提供・売上・ギフト購入・メニュー解放率・熟練料理数の目標が段階的に増える。
-- 序盤は仕入れ、初調理、人物交流、新料理開発を順に案内する。設備は解放と購入が可能になる進行帯で、全種類の設置をミッションで案内する。その後はキャラクターデータから出会い、仕入れ改善、雇用、好感度、店づくり、3種類のデートを自動生成する。
+- 序盤は仕入れ、初調理、人物交流、新料理開発を順に案内する。最初の提供を含むステップ3の報酬受取後、ステップ4で森へ出発・1回採集・食材の持ち帰りを案内し、待ち時間にも探索を遊べる。森の解放は最初の提供1品のまま。レア食材や調達券の発見はミッション条件にしない。設備は解放と購入が可能になる進行帯で、全種類の設置をミッションで案内する。その後はキャラクターデータから出会い、仕入れ改善、雇用、好感度、店づくり、3種類のデートを自動生成する。
 - 最終目標は全キャラクターの好感度10、自動仕入れ3回、スタッフによる全自動提供10品。キャラクターや料理が追加された場合は対象数も自動で増える。
 
 ${missionSummary}

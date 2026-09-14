@@ -302,6 +302,7 @@ ${equipmentRows}
 - カフェを手伝う追加話は${staffStoryEvents.length}件。${list(staffStoryEvents.map(event=>`${characters.find(character=>character.id===event.characterId)?.name}「${event.title}」は好感度${event.requiredRelationshipStage}以上かつ雇用後に自動開始する`))}。既存の高段階セーブでも未読なら開始し、好感度・ルート・資金・食材・報酬は変更しない。既読状態は人物のviewedEventsへ保存し、人物ページの「カフェを手伝う物語」から読み返せる。友情ルートでは専用の台本を表示する。
 - 店づくりの物語は各1人5段階。第1話は仕入れ手順の改善で、担当仕入れ先の1パックを${GAME_CONFIG.ingredientPackSize}食分から${GAME_CONFIG.improvedPackSize}食分へ増やす。以降は食材・料理・設備を解放する。
 - 店づくりの物語はモーダルで表示し、下部ナビやカフェの操作ボタンより前面に置く。スマホの表示高とセーフエリア内に収め、長い会話や報酬は本文部分だけスクロールし、「次へ／完了」とページ数は常に操作できる位置に表示する。
+- 下部ナビは高さ66pxの角丸の浮かぶメニュー。画面下からホーム操作用の安全領域（最低8px）を空け、左右の安全領域も避ける。カフェの背景はメニューの下まで画面全体に表示し、安全領域をクリーム色の帯にしない。街・人物・ギフト・スタッフのスクロール画面はメニューの高さと上下の余白を予約し、末尾の操作が隠れないようにする。iPhoneのホーム画面用のアプリ名・単独表示・黒いステータスバーの設定を公開版と開発版に共通で指定する。
 - デートは好感度${GAME_CONFIG.dateUnlockStage}で解放。各キャラクターに${list(dateLocations.map(location=>location.title))}の3本がある。お家デートは穏やかな会話のみで、性的表現は扱わない。
 - 恋愛ルートと友情ルートで、料理や設備の報酬に差はつけない。
 - 人物一覧は街と同じ仕入れ先の順序を使用する。表示順は${list(suppliers.map(supplier=>characters.find(character=>character.id===supplier.characterId)?.name))}。未遭遇の人物も同じ位置を保つ。

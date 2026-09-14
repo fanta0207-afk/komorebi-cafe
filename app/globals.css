@@ -7,7 +7,8 @@
 :root { --ink:#49372f; --cream:#fffaf0; --rose:#d8786d; --green:#66806d; --gold:#e8b65f; --line:#decbb2; }
 :root { --mission-green:#304c3f; --mission-paper:#fffaf0; --mission-border:#c1a778; }
 * { box-sizing:border-box; }
-html { background:#e8dfd0; }
+html { height:100%; background:#e8dfd0; overscroll-behavior:none; }
+body,#root { height:100%; }
 body { margin:0; color:var(--ink); background:radial-gradient(circle at 50% 0,#fbf5e9,#e7ded0 75%); font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif; -webkit-tap-highlight-color:transparent; }
 button { font:inherit; color:inherit; }
 .game-shell { width:min(100%,430px); height:100dvh; margin:0 auto; padding:env(safe-area-inset-top) 16px var(--bottom-nav-height); background:var(--cream); box-shadow:0 0 48px #6e5d4730; position:relative; overflow:hidden; }
@@ -179,7 +180,7 @@ button { font:inherit; color:inherit; }
 /* Supplied room artwork fills one portrait phone surface. */
 body { background:#241c16; }
 .game-shell.cafe-shell { width:min(100%,430px); height:100dvh; padding:0; background:#684522; }
-.cafe-shell .screen-wrap { height:calc(100% - var(--bottom-nav-height)); overflow:hidden; }
+.cafe-shell .screen-wrap { height:100%; overflow:hidden; }
 .cafe-shell .cafe-screen { position:relative; display:block; min-height:0; height:100%; overflow:hidden; container-type:size; }
 .cafe-screen .photo-cafe { position:absolute; left:50%; top:0; transform:translateX(-50%); width:max(100%,56.28cqh); height:max(100%,177.68cqw); min-height:0; border:0; }
 .room-art>img { object-fit:fill; }
@@ -223,7 +224,7 @@ body { background:#241c16; }
 .cafe-settings { border-top:1px solid #dfceb0; font-size:12px; color:#8a785e; }
 .cafe-settings summary { padding:16px 4px; cursor:pointer; }
 .cafe-settings button { padding:12px; border:1px solid #dfceb0; background:transparent; border-radius:6px; }
-.cafe-restock-hint { position:absolute; bottom:calc(28px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:80; border:1px solid #d5b683; background:#fff0d3ed; color:#634326; border-radius:20px; padding:12px 18px; white-space:nowrap; font-size:14px; cursor:pointer; }
+.cafe-restock-hint { position:absolute; bottom:calc(var(--bottom-nav-height) + 16px); left:50%; transform:translateX(-50%); z-index:80; border:1px solid #d5b683; background:#fff0d3ed; color:#634326; border-radius:20px; padding:12px 18px; white-space:nowrap; font-size:14px; cursor:pointer; }
 .cafe-shell .notice { top:calc(80px + env(safe-area-inset-top)); bottom:auto; font-size:13px; padding:8px 14px; }
 .cafe-notebook { width:min(100%,430px); }
 

@@ -6,6 +6,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, view
 export const metadata: Metadata = {
   title: "こもれび喫茶",
   description: "レトロかわいい喫茶店経営と、街の人との日々を楽しむゲーム。",
+  appleWebApp: { capable:true, title:"こもれび喫茶", statusBarStyle:"black" },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

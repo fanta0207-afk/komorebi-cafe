@@ -26,6 +26,9 @@ test('Vercel builds only the static client, with an asset-safe SPA fallback', ()
   const html = readFileSync(new URL('index.html', output), 'utf8');
   assert.match(html, /<html lang="ja">/);
   assert.match(html, /name="viewport"[^>]*device-width[^>]*viewport-fit=cover/);
+  assert.match(html, /name="apple-mobile-web-app-capable" content="yes"/);
+  assert.match(html, /name="apple-mobile-web-app-title" content="こもれび喫茶"/);
+  assert.match(html, /name="apple-mobile-web-app-status-bar-style" content="black"/);
   assert.match(html, /<title>こもれび喫茶<\/title>/);
   for (const match of html.matchAll(/(?:src|href)="(\/[^"?#]+)"/g)) {
     assert.ok(existsSync(new URL(match[1].slice(1), output)), match[1]);

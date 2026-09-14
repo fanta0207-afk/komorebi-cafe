@@ -70,9 +70,24 @@ test('bottom navigation has one shared theme and a common reserved height on eve
   });
   const rules=postcss.parse(navCss);
   rules.walkRules(rule=>assert.ok(!rule.selector.includes('cafe-shell')));
-  assert.match(navCss,/--bottom-nav-height:calc\(66px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(navCss,/--bottom-nav-offset:max\(8px,env\(safe-area-inset-bottom\)\)/);
+  assert.match(navCss,/--bottom-nav-height:calc\(66px \+ var\(--bottom-nav-offset\) \+ 8px\)/);
   assert.match(globalCss,/height:calc\(100dvh - 70px - var\(--bottom-nav-height\)/);
-  assert.match(globalCss,/height:calc\(100% - var\(--bottom-nav-height\)\)/);
+  assert.match(globalCss,/\.cafe-shell \.screen-wrap \{ height:100%;/);
+});
+
+test('the navigation paints only the dock while the cafe artwork covers the home gesture area',()=>{
+  const navCss=postcss.parse(readFileSync(new URL('../src/components/bottom-nav.css',import.meta.url),'utf8'));
+  const dock={};
+  navCss.walkRules('.bottom-nav',rule=>rule.walkDecls(decl=>{dock[decl.prop]=decl.value;}));
+  assert.equal(dock.height,'66px');
+  assert.equal(dock.bottom,'var(--bottom-nav-offset)');
+  assert.equal(dock.padding,'3px 6px');
+  assert.equal(dock['border-radius'],'16px');
+  assert.match(dock.left,/safe-area-inset-left/);
+  assert.match(dock.right,/safe-area-inset-right/);
+  const globalCss=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+  assert.match(globalCss,/\.cafe-restock-hint \{[^}]*bottom:calc\(var\(--bottom-nav-height\) \+ 16px\)/);
 });
 
 test('growth stories use the native modal layer instead of an overlay beneath bottom navigation',()=>{

@@ -851,7 +851,7 @@ test('a fresh player follows the early mission groups including forest explorati
         case 'meet-ren':case 'talk-ren':case 'ren-story1':case 'ren-story2':act({type:'VISIT',characterId:'ren'});break;
         case 'beans-first':case 'beans-second':buy('coffeeBeans');break;
         case 'forest-enter':act({type:'FOREST_ENTER',now});break;
-        case 'forest-gather':act({type:'FOREST_MOVE',area:'clearing',now});act({type:'FOREST_GATHER',spot:0,careful:false,now});break;
+        case 'forest-gather':act({type:'FOREST_GATHER',floor:1,spot:0,now});break;
         case 'forest-bring-home':act({type:'FOREST_TAKE'});act({type:'FOREST_RETURN'});act({type:'FOREST_CLAIM'});break;
         case 'second-table':act({type:'BUY_TABLE',expectedCount:state.tableCount});break;
         case 'install-toaster':act({type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});break;
@@ -1991,44 +1991,132 @@ test('Cacao daily replies follow each relationship stage and both routes, and fi
 
 const forestModel=require(join(output,'game/forest.js'));
 const forestData=require(join(output,'data/forest.js'));
-const forestReady=(seed=42)=>{const initial=createInitialState();return {...initial,lifetimeStats:{...initial.lifetimeStats,totalOrders:20},forest:{...forestModel.emptyForest(1000),returns:5,nextId:2,expedition:{id:1,seed,area:'clearing',used:[],basket:[],coins:0,tickets:0,harvested:false,deepGather:0,gotRare:false,returning:false}}};};
-test('forest recovers real time with fractional minutes, cap and backward clock protection',()=>{
+const forestReady=(seed=42,floor=1,meal)=>{
+ const initial=createInitialState(1000);
+ const s={...initial,lifetimeStats:{...initial.lifetimeStats,totalOrders:20},forest:{...forestModel.emptyForest(1000),returns:5,tutorialDone:true,nextId:2}};
+ s.forest.expedition={id:1,seed,startFloor:floor,layer:forestModel.createForestLayer(s,floor,seed,meal),basket:[],coins:0,tickets:0,fragments:{},harvested:false,energySpent:0,tutorial:false,meal};
+ return s;
+};
+const forestGather=(s,spot=0)=>reducer(s,{type:'FOREST_GATHER',floor:s.forest.expedition.layer.floor,spot,now:1000});
+const revealPath=s=>{while(!s.forest.expedition.layer.pathFound){s=forestGather(s,s.forest.expedition.layer.spots.find(p=>!s.forest.expedition.layer.used.includes(p.id)).id);}return s;};
+test('forest recovery keeps fractional minutes outside and never recovers during an outing',()=>{
  let f={...forestModel.emptyForest(1000),energy:60};f=forestModel.recoverForest(f,90500);assert.equal(f.energy,61);assert.equal(f.recoveredAt,61000);
  assert.equal(forestModel.recoverForest(f,500),f);f=forestModel.recoverForest(f,9999999);assert.equal(f.energy,70);
- let s={...forestReady(),forest:{...f,expedition:forestReady().forest.expedition}};s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:10000000});assert.equal(s.forest.energy,68);assert.equal(forestModel.recoverForest(s.forest,10030000).energy,68);assert.equal(forestModel.recoverForest(s.forest,10060000).energy,69);
+ let s=forestGather(forestReady());assert.equal(s.forest.energy,69);assert.equal(forestModel.recoverForest(s.forest,10000000),s.forest);
+ s=reducer(s,{type:'FOREST_RETURN',now:10000000});assert.equal(forestModel.recoverForest(s.forest,10059999).energy,69);assert.equal(forestModel.recoverForest(s.forest,10060000).energy,70);
 });
-test('forest food, random tickets, coins, pending loot and claim are deterministic and idempotent',()=>{
- for(let seed=1;seed<=1500;seed++){
-  let s=forestReady(seed),before=JSON.parse(JSON.stringify(s));s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});const e=s.forest.expedition;
-  assert.ok(e.pending.food.length>=1);assert.ok(!getForestIngredient(e.pending.food[0]));assert.ok([0,1].includes(e.tickets));assert.ok(e.coins===0||(e.coins>=50&&e.coins<=2000));
-  assert.deepEqual(reducer(before,{type:'FOREST_GATHER',spot:0,careful:false,now:1000}).forest.expedition,e);
-  assert.equal(reducer(s,{type:'FOREST_GATHER',spot:0,careful:true,now:1000}),s);
-  s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.deepEqual(s.forest.expedition.pending,e.pending);
-  s=reducer(s,{type:'FOREST_TAKE'});const tickets=s.forest.expedition.tickets;s=reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000});assert.ok([tickets,tickets+1].includes(s.forest.expedition.tickets));const totalTickets=s.forest.expedition.tickets;
-  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const claimed=reducer(s,{type:'FOREST_CLAIM'});assert.equal(reducer(claimed,{type:'FOREST_CLAIM'}),claimed);assert.equal(claimed.forest.tickets,totalTickets);assert.ok(claimed.forest.returns===6);
+test('forest outcomes are automatic, stable on reload, and duplicate or stale taps cannot collect twice',()=>{
+ for(let seed=1;seed<=100;seed++){
+  const before=forestReady(seed);let s=forestGather(before),e=s.forest.expedition;
+  assert.deepEqual(forestGather(before).forest.expedition,e);assert.equal(s.forest.energy,69);
+  assert.equal(forestGather(s),s);assert.equal(reducer(s,{type:'FOREST_GATHER',floor:2,spot:1,now:1000}),s);
+  assert.equal(e.pending,undefined);assert.deepEqual(e.basket,e.lastFind.food);
+  const restored=migrateSavedState(JSON.parse(JSON.stringify(s)),9999999);assert.deepEqual(restored.forest.expedition,JSON.parse(JSON.stringify(e)));assert.equal(restored.forest.energy,69);
+  const beforeMoney=s.currency;s=reducer(s,{type:'FOREST_RETURN',now:1000});assert.equal(s.currency,beforeMoney+e.coins);assert.equal(s.forest.tickets,e.tickets);
+  assert.equal(reducer(s,{type:'FOREST_RETURN',now:1000}),s);assert.equal(reducer(s,{type:'FOREST_CLAIM'}),s);
+  for(const id of e.basket)assert.ok(s.ingredients[id]>0);
  }
 });
-function getForestIngredient(id){return forestData.forestIngredients.some(i=>i.id===id);}
-test('forest rare rates rise gently, careful adds five points, and deep pity is an extra reward',()=>{
- assert.deepEqual(forestData.forestAreas.filter(a=>a.rate).map(a=>a.rate),[10,14,18,14,22,26,30]);
- for(const area of ['clearing','spring'])for(const careful of [false,true]){let bonuses=0;const tries=6000;for(let seed=0;seed<tries;seed++){const s=forestReady(seed);s.forest.expedition.area=area;const next=reducer(s,{type:'FOREST_GATHER',spot:0,careful,now:1000});bonuses+=next.forest.expedition.pending.food.length===2?1:0;}const expected=(forestData.forestArea(area).rate+(careful?5:0))/100;assert.ok(Math.abs(bonuses/tries-expected)<.025,`${area}: ${bonuses/tries}`);}
- let s=forestReady();s.forest.expedition={...s.forest.expedition,area:'spring',deepGather:3};s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});assert.equal(s.forest.expedition.pending.food[1],'forestMoonBerry');
+test('all 70 forest layers have unique target positions, bounded path discovery and arrival-only shortcuts',()=>{
+ let s=forestReady();
+ assert.equal(forestModel.canStartForest(s,11),false);
+ for(let floor=1;floor<=70;floor++){
+  const layer=s.forest.expedition.layer,band=forestData.forestBand(floor);
+  assert.equal(layer.floor,floor);assert.ok(layer.spots.length>=band.spots[0]&&layer.spots.length<=band.spots[1]);assert.equal(new Set(layer.spots.map(p=>p.cell)).size,layer.spots.length);
+  assert.equal(reducer(s,{type:'FOREST_MOVE',floor,now:1000}),s);
+  if(floor===70){assert.equal(layer.pathSpot,-1);break;}
+  s.forest={...s.forest,energy:70};s=revealPath(s);assert.ok(s.forest.expedition.layer.used.length<=layer.pathLimit);
+  while(s.forest.expedition.layer.obstacleRemaining){const energy=s.forest.energy;s=reducer(s,{type:'FOREST_CLEAR',floor,now:1000});assert.equal(s.forest.energy,energy-1);}
+  const energy=s.forest.energy;s=reducer(s,{type:'FOREST_MOVE',floor,now:1000});assert.equal(s.forest.energy,energy-1);
+  if((floor+1)%10===0&&floor+1<70)assert.ok(s.forest.checkpoints.includes(floor+1));
+ }
+ assert.equal(s.forest.deepestFloor,70);for(const floor of [11,21,31,41,51,61])assert.equal(forestModel.canStartForest(s,floor),true);
+ s=reducer(s,{type:'FOREST_RETURN',now:1000});assert.equal(s.forest.lastReturn.floor,70);assert.equal(s.forest.expedition,undefined);
+ assert.equal(forestModel.canStartForest(s,2),false);assert.equal(forestModel.canStartForest(s,71),false);
 });
-test('forest basket replacement, free zero-energy return, fragments and deep unlock gates',()=>{
- let s=forestReady();s.forest={...s.forest,returns:0,energy:2,expedition:{...s.forest.expedition,basket:Array(10).fill('bread')}};
- s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});assert.equal(reducer(s,{type:'FOREST_TAKE'}),s);assert.equal(reducer(s,{type:'FOREST_MOVE',area:'fork',now:1000}),s);
- while(forestModel.basketWeight([...s.forest.expedition.basket,...s.forest.expedition.pending.food])>10)s=reducer(s,{type:'FOREST_DROP',index:0});
- s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});assert.equal(s.forest.energy,0);s=reducer(s,{type:'FOREST_CLAIM'});assert.equal(s.forest.returns,1);
- s=forestReady();s.forest.expedition.area='pond';s.forest.fragments.forestSecretTea=2;s=reducer(s,{type:'FOREST_FRAGMENT',now:1000});assert.equal(reducer(s,{type:'FOREST_FRAGMENT',now:1000}),s);s=reducer(s,{type:'FOREST_RETURN'});s=reducer(s,{type:'FOREST_CLAIM'});assert.ok(s.unlockedRecipes.includes('forestSecretTea'));assert.equal(s.forest.fragments.forestSecretTea,3);
- const old=createInitialState();assert.equal(forestModel.forestDeepUnlocked(old),false);assert.equal(forestModel.forestDeepUnlocked(forestReady()),true);assert.equal(forestModel.basketCapacity({...s.forest,fragments:{a:3,b:3}}),14);
+test('free zero-energy return has no basket limit, while deep forest keeps its existing unlock rule',()=>{
+ let s=forestReady();s.forest.energy=1;s.forest.expedition.basket=Array(40).fill('forestBerry');s=forestGather(s);
+ assert.equal(s.forest.energy,0);assert.ok(s.forest.expedition.basket.length>=40);assert.equal(forestGather(s,1),s);
+ s=reducer(s,{type:'FOREST_RETURN',now:1000});assert.equal(s.ingredients.forestBerry,s.forest.lastReturn.food.filter(id=>id==='forestBerry').length);
+ let locked=revealPath(forestReady(42,50));locked.forest.returns=0;locked.forest.expedition.layer.obstacleRemaining=0;
+ assert.equal(reducer(locked,{type:'FOREST_MOVE',floor:50,now:1000}),locked);assert.equal(forestModel.canStartForest({...locked,forest:{...locked.forest,checkpoints:[50]}},51),false);
 });
-test('limited sales reserve materials once, respect two types and three dishes, refund unsent units',()=>{
+test('natural forest rare rates are 15 and 25 percent, meal bonus caps at 5, and empty outcomes remain',()=>{
+ for(const [floor,bonus,expected] of [[51,0,.15],[61,0,.25],[61,.05,.30]]){
+  let rare=0,total=0,empty=0;
+  for(let seed=0;seed<2500;seed++){
+   const s=forestReady(seed,floor),meal={recipeId:'forestSecretMilk',kind:'luck',rarity:'rare',level:10,pathReduction:2,rareBonus:bonus,obstacleSkip:0,emptyHints:0};
+   const layer=forestModel.createForestLayer(s,floor,seed,meal);
+   for(const p of layer.spots.filter(p=>p.kind!=='box')){total++;rare+=p.food.some(id=>['forestHoney','forestMoonBerry'].includes(id));empty+=!p.food.length;}
+  }
+  assert.ok(Math.abs(rare/total-expected)<.018,`${floor}: ${rare/total}`);assert.ok(empty>0);
+ }
+ let s=forestReady();s.lifetimeStats.recipeSales.forestSecretMilk=160;assert.equal(forestModel.forestMeal('forestSecretMilk',s).rareBonus,.05);
+ for(let seed=0;seed<100;seed++)assert.ok(forestReady(seed,21).forest.expedition.layer.spots.every(p=>!p.food.some(id=>['forestHoney','forestMoonBerry'].includes(id))));
+});
+test('foot meals help every obstructed path and never mark a path, reward or box as empty',()=>{
+ let s=forestReady();s.lifetimeStats.recipeSales.toast=160;const meal=forestModel.forestMeal('toast',s);assert.equal(meal.obstacleSkip,2);assert.equal(meal.emptyHints,2);
+ let obstacles=0,hints=0;
+ for(let seed=0;seed<300;seed++){
+  const plain=forestModel.createForestLayer(s,61,seed),boosted=forestModel.createForestLayer(s,61,seed,meal);
+  assert.equal(plain.obstacleTotal,boosted.obstacleTotal);assert.equal(boosted.obstacleRemaining,Math.max(0,plain.obstacleTotal-2));obstacles+=boosted.obstacleSkipped;
+  for(const p of boosted.spots.filter(p=>p.emptyHint)){hints++;assert.notEqual(p.id,boosted.pathSpot);assert.notEqual(p.kind,'box');assert.equal(p.food.length,0);assert.equal(p.fragment,undefined);assert.equal(p.coins+p.tickets,0);}
+ }
+ assert.ok(obstacles>100&&hints>100);
+ assert.ok(forestModel.createForestLayer(s,1,42,meal).spots.some(p=>p.emptyHint));
+});
+test('eating is atomic at departure, respects queued materials, preserves sales and cannot stack',()=>{
+ let s=createInitialState(1000);s.lifetimeStats.totalOrders=1;s.ingredients={coffeeBeans:3,bread:3};
+ const sales={...s.lifetimeStats.recipeSales};s=reducer(s,{type:'FOREST_ENTER',mealId:'coffee',now:1000});assert.equal(s.ingredients.coffeeBeans,2);assert.equal(s.forest.expedition.meal.recipeId,'coffee');assert.deepEqual(s.lifetimeStats.recipeSales,sales);
+ assert.equal(reducer(s,{type:'FOREST_ENTER',mealId:'coffee',now:1000}),s);assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(s)),100000).forest.expedition.meal,s.forest.expedition.meal);
+ let blocked=createInitialState(1000);blocked.lifetimeStats.totalOrders=1;blocked.ingredients.coffeeBeans=1;blocked.orders=[{id:'waiting',recipeId:'coffee',status:'queued',customerSlot:0}];
+ assert.equal(forestModel.canEatForestMeal('coffee',blocked),false);assert.equal(reducer(blocked,{type:'FOREST_ENTER',mealId:'coffee',now:1000}),blocked);
+ assert.equal(reducer(blocked,{type:'FOREST_ENTER',startFloor:11,now:1000}),blocked);
+});
+test('recipe fragments are automatic, limited per recipe per outing and unlock after three',()=>{
+ let s=forestReady(42,21);s.forest.fragments.forestSecretTea=2;
+ let seed=0;while(!s.forest.expedition.layer.spots.some(p=>p.fragment)){s=forestReady(++seed,21);s.forest.fragments.forestSecretTea=2;}
+ const spot=s.forest.expedition.layer.spots.find(p=>p.fragment);s=forestGather(s,spot.id);assert.equal(s.forest.expedition.fragments.forestSecretTea,1);
+ const next=forestModel.createForestLayer(s,22,seed,undefined,s.forest.expedition.fragments);assert.ok(next.spots.every(p=>!p.fragment));
+ s=reducer(s,{type:'FOREST_RETURN',now:1000});assert.equal(s.forest.fragments.forestSecretTea,3);assert.ok(s.unlockedRecipes.includes('forestSecretTea'));
+});
+test('v21 pending rewards settle exactly once, preserving coins, food, tickets, fragments and basket achievements',()=>{
+ let s=forestReady();s.saveVersion=21;s.currency=500;s.forest.fragments.forestSecretTea=2;s.forest.expedition={id:1,seed:42,area:'pond',basket:['forestBerry'],pending:{food:['bread'],coins:1999,tickets:1},coins:1999,tickets:1,fragment:'forestSecretTea'};
+ const migrated=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(migrated.currency,2499);assert.equal(migrated.ingredients.bread,1);assert.equal(migrated.ingredients.forestBerry,1);assert.equal(migrated.forest.tickets,1);assert.equal(migrated.forest.fragments.forestSecretTea,3);assert.equal(migrated.forest.expedition,undefined);assert.equal(migrated.forest.legacyBasketLevel,12);
+ const again=migrateSavedState(JSON.parse(JSON.stringify(migrated)),1000);assert.equal(again.currency,migrated.currency);assert.deepEqual(again.ingredients,migrated.ingredients);assert.deepEqual(again.forest,JSON.parse(JSON.stringify(migrated.forest)));
+});
+test('limited dishes are crafted into saved stock and customers receive ready plates without cooking twice',()=>{
  let s=forestReady();s.forest.expedition=undefined;s.ingredients={forestBerry:10,forestMint:10,sugar:10,forestPetal:10,forestHerb:10,teaLeaves:10,forestMushroom:10,bread:10};s=forestModel.syncForestRecipes(s);
- s=reducer(s,{type:'FOREST_SELL',recipeId:'forestBerrySoda',count:3});assert.equal(s.ingredients.forestBerry,7);assert.equal(reducer(s,{type:'FOREST_SELL',recipeId:'forestBerrySoda',count:1}),s);
- s=reducer(s,{type:'FOREST_SELL',recipeId:'forestPetalTea',count:1});assert.equal(reducer(s,{type:'FOREST_SELL',recipeId:'forestMushroomToast',count:1}),s);
- s={...s,spawnRemainingMs:0};s=reducer(s,{type:'TICK',deltaMs:100,now:1000});const order=s.orders.find(o=>o.forestReserved);assert.equal(order.recipeId,'forestBerrySoda');const stock=s.ingredients.forestBerry;
- s=reducer(s,{type:'START_COOKING',orderId:order.id});assert.equal(s.ingredients.forestBerry,stock);assert.equal(s.orders[0].totalMs,10000);assert.equal(salePrice('forestBerrySoda',s),1100);
- s=reducer(s,{type:'FOREST_WITHDRAW',recipeId:'forestBerrySoda'});assert.equal(s.ingredients.forestBerry,9);
+ s=reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count:3});assert.equal(s.ingredients.forestBerry,7);assert.equal(s.forest.dishes.forestBerrySoda,3);assert.equal(s.lifetimeStats.recipeSales.forestBerrySoda,undefined);
+ assert.equal(reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count:1}),s);
+ s=reducer(s,{type:'FOREST_COOK',recipeId:'forestPetalTea',count:1});assert.equal(s.forest.dishes.forestPetalTea,1);
+ s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(s.forest.dishes.forestBerrySoda,3);
+ s={...s,spawnRemainingMs:0};s=reducer(s,{type:'TICK',deltaMs:100,now:1000});const order=s.orders.find(o=>o.forestPrepared);assert.equal(order.recipeId,'forestBerrySoda');assert.equal(order.status,'ready');assert.equal(s.forest.dishes.forestBerrySoda,2);
+ const stock={...s.ingredients};assert.deepEqual(reducer(s,{type:'START_COOKING',orderId:order.id}).ingredients,stock);
+ const money=s.currency;s=reducer(s,{type:'COLLECT_ORDER',orderId:order.id});assert.equal(s.currency,money+1100);assert.equal(s.lifetimeStats.recipeSales.forestBerrySoda,1);assert.deepEqual(s.ingredients,stock);
+ s={...s,spawnRemainingMs:0,forest:{...s.forest,serveForestNext:true}};s=reducer(s,{type:'TICK',deltaMs:100,now:1000});const waiting=s.orders.find(o=>o.forestPrepared);s=reducer(s,{type:'DECLINE_ORDER',orderId:waiting.id});assert.equal(s.forest.dishes.forestBerrySoda,2);assert.deepEqual(s.ingredients,stock);
+ assert.equal(reducer(s,{type:'FOREST_WITHDRAW',recipeId:'forestBerrySoda'}),s);
+});
+test('limited crafting rejects unavailable equipment, insufficient or promised materials and invalid quantities',()=>{
+ let s=forestReady();s.forest.expedition=undefined;s.ingredients={forestBerry:1,forestMint:1,sugar:1};s=forestModel.syncForestRecipes(s);
+ for(const count of [0,4,1.5,NaN])assert.equal(reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count}),s);
+ s.orders=[{id:'promised',recipeId:'strawberryCake',status:'queued',customerSlot:0}];assert.equal(forestModel.canCookForestDish(s,'forestBerrySoda',1),false);
+ s.orders=[];s.stations=[];assert.equal(reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count:1}),s);
+});
+test('v22 limited reservations migrate once to prepared stock while active cooking continues',()=>{
+ let s=forestReady();s.saveVersion=22;delete s.forest.dishes;s.forest.sales={forestBerrySoda:2};s.orders=[{id:'old',recipeId:'forestBerrySoda',forestReserved:true,status:'cooking',stationId:'station-1',customerSlot:0,totalMs:10000,remainingMs:5000}];
+ const before={...s.ingredients},migrated=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(migrated.forest.dishes.forestBerrySoda,2);assert.equal(migrated.forest.sales,undefined);assert.equal(migrated.orders[0].status,'cooking');assert.deepEqual(migrated.ingredients,before);
+ const again=migrateSavedState(JSON.parse(JSON.stringify(migrated)),1000);assert.equal(again.forest.dishes.forestBerrySoda,2);
+});
+test('ordinary forest ingredients are scarce even in early layers, while common food and empty spots remain',()=>{
+ for(const [floor,expected] of [[1,.08],[11,.10],[21,.12],[31,.14],[41,.16],[51,.18],[61,.20]]){
+  let total=0,forest=0,common=0,empty=0;
+  for(let seed=0;seed<2500;seed++)for(const spot of forestModel.createForestLayer(forestReady(),floor,seed).spots.filter(p=>p.kind!=='box')){
+   total++;forest+=spot.food.some(id=>id.startsWith('forest')&&!['forestHoney','forestMoonBerry'].includes(id));common+=spot.food.some(id=>!id.startsWith('forest'));empty+=!spot.food.length;
+   if(spot.food.some(id=>id.startsWith('forest')))assert.equal(spot.food.length,1);
+  }
+  assert.ok(Math.abs(forest/total-expected)<.015,`${floor}: ${forest/total}`);assert.ok(common>0&&empty>0);
+ }
 });
 test('ticket settles exactly one entire delivery, never double consumes or affects unrelated supplies',()=>{
  let s=forestReady();s.forest.tickets=2;s.deliveries=[{id:'one',ingredientId:'bread',packs:20,servingsPerPack:5,orderedAt:1000,arrivesAt:10000},{id:'two',ingredientId:'milk',packs:1,servingsPerPack:5,orderedAt:1000,arrivesAt:10000}];
@@ -2041,57 +2129,17 @@ test('handmade gifts craft exact quantities and diminish third consecutive gift 
  s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(s.characterProgress.nagisa.giftStreak,3);assert.deepEqual(s.characterProgress.nagisa.handmadeFirst,['forestTeaGift']);
 });
 
-test('tickets drop at 15 percent on every gather, with no first-gather or method advantage',()=>{
- const tries=6000,hits=[0,0];let sawEmpty=false,sawMultiple=false,sawLaterOnly=false;
- for(let seed=0;seed<tries;seed++){
-  let s=forestReady(seed);s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});const first=s.forest.expedition.pending.tickets;hits[0]+=first;
-  const careful=reducer(forestReady(seed),{type:'FOREST_GATHER',spot:0,careful:true,now:1000});assert.equal(careful.forest.expedition.pending.tickets,first);
-  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000});const second=s.forest.expedition.pending.tickets;hits[1]+=second;
-  assert.ok([0,1].includes(second));assert.equal(s.forest.expedition.tickets,first+second);
-  sawEmpty ||= first+second===0;sawMultiple ||= first+second===2;sawLaterOnly ||= first===0&&second===1;
- }
- for(const hit of hits)assert.ok(Math.abs(hit/tries-.15)<.015,`observed ${hit/tries}`);
- assert.ok(sawEmpty&&sawMultiple&&sawLaterOnly);
-});
-
-
-test('forest coin rewards are mostly 50-300, with a 4 percent fixed jackpot and unchanged drop rate',()=>{
- const bands=forestData.FOREST_COIN_BANDS;
+test('sharing boxes stay rare, at most one per layer, and are the only source of coins and tickets',()=>{
+ let boxes=0,coins=0,tickets=0,total=0;const bands=forestData.FOREST_COIN_BANDS;
  assert.equal(bands.reduce((sum,b)=>sum+b.weight,0),100);
- assert.equal(bands.filter(b=>b.max<=300).reduce((sum,b)=>sum+b.weight,0),70);
- assert.equal(bands[0].min,50);assert.equal(bands.at(-1).max,2000);
- for(let i=1;i<bands.length-1;i++){
-  assert.equal(bands[i].min,bands[i-1].max+1);
-  assert.ok(bands[i].weight/(bands[i].max-bands[i].min+1)<bands[i-1].weight/(bands[i-1].max-bands[i-1].min+1));
+ for(let seed=0;seed<5000;seed++){
+  const spots=forestReady(seed,61).forest.expedition.layer.spots;
+  assert.ok(spots.filter(p=>p.kind==='box').length<=1);
+  for(const p of spots){total++;if(p.kind==='box'){boxes++;coins+=p.coins>0;tickets+=p.tickets;}else assert.equal(p.coins+p.tickets,0);}
  }
- assert.deepEqual(bands.at(-1),{min:2000,max:2000,weight:4});
- let drops=0,total=0,low=0;const counts=Array(bands.length).fill(0),tries=12000;
- for(let seed=0;seed<tries;seed++){
-  const s=reducer(forestReady(seed),{type:'FOREST_GATHER',spot:0,careful:false,now:1000});
-  const coins=s.forest.expedition.pending.coins;
-  if(!coins)continue;
-  assert.ok(Number.isInteger(coins)&&((coins>=50&&coins<=600)||coins===2000));
-  drops++;total+=coins;low+=coins<=300?1:0;counts[bands.findIndex(b=>coins>=b.min&&coins<=b.max)]++;
- }
- assert.ok(Math.abs(drops/tries-.3)<.02,`drop rate ${drops/tries}`);
- assert.ok(Math.abs(low/drops-.7)<.025,`low share ${low/drops}`);
- assert.ok(Math.abs(counts.at(-1)/drops-.04)<.012,`jackpot share ${counts.at(-1)/drops}`);
- assert.ok(Math.abs(counts.at(-1)/tries-.012)<.006,`overall jackpot rate ${counts.at(-1)/tries}`);
- for(let i=0;i<bands.length;i++)assert.ok(Math.abs(counts[i]/drops-bands[i].weight/100)<.025,`band ${i}: ${counts[i]/drops}`);
- assert.ok(total/drops>280&&total/drops<340,`average ${total/drops}`);
- assert.equal(forestModel.forestCoinAmount(0),50);
- assert.equal(forestModel.forestCoinAmount(1-Number.EPSILON),2000);
+ assert.ok(boxes/total>.05&&boxes/total<.09);assert.ok(Math.abs(coins/boxes-.3)<.025);assert.ok(Math.abs(tickets/boxes-.1)<.02);
+ assert.equal(forestModel.forestCoinAmount(0),50);assert.equal(forestModel.forestCoinAmount(1-Number.EPSILON),2000);
 });
-
-test('changing forest coin distribution never rewrites saved pending rewards or rerolls them',()=>{
- let s=forestReady();s.forest.expedition.pending={food:['bread'],coins:1999,tickets:1};s.forest.expedition.coins=1999;s.forest.expedition.tickets=1;
- s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);
- assert.equal(s.forest.expedition.pending.coins,1999);
- assert.equal(reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000}),s);
- s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const before=s.currency;
- s=reducer(s,{type:'FOREST_CLAIM'});assert.equal(s.currency-before,1999);assert.equal(s.forest.tickets,1);
-});
-
 
 test('early forest missions require one real gather and receiving food, without rare loot or tickets',()=>{
  const prior=missionChapters.slice(0,3).flatMap(c=>c.missions.map(m=>m.id));
@@ -2099,10 +2147,9 @@ test('early forest missions require one real gather and receiving food, without 
  assert.deepEqual(getMissions(s).map(m=>m.id),['forest-enter','forest-gather','forest-bring-home']);
  assert.ok(getMissions(s).every(m=>m.destination==='forest'));
  s=reducer(s,{type:'FOREST_ENTER',now:1000});assert.ok(s.missions.completed.includes('forest-enter'));assert.ok(!s.missions.completed.includes('forest-gather'));
- s=reducer(s,{type:'FOREST_MOVE',area:'clearing',now:1000});s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});
+ s=reducer(s,{type:'FOREST_GATHER',floor:1,spot:0,now:1000});
  assert.ok(s.missions.completed.includes('forest-gather'));assert.ok(!s.missions.completed.includes('forest-bring-home'));
- s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});assert.ok(!s.missions.completed.includes('forest-bring-home'));
- s=reducer(s,{type:'FOREST_CLAIM'});assert.ok(s.missions.completed.includes('forest-bring-home'));assert.ok(s.forest.discovered.includes('bread'));
+ s=reducer(s,{type:'FOREST_RETURN',now:1000});assert.ok(s.missions.completed.includes('forest-bring-home'));assert.ok(s.forest.discovered.length>0);
  const before=s.currency;
  for(const m of [...getMissions(s)])s=reducer(s,{type:'CLAIM_MISSION',missionId:m.id});
  assert.equal(s.currency-before,30);assert.equal(currentMission(s).id,'toast-order');assert.equal(reducer(s,{type:'CLAIM_MISSION',missionId:'forest-enter'}),s);

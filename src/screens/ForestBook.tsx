@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '../game/GameContext';
 import { forestAreas, forestIngredients, forestRecipes, handmadeGifts } from '../data/forest';
 import { getIngredient } from '../data/ingredients';
-import { basketCapacity } from '../game/forest';
+import { canCookForestDish } from '../game/forest';
 import { salePrice } from '../game/logic';
 import { ScreenTitle } from '../components/GameUI';
 
@@ -19,10 +19,10 @@ export function ForestBook({ onBack }: { onBack: () => void }) {
   return <section className="screen forest-screen forest-book"><ScreenTitle title="森の手帳"/>
     <div className="forest-book-tabs">{[['food', '食材'], ['secret', '秘密のレシピ'], ['recipes', '限定料理'], ['gifts', '手作り']].map(([id, label]) => <button className={tab === id ? 'active' : ''} key={id} onClick={() => setTab(id)}>{label}</button>)}</div>
     {tab === 'food' && <>
-      <p className="forest-book-summary">発見 {forestIngredients.filter(i => f.discovered.includes(i.id)).length}/{forestIngredients.length} · かご {basketCapacity(f)}枠</p>
+      <p className="forest-book-summary">発見 {forestIngredients.filter(i => f.discovered.includes(i.id)).length}/{forestIngredients.length} · 最深 {f.deepestFloor}層</p>
       {forestIngredients.map(i => <article className="forest-card" key={i.id}>
         <h3>{i.icon} {i.name}<small>{f.discovered.includes(i.id) ? '✓' : '未発見'}</small></h3>
-        <p>在庫 {state.ingredients[i.id] || 0} · {['forestHoney', 'forestMoonBerry'].includes(i.id) ? 2 : 1}枠</p>
+        <p>在庫 {state.ingredients[i.id] || 0}</p>
       </article>)}
       <details className="forest-book-help"><summary>食材の場所</summary><ul>{forestIngredients.map(i => <li key={i.id}><strong>{i.name}</strong><small>{forestAreas.filter(a => a.bonus[i.id]).map(a => a.name).join('・')}</small></li>)}</ul></details>
     </>}
@@ -36,19 +36,18 @@ export function ForestBook({ onBack }: { onBack: () => void }) {
       <details className="forest-book-help"><summary>深い森の解放条件</summary><dl className="forest-book-conditions"><dt>持ち帰り</dt><dd>{Math.min(5, f.returns)}/5回</dd><dt>料理提供</dt><dd>{Math.min(20, state.lifetimeStats.totalOrders)}/20皿</dd></dl></details>
     </>}
     {tab === 'recipes' && <>
+      <p className="forest-book-summary">作って所持 → お客さんが来店</p>
       <div className="forest-book-sales"><label>皿数 <select value={amount} onChange={e => setAmount(Number(e.target.value))}>{[1, 2, 3].map(n => <option key={n} value={n}>{n}</option>)}</select></label></div>
       {forestRecipes.map(r => {
-        const unlocked = state.unlockedRecipes.includes(r.id), reserved = f.sales[r.id] || 0;
+        const unlocked = state.unlockedRecipes.includes(r.id), reserved = f.dishes[r.id] || 0;
         const inFlight = state.orders.filter(o => o.forestReserved && o.recipeId === r.id).length;
-        const active = new Set([...Object.keys(f.sales).filter(id => f.sales[id] > 0), ...state.orders.filter(o => o.forestReserved).map(o => o.recipeId)]);
-        const can = unlocked && reserved + inFlight + amount <= 3 && (active.has(r.id) || active.size < 2) && r.requiredIngredients.every(id => (state.ingredients[id] || 0) >= amount);
+        const can = canCookForestDish(state,r.id,amount);
         return <article className="forest-card" key={r.id}>
           <h3>{r.icon} {r.name}</h3>
-          <p>● {salePrice(r.id, state)} · {r.cookingSeconds}秒</p>
+          <p>● {salePrice(r.id, state)} コイン</p>
           {materials(Object.fromEntries(r.requiredIngredients.map(id => [id, 1])), amount)}
-          {(reserved > 0 || inFlight > 0) && <small>販売待ち {reserved} · 注文 {inFlight}</small>}
-          <button className="primary-button" disabled={!can} onClick={() => dispatch({ type: 'FOREST_SELL', recipeId: r.id, count: amount })}>{unlocked ? `${amount}皿を販売` : '未解放'}</button>
-          {reserved > 0 && <button className="secondary-button" onClick={() => dispatch({ type: 'FOREST_WITHDRAW', recipeId: r.id })}>取り下げ</button>}
+          <small>所持 {reserved}/3皿{inFlight > 0 && ` · お客さん ${inFlight}`}</small>
+          <button className="primary-button" disabled={!can} onClick={() => dispatch({ type: 'FOREST_COOK', recipeId: r.id, count: amount })}>{unlocked ? `${amount}皿作る` : '未解放'}</button>
         </article>;
       })}
     </>}

@@ -109,7 +109,7 @@ function GameContent({publicBuild}:{publicBuild:boolean}) {
       {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
       {screen==="menu"&&<MenuScreen tab={menuTab} onTabChange={setMenuTab}/>}
-      {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("cafe")} onClaimReturn={()=>{dispatch({type:"FOREST_CLAIM"});setScreen("cafe");}}/>}
+      {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("cafe")}/>}
       {screen==="forestBook"&&<ForestBook onBack={()=>setScreen("forest")}/>}
       {screen==="staff"&&<StaffScreen/>}
     </div>

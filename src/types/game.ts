@@ -45,7 +45,7 @@ export interface GiftReactionPopup { characterId:string; giftId:string; reaction
 export interface Station { id:string; equipmentId:string; level:number; }
 export type StaffRole = "cook"|"server"|"procurement"|"rest";
 export interface Staff { characterId:string; role:StaffRole; servingOrderId?:string; returningFromSlot?:number; remainingMs:number; }
-export interface Order { forestReserved?:boolean; request?:boolean; id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
+export interface Order { forestPrepared?:boolean; forestReserved?:boolean; request?:boolean; id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
 export interface IngredientDelivery { id:string; ingredientId:string; packs:number; servingsPerPack:number; automatic?:boolean; staffId?:string; orderedAt:number; arrivesAt:number; }
 export interface DailyStats { sales:number; orders:number; recipeSales:Record<string,number>; }
 export interface LifetimeStats { recipeSales:Record<string,number>; ingredientPurchases:Record<string,number>; tagSales:Record<string,number>; totalOrders:number; totalRevenue:number; giftPurchases:number; staffProcurementOrders:number; automaticPacks:number; automatedOrders:number; }
@@ -98,6 +98,11 @@ export interface MissionProgress {
   sideClaimed:string[];
 }
 
-export interface ForestLoot { food:string[]; coins:number; tickets:number; fragment?:string; }
-export interface ForestExpedition {id:number; seed:number; area:string; used:string[]; basket:string[]; coins:number; tickets:number; fragment?:string; harvested:boolean; deepGather:number; gotRare:boolean; returning:boolean; pending?:ForestLoot;}
-export interface ForestState { tutorialDone?:boolean; energy:number; recoveredAt:number; nextId:number; returns:number; fragments:Record<string,number>; discovered:string[]; crafted:string[]; tickets:number; sales:Record<string,number>; serveForestNext:boolean; expedition?:ForestExpedition; lastReturn?:ForestLoot; }
+export interface ForestLoot { food:string[]; coins:number; tickets:number; fragment?:string; fragments?:Record<string,number>; floor?:number; energySpent?:number; }
+export type ForestSpotKind = 'berries'|'herbs'|'flowers'|'mushrooms'|'roots'|'leaves'|'box';
+export interface ForestSpot { id:number; cell:number; x:number; y:number; kind:ForestSpotKind; food:string[]; coins:number; tickets:number; fragment?:string; emptyHint:boolean; }
+export interface ForestMeal { recipeId:string; kind:'foot'|'luck'; rarity:'normal'|'special'|'rare'; level:number; pathReduction:number; rareBonus:number; obstacleSkip:number; emptyHints:number; }
+export interface ForestLayer { floor:number; spots:ForestSpot[]; used:number[]; pathSpot:number; pathLimit:number; pathFound:boolean; obstacleTotal:number; obstacleRemaining:number; obstacleSkipped:number; }
+export interface ForestFind extends ForestLoot { spot:number; path:boolean; }
+export interface ForestExpedition { id:number; seed:number; startFloor:number; layer:ForestLayer; basket:string[]; coins:number; tickets:number; fragments:Record<string,number>; harvested:boolean; energySpent:number; meal?:ForestMeal; tutorial:boolean; lastFind?:ForestFind; }
+export interface ForestState { tutorialDone?:boolean; energy:number; recoveredAt:number; nextId:number; returns:number; fragments:Record<string,number>; discovered:string[]; crafted:string[]; tickets:number; dishes:Record<string,number>; serveForestNext:boolean; deepestFloor:number; checkpoints:number[]; legacyBasketLevel?:number; expedition?:ForestExpedition; lastReturn?:ForestLoot; }

@@ -19,11 +19,11 @@ export function advanceGame(state:GameState,deltaMs:number):GameState {
     next={...next,staff:next.staff.map(person=>person.returningFromSlot!==undefined&&person.remainingMs<=0?{...person,returningFromSlot:undefined,remainingMs:0}:person)};
     next=assignWork(next);
     if(next.spawnRemainingMs<=0) {
-      const reserved=Object.keys(next.forest.sales).find(id=>next.forest.sales[id]>0);
+      const reserved=Object.keys(next.forest.dishes).find(id=>next.forest.dishes[id]>0);
       const useForest=!!reserved&&next.forest.serveForestNext;
-      const incoming=useForest?{recipeId:reserved!,forestReserved:true}:pickIncomingOrder(next);
+      const incoming=useForest?{recipeId:reserved!,forestReserved:true,forestPrepared:true}:pickIncomingOrder(next);
       const customerSlot=tableSlots(next).find(slot=>!next.orders.some(order=>order.customerSlot===slot));
-      if(incoming&&customerSlot!==undefined&&next.orders.length<tableCapacity(next))next={...next,forest:{...next.forest,serveForestNext:!useForest,sales:useForest?{...next.forest.sales,[reserved!]:next.forest.sales[reserved!]-1}:next.forest.sales},nextOrderNumber:next.nextOrderNumber+1,orders:[...next.orders,{id:`order-${next.nextOrderNumber}`,customerSlot,...incoming,status:"queued",remainingMs:0,totalMs:0}]};
+      if(incoming&&customerSlot!==undefined&&next.orders.length<tableCapacity(next))next={...next,forest:{...next.forest,serveForestNext:!useForest,dishes:useForest?{...next.forest.dishes,[reserved!]:next.forest.dishes[reserved!]-1}:next.forest.dishes},nextOrderNumber:next.nextOrderNumber+1,orders:[...next.orders,{id:`order-${next.nextOrderNumber}`,customerSlot,...incoming,status:useForest?"ready":"queued",remainingMs:0,totalMs:0}]};
       next={...next,spawnRemainingMs:GAME_CONFIG.orderSpawnMinMs+Math.random()*(GAME_CONFIG.orderSpawnMaxMs-GAME_CONFIG.orderSpawnMinMs)};
     }
   }

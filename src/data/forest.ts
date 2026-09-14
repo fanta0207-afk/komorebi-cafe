@@ -1,5 +1,5 @@
 import type { Ingredient, Recipe, Gift } from '../types/game';
-export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, basket: 10, coinChance: .3, ticketChance: .15, coinMin: 50, coinMax: 2000, deepReturns: 5, deepOrders: 20 };
+export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, maxFloor: 70, actionCost: 1, boxChance: .12, maxBoxes: 1, coinChance: .3, ticketChance: .1, coinMin: 50, coinMax: 2000, deepReturns: 5, deepOrders: 20, fragmentChance: .4, abundantChance: .06, maxRareBonus: .05, maxPathReduction: 2 };
 // Amounts after a coin drop: mostly small finds, with a fixed 4% jackpot.
 export const FOREST_COIN_BANDS = [
     { min: 50, max: 300, weight: 70 },
@@ -31,24 +31,33 @@ export interface ForestArea {
     id: string;
     name: string;
     icon: string;
-    next: [
-        string,
-        number
-    ][];
     normal: Record<string, number>;
     bonus: Record<string, number>;
-    rate: number;
     secret?: string;
 }
+export interface ForestBand { area:string; from:number; to:number; spots:[number,number]; pathLimit:number; rareRate:number; forestRate:number; emptyRate:number; obstacleChance:number; obstacleMax:number; background:'clearing'|'river'|'spring'; }
+export const FOREST_BANDS: ForestBand[] = [
+    { area:'clearing', from:1, to:10, spots:[6,8], pathLimit:4, rareRate:0, forestRate:0.08, emptyRate:.35, obstacleChance:0, obstacleMax:0, background:'clearing' },
+    { area:'river', from:11, to:20, spots:[7,9], pathLimit:5, rareRate:0, forestRate:0.1, emptyRate:.35, obstacleChance:0, obstacleMax:0, background:'river' },
+    { area:'pond', from:21, to:30, spots:[7,9], pathLimit:5, rareRate:.05, forestRate:0.12, emptyRate:.3, obstacleChance:.2, obstacleMax:1, background:'river' },
+    { area:'grove', from:31, to:40, spots:[8,10], pathLimit:6, rareRate:.05, forestRate:0.14, emptyRate:.3, obstacleChance:.2, obstacleMax:1, background:'clearing' },
+    { area:'roots', from:41, to:50, spots:[8,10], pathLimit:6, rareRate:.1, forestRate:0.16, emptyRate:.3, obstacleChance:.3, obstacleMax:2, background:'clearing' },
+    { area:'stone', from:51, to:60, spots:[9,11], pathLimit:7, rareRate:.15, forestRate:0.18, emptyRate:.25, obstacleChance:.3, obstacleMax:2, background:'spring' },
+    { area:'spring', from:61, to:70, spots:[10,12], pathLimit:7, rareRate:.25, forestRate:0.2, emptyRate:.2, obstacleChance:.4, obstacleMax:3, background:'spring' },
+];
+export const FOREST_MEAL_LEVELS = [
+    { from:1, to:3, obstacleSkip:1, emptyHints:1, pathReduction:1, rareBonus:0 },
+    { from:4, to:6, obstacleSkip:1, emptyHints:2, pathReduction:1, rareBonus:.03 },
+    { from:7, to:10, obstacleSkip:2, emptyHints:2, pathReduction:2, rareBonus:.05 },
+];
+export const forestBand = (floor:number) => FOREST_BANDS.find(b=>floor>=b.from&&floor<=b.to)!;
 export const forestAreas: ForestArea[] = [
-    { id: 'entrance', name: '森の入口', icon: '🌲', next: [['clearing', 1]], normal: {}, bonus: {}, rate: 0 },
-    { id: 'clearing', name: 'こもれび広場', icon: '🌳', next: [['fork', 1]], normal: { coffeeBeans: 30, bread: 30, strawberry: 20, herb: 10, sugar: 10 }, bonus: { forestBerry: 50, forestHerb: 30, forestPetal: 20 }, rate: 10 },
-    { id: 'fork', name: '分かれ道', icon: '🪧', next: [['river', 1], ['grove', 2]], normal: {}, bonus: {}, rate: 0 },
-    { id: 'river', name: '川辺', icon: '🏞️', next: [['pond', 1]], normal: { mint: 35, herb: 30, teaLeaves: 20, milk: 10, egg: 5 }, bonus: { forestMint: 50, forestHerb: 30, forestPetal: 20 }, rate: 14 },
-    { id: 'pond', name: '小さな池', icon: '💧', next: [['roots', 2]], normal: { milk: 25, egg: 25, vanillaIce: 20, frozenBerries: 20, teaLeaves: 10 }, bonus: { forestHerb: 50, forestMint: 30, forestPetal: 20 }, rate: 18, secret: 'forestSecretTea' },
-    { id: 'grove', name: '木立', icon: '🌲', next: [['roots', 2]], normal: { flour: 30, bread: 25, tomato: 20, lettuce: 15, strawberry: 10 }, bonus: { forestWalnut: 50, forestMushroom: 30, forestBerry: 20 }, rate: 14 },
-    { id: 'roots', name: '大樹の根元', icon: '🌳', next: [['stone', 2]], normal: { coffeeBeans: 25, flour: 25, chocolate: 20, sugar: 20, herb: 10 }, bonus: { forestMushroom: 45, forestWalnut: 45, forestHerb: 10 }, rate: 22, secret: 'forestSecretCookie' },
-    { id: 'stone', name: '苔むす石畳', icon: '🪨', next: [['spring', 2]], normal: { chocolate: 30, sugar: 25, teaLeaves: 20, milk: 15, coffeeBeans: 10 }, bonus: { forestHoney: 40, forestMoonBerry: 20, forestPetal: 20, forestHerb: 20 }, rate: 26 },
-    { id: 'spring', name: '月しずくの泉', icon: '✨', next: [], normal: { frozenBerries: 30, vanillaIce: 25, milk: 20, strawberry: 15, mint: 10 }, bonus: { forestMoonBerry: 45, forestHoney: 25, forestBerry: 15, forestMint: 15 }, rate: 30, secret: 'spring' },
+    { id: 'clearing', name: 'こもれび広場', icon: '🌳', normal: { coffeeBeans: 30, bread: 30, strawberry: 20, herb: 10, sugar: 10 }, bonus: { forestBerry: 50, forestHerb: 30, forestPetal: 20 } },
+    { id: 'river', name: '川辺', icon: '🏞️', normal: { mint: 35, herb: 30, teaLeaves: 20, milk: 10, egg: 5 }, bonus: { forestMint: 50, forestHerb: 30, forestPetal: 20 } },
+    { id: 'pond', name: '小さな池', icon: '💧', normal: { milk: 25, egg: 25, vanillaIce: 20, frozenBerries: 20, teaLeaves: 10 }, bonus: { forestHerb: 50, forestMint: 30, forestPetal: 20 }, secret: 'forestSecretTea' },
+    { id: 'grove', name: '木立', icon: '🌲', normal: { flour: 30, bread: 25, tomato: 20, lettuce: 15, strawberry: 10 }, bonus: { forestWalnut: 50, forestMushroom: 30, forestBerry: 20 } },
+    { id: 'roots', name: '大樹の根元', icon: '🌳', normal: { coffeeBeans: 25, flour: 25, chocolate: 20, sugar: 20, herb: 10 }, bonus: { forestMushroom: 45, forestWalnut: 45, forestHerb: 10 }, secret: 'forestSecretCookie' },
+    { id: 'stone', name: '苔むす小道', icon: '🌿', normal: { chocolate: 30, sugar: 25, teaLeaves: 20, milk: 15, coffeeBeans: 10 }, bonus: { forestHoney: 40, forestMoonBerry: 20, forestPetal: 20, forestHerb: 20 } },
+    { id: 'spring', name: '月しずくの泉', icon: '✨', normal: { frozenBerries: 30, vanillaIce: 25, milk: 20, strawberry: 15, mint: 10 }, bonus: { forestMoonBerry: 45, forestHoney: 25, forestBerry: 15, forestMint: 15 }, secret: 'spring' },
 ];
 export const forestArea = (id: string) => forestAreas.find(a => a.id === id)!;

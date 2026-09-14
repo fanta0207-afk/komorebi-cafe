@@ -1,4 +1,4 @@
-import { emptyForest, recoverForest, reduceForest, syncForestRecipes, handmadeAmount, type ForestAction } from './forest';
+import { emptyForest, recoverForest, reduceForest, syncForestRecipes, handmadeAmount, migrateForest, type ForestAction } from './forest';
 import { giftShopAutoSlot, giftShopDay, giftShopRefreshesLeft, replaceGiftShop, updateGiftShopClock } from "./giftShop";
 import { getGift, sortGiftIdsByRarity } from "../data/gifts";
 import { getCharacter } from "../data/characters";
@@ -217,6 +217,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       // Paid purchases minus pending packs are evidence of already completed deliveries.
       migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
     }
+    migrated=migrateForest(migrated,savedVersion,now);
     return updateMissions(syncForestRecipes(updateGiftShopClock(receiveSupplies(normalizeCookingTimes(migrated), now),now)));
 }
 
@@ -285,8 +286,8 @@ function reduceAction(state:GameState, action:Action):GameState {
     }
     case "DECLINE_ORDER": {
       const order=state.orders.find(item=>item.id===action.orderId);
-      if(!order || order.status!=="queued")return state;
-      return {...state,forest:order.forestReserved?{...state.forest,sales:{...state.forest.sales,[order.recipeId]:(state.forest.sales[order.recipeId]||0)+1}}:state.forest,orders:state.orders.filter(item=>item.id!==order.id),notice:notice("info","またお待ちしています。注文をお断りしました")};
+      if(!order || (order.status!=="queued"&&!(order.forestPrepared&&order.status==="ready")))return state;
+      return {...state,forest:order.forestReserved?{...state.forest,dishes:{...state.forest.dishes,[order.recipeId]:(state.forest.dishes[order.recipeId]||0)+1}}:state.forest,orders:state.orders.filter(item=>item.id!==order.id),notice:notice("info","またお待ちしています。注文をお断りしました")};
     }
     case "START_COOKING": return startCooking(state,action.orderId);
     case "TICK": {

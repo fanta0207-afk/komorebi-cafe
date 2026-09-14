@@ -1977,7 +1977,7 @@ test('forest recovers real time with fractional minutes, cap and backward clock 
 test('forest food, random tickets, coins, pending loot and claim are deterministic and idempotent',()=>{
  for(let seed=1;seed<=1500;seed++){
   let s=forestReady(seed),before=JSON.parse(JSON.stringify(s));s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});const e=s.forest.expedition;
-  assert.ok(e.pending.food.length>=1);assert.ok(!getForestIngredient(e.pending.food[0]));assert.ok([0,1].includes(e.tickets));assert.ok(e.coins===0||(e.coins>=300&&e.coins<=2000));
+  assert.ok(e.pending.food.length>=1);assert.ok(!getForestIngredient(e.pending.food[0]));assert.ok([0,1].includes(e.tickets));assert.ok(e.coins===0||(e.coins>=50&&e.coins<=2000));
   assert.deepEqual(reducer(before,{type:'FOREST_GATHER',spot:0,careful:false,now:1000}).forest.expedition,e);
   assert.equal(reducer(s,{type:'FOREST_GATHER',spot:0,careful:true,now:1000}),s);
   s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.deepEqual(s.forest.expedition.pending,e.pending);
@@ -2032,28 +2032,31 @@ test('tickets drop at 15 percent on every gather, with no first-gather or method
 });
 
 
-test('forest coin amounts favor low values, preserve the drop rate, and get rarer at higher prices',()=>{
+test('forest coin rewards are mostly 50-300, with a 4 percent fixed jackpot and unchanged drop rate',()=>{
  const bands=forestData.FOREST_COIN_BANDS;
  assert.equal(bands.reduce((sum,b)=>sum+b.weight,0),100);
- assert.equal(bands.filter(b=>b.max<=1000).reduce((sum,b)=>sum+b.weight,0),70);
- assert.equal(bands[0].min,300);assert.equal(bands.at(-1).max,2000);
- for(let i=1;i<bands.length;i++){
+ assert.equal(bands.filter(b=>b.max<=300).reduce((sum,b)=>sum+b.weight,0),70);
+ assert.equal(bands[0].min,50);assert.equal(bands.at(-1).max,2000);
+ for(let i=1;i<bands.length-1;i++){
   assert.equal(bands[i].min,bands[i-1].max+1);
   assert.ok(bands[i].weight/(bands[i].max-bands[i].min+1)<bands[i-1].weight/(bands[i-1].max-bands[i-1].min+1));
  }
+ assert.deepEqual(bands.at(-1),{min:2000,max:2000,weight:4});
  let drops=0,total=0,low=0;const counts=Array(bands.length).fill(0),tries=12000;
  for(let seed=0;seed<tries;seed++){
   const s=reducer(forestReady(seed),{type:'FOREST_GATHER',spot:0,careful:false,now:1000});
   const coins=s.forest.expedition.pending.coins;
   if(!coins)continue;
-  assert.ok(Number.isInteger(coins)&&coins>=300&&coins<=2000);
-  drops++;total+=coins;low+=coins<=1000?1:0;counts[bands.findIndex(b=>coins>=b.min&&coins<=b.max)]++;
+  assert.ok(Number.isInteger(coins)&&((coins>=50&&coins<=600)||coins===2000));
+  drops++;total+=coins;low+=coins<=300?1:0;counts[bands.findIndex(b=>coins>=b.min&&coins<=b.max)]++;
  }
  assert.ok(Math.abs(drops/tries-.3)<.02,`drop rate ${drops/tries}`);
  assert.ok(Math.abs(low/drops-.7)<.025,`low share ${low/drops}`);
+ assert.ok(Math.abs(counts.at(-1)/drops-.04)<.012,`jackpot share ${counts.at(-1)/drops}`);
+ assert.ok(Math.abs(counts.at(-1)/tries-.012)<.006,`overall jackpot rate ${counts.at(-1)/tries}`);
  for(let i=0;i<bands.length;i++)assert.ok(Math.abs(counts[i]/drops-bands[i].weight/100)<.025,`band ${i}: ${counts[i]/drops}`);
- assert.ok(total/drops>800&&total/drops<900,`average ${total/drops}`);
- assert.equal(forestModel.forestCoinAmount(0),300);
+ assert.ok(total/drops>280&&total/drops<340,`average ${total/drops}`);
+ assert.equal(forestModel.forestCoinAmount(0),50);
  assert.equal(forestModel.forestCoinAmount(1-Number.EPSILON),2000);
 });
 

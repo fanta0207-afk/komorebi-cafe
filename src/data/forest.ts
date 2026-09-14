@@ -1,14 +1,11 @@
 import type { Ingredient, Recipe, Gift } from '../types/game';
-export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, basket: 10, coinChance: .3, ticketChance: .15, coinMin: 300, coinMax: 2000, deepReturns: 5, deepOrders: 20 };
-// Conditional amount distribution after a coin drop, with lower odds per coin at higher prices.
+export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, basket: 10, coinChance: .3, ticketChance: .15, coinMin: 50, coinMax: 2000, deepReturns: 5, deepOrders: 20 };
+// Amounts after a coin drop: mostly small finds, with a fixed 4% jackpot.
 export const FOREST_COIN_BANDS = [
-    { min: 300, max: 500, weight: 30 },
-    { min: 501, max: 750, weight: 25 },
-    { min: 751, max: 1000, weight: 15 },
-    { min: 1001, max: 1250, weight: 12 },
-    { min: 1251, max: 1500, weight: 8 },
-    { min: 1501, max: 1750, weight: 7 },
-    { min: 1751, max: 2000, weight: 3 },
+    { min: 50, max: 300, weight: 70 },
+    { min: 301, max: 450, weight: 20 },
+    { min: 451, max: 600, weight: 6 },
+    { min: 2000, max: 2000, weight: 4 },
 ] as const;
 export const forestIngredients: Ingredient[] = [['forestBerry', '野いちご', '🍓'], ['forestWalnut', '森くるみ', '🌰'], ['forestHerb', '香草', '🌿'], ['forestMint', '森ミント', '🍃'], ['forestPetal', '食用花', '🌸'], ['forestMushroom', '森きのこ', '🍄'], ['forestHoney', '琥珀花蜜', '🍯'], ['forestMoonBerry', '月しずくベリー', '🫐']].map(([id, name, icon]) => ({ id, name, icon, price: 0, supplierId: 'forest', limited: true }));
 const recipe = (id: string, name: string, icon: string, sale: number, seconds: number, materials: string[], equipment: string, tags: string[], secret = false): Recipe => ({ id, name, icon, price: sale * 2, cookingSeconds: seconds, requiredIngredients: materials, requiredEquipmentIds: [equipment], tags, limited: true, forest: true, hidden: secret, unlockHint: secret ? '森でレシピの切れ端を3枚集める' : '最初の料理を提供する' });

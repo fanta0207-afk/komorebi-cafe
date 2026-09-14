@@ -615,6 +615,19 @@ test('each character gains the specified specialty at level 8 only',()=>{
   }
 });
 
+test('publication preserves the save key and v5 possessions, customer and recipe compatibility',()=>{
+  assert.equal(GAME_CONFIG.saveKey,'komorebi-cafe-save-v1');
+  const initial=createInitialState();
+  const legacy={...initial,saveVersion:5,currency:987,ingredients:{coffeeBeans:7},inventory:{book:2},
+    orders:[order('v5-guest','coffee',0)],nextOrderNumber:42};
+  const loaded=migrateSavedState(JSON.parse(JSON.stringify(legacy)));
+  assert.equal(loaded.currency,987);assert.deepEqual(loaded.ingredients,{coffeeBeans:7});
+  assert.deepEqual(loaded.inventory,{book:2});assert.deepEqual(loaded.orders,legacy.orders);
+  assert.deepEqual(loaded.unlockedRecipes,legacy.unlockedRecipes);
+  assert.deepEqual(loaded.stations,legacy.stations);assert.equal(loaded.nextOrderNumber,42);
+  assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(loaded))).orders,legacy.orders);
+});
+
 test('reload and suspended time never yield offline coins or progress; v4 migration is idempotent',()=>{
   let state=tick(start(addOrder(isolated())),3000);const saved=JSON.parse(JSON.stringify(state));
   for(const deltaMs of [0,-1,1001,86400000,Infinity,NaN])assert.equal(reducer(state,{type:'TICK',deltaMs}),state);

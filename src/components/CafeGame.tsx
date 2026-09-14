@@ -29,9 +29,9 @@ import type { MissionDestination } from "../game/missions";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
-export default function CafeGame() { return <GameProvider><GameContent/></GameProvider>; }
+export default function CafeGame({publicBuild=false}:{publicBuild?:boolean}={}) { return <GameProvider><GameContent publicBuild={publicBuild}/></GameProvider>; }
 
-function GameContent() {
+function GameContent({publicBuild}:{publicBuild:boolean}) {
   const {state,dispatch,refreshGiftShop,resetGame}=useGame();
   const cafeManager=useCafeManager(state,dispatch);
   const [screen,setScreen]=useState<Screen>("cafe");
@@ -94,7 +94,7 @@ function GameContent() {
   // 画面を切り替えるたびに表示領域ごと入れ替え、前画面の画像が一瞬残るのを防ぐ。
   const screenKey=`${screen}:${supplierId||""}:${characterId||""}`;
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":screen==="forest"?"forest-shell":""}`}>
-    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
+    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={publicBuild?undefined:()=>setDevOpen(true)} missionControl={missionControl}/>}
     <div key={screenKey} className="screen-wrap">
       {screen==="cafe"&&<CafeScreen
         missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
@@ -133,7 +133,7 @@ function GameContent() {
       onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
     />}
     {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
-    {devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
+    {!publicBuild&&devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
   </main>;
 }
 

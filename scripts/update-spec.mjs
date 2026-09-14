@@ -350,7 +350,8 @@ ${equipmentRows}
 - データの正本：\`src/data/*.ts\`
 - ゲーム数値の正本：\`src/game/config.ts\`
 - 仕様書生成：\`npm run spec:update\`
-- 自動実行：\`npm run dev\` と \`npm run build\` の開始前
+- 自動実行：\`npm run dev\`、\`npm run build\`、\`npm run build:vercel\` の開始前
+- Vercel公開版は同じReactゲームを静的SPAとして構築し、開発メニューを非表示にする。既存の開発環境では従来どおり使用できる。ゲーム数値・保存キー・保存移行は変更しない。
 - 今後、画面やルールの仕様を追加する場合は、実装と同時に \`scripts/update-spec.mjs\` の対応節も更新する。
 
 ## 15. 検証基準

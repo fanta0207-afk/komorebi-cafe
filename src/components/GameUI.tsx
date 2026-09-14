@@ -4,10 +4,10 @@ import { useState, type ReactNode } from "react";
 import type { Character, GameState } from "../types/game";
 import { relationshipLabel } from "../game/config";
 
-export function StatusBar({state,onDev,missionControl}:{state:GameState;onDev:()=>void;missionControl?:ReactNode}) {
+export function StatusBar({state,onDev,missionControl}:{state:GameState;onDev?:()=>void;missionControl?:ReactNode}) {
   return <header className="topbar">
     <div className={`date-lockup ${missionControl?"with-mission":""}`}><span className="eyebrow">KOMOREBI CAFE</span>{missionControl}</div>
-    <div className="status-actions"><div className="action-pill" title="お手伝い中のスタッフ"><span>♧</span><b>{state.staff.filter(person=>person.role!=="rest").length}</b><small>人</small></div><button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button><div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
+    <div className="status-actions"><div className="action-pill" title="お手伝い中のスタッフ"><span>♧</span><b>{state.staff.filter(person=>person.role!=="rest").length}</b><small>人</small></div>{onDev&&<button className="dev-trigger" onClick={onDev} aria-label="開発メニュー">⚙</button>}<div className="coin-pill"><span>●</span> {state.currency.toLocaleString()}</div></div>
   </header>;
 }
 

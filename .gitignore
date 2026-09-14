@@ -38,3 +38,8 @@ yarn-error.log*
 /.wrangler/
 /outputs/
 /work/
+/dist-public/
+*.tsbuildinfo
+*.key
+*.p12
+*.pfx

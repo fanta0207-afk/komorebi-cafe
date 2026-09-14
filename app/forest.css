@@ -146,6 +146,26 @@ to{transform:translateY(0);opacity:1}
 .forest-screen select{padding:8px;border-radius:8px;background:#fffdf5}
 .forest-card progress{width:100%;accent-color:#507746}
 .forest-screen button:disabled{opacity:.45}
+.forest-book .forest-card{padding:12px;margin:8px 0}
+.forest-book .forest-card h3{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;font-size:15px;line-height:1.6}
+.forest-book .forest-card h3 small{flex:none;font-weight:400;font-size:12px;color:#7b8472}
+.forest-book .forest-card p,.forest-book .forest-book-summary{margin:8px 0;font-size:13px;line-height:1.8}
+.forest-book .forest-card>small{display:block;margin:8px 0;font-size:12px;line-height:1.8}
+.forest-book-materials{list-style:none;display:grid;gap:6px;padding:0;margin:12px 0;font-size:12px;line-height:1.8}
+.forest-book-materials li{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.forest-book-materials small{flex:none;font-size:12px;color:#6b7863;line-height:1.8}
+.forest-book-materials .is-short{color:#a44d35}
+.forest-book-sales{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.forest-book-sales small,.forest-book-help{font-size:12px;color:#6b7863}
+.forest-book-help{margin:12px 0}
+.forest-book-help summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+.forest-book-help summary::before{content:"›";font-size:20px;margin-right:8px}
+.forest-book-help[open] summary::before{transform:rotate(90deg)}
+.forest-book-help ul{list-style:none;padding:0;display:grid;gap:12px}
+.forest-book-help li{display:grid;gap:4px;padding:8px 0;border-bottom:1px dashed #dcdcc9;line-height:1.8}
+.forest-book-help small{font-size:12px;line-height:1.8}
+.forest-book-conditions{display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin:8px 0 16px;font-size:12px;line-height:1.8}
+.forest-book-conditions dd{margin:0;font-variant-numeric:tabular-nums}
 .forest-entry{display:flex;align-items:center;justify-content:space-between;width:100%;padding:18px;margin:14px 0;border:1px solid #bfceb5;background:#e6eedc;border-radius:16px;color:#304c3a;font-size:18px;text-align:left}
 .forest-entry small{display:block;font-size:13px;margin-top:5px}
 

@@ -689,11 +689,11 @@ test('standalone guest sizing matches sheet height and feet while preserving asp
   }
 });
 
-test('Ren everyday supplier and staff dialogue follows live tasks and keeps shop and hiring controls',()=>{
+test('supplier replies follow live tasks while staff cards keep controls without dialogue',()=>{
   const context=require(join(output,'game/GameContext.js'));
   const original=context.useGame;
   const {characterGreeting}=require(join(output,'game/conversation.js'));
-  const {renSupplyReplies,renStaffReplies}=require(join(output,'data/renConversations.js'));
+  const {renSupplyReplies}=require(join(output,'data/renConversations.js'));
   const {SupplierScreen}=require(join(output,'screens/SupplierScreen.js'));
   const {StaffCard}=require(join(output,'screens/StaffScreen.js'));
   let state={...createInitialState(),currency:2000};
@@ -704,20 +704,21 @@ test('Ren everyday supplier and staff dialogue follows live tasks and keeps shop
   try{
     const saved=JSON.stringify(state);
     assert.ok(supplier().includes(characterGreeting(characters.find(person=>person.id==='ren'),state.characterProgress.ren)));
-    assert.match(staff(),/staff-dialogue/);
+    assert.doesNotMatch(staff(),/staff-dialogue|dialogue-box/);
     assert.match(staff(),/調理をお願いする/);
     state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans',now:1000});
     const pending=supplier();
     assert.ok(pending.includes(renSupplyReplies.close));
     assert.match(pending,/入荷待ち/);
     state=reducer(state,{type:'HIRE_STAFF',characterId:'ren',role:'cook'});
-    assert.ok(staff().includes(renStaffReplies.cook.assign));
+    assert.match(staff(),/staff-assignment/);
     state={...state,orders:[{...order('ren-job'),cookId:'ren',status:'cooking'}]};
-    assert.ok(staff().includes(renStaffReplies.cook.working));
+    assert.match(staff(),/お仕事中/);
+    assert.doesNotMatch(staff(),/staff-dialogue|dialogue-box/);
     state=reducer(state,{type:'ASSIGN_STAFF',characterId:'ren',role:'rest'});
-    assert.ok(staff().includes(renStaffReplies.rest.busy),'role change during a task waits until it ends');
+    assert.match(staff(),/変更は仕事後に反映/);
     state={...state,orders:[]};
-    assert.ok(staff().includes(renStaffReplies.rest.assign));
+    assert.match(staff(),/お休み中/);
     state.characterProgress.ren={...state.characterProgress.ren,met:false};
     assert.doesNotMatch(staff(),/staff-dialogue/,'unknown people cannot speak');
     const unchanged=JSON.parse(saved);
@@ -754,6 +755,7 @@ test('forest screen keeps pending loot across navigation and offers zero-energy 
   let html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/見つけた！/);assert.match(html,/かごに入れる/);assert.match(html,/店へ帰る、体力を使わず帰還/);
   state=reducer(state,{type:'FOREST_TAKE'});state=reducer(state,{type:'FOREST_RETURN'});html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/受け取る/);assert.doesNotMatch(html,/森へ出かける/);
   html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));assert.match(html,/秘密のレシピ/);assert.match(html,/限定料理/);assert.match(html,/月しずくベリー/);
+  assert.doesNotMatch(html,/普通の食材も毎回1個|分け合い箱・休憩所の保冷箱/);
  }finally{context.useGame=original;}
 });
 
@@ -860,7 +862,8 @@ test('gift shop shows daily updates and Japanese automatic refresh time, disabli
   try {
     const available=render();
     assert.match(available,/手動更新 あと<b>3<\/b>\/3回/);
-    assert.match(available,/次の自動更新 <b>12:00<\/b>/);
+    assert.match(available,/次の自動更新 <b>09:00<\/b>/);
+    assert.match(available,/3時間ごと・日本時間/);
     assert.match(available,/毎日0時に回復/);
     assert.doesNotMatch(available,/<button class="refresh-button" disabled/);
     state={...state,giftShopManualRefreshes:3};

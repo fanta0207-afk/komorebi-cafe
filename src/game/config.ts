@@ -40,7 +40,7 @@ export const GAME_CONFIG = {
   procurementAffection:1,
   giftShopSize:8,
   giftShopDailyRefreshLimit:3,
-  giftShopAutoRefreshMs:6*60*60*1000,
+  giftShopAutoRefreshMs:3*60*60*1000,
   maxDailyActions:5,
   giftAffection:{ love:10, like:6, normal:2, dislike:-4 },
   giftRarityMultiplier:{ common:1, rare:1.6, superRare:2.8, ultraRare:5 },

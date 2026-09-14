@@ -2153,27 +2153,27 @@ test('gift shop allows three manual updates per Japanese day and keeps the limit
   assert.equal(migrateSavedState(refreshed,giftTime('2026-09-14T23:00:00')).giftShopManualRefreshes,1);
 });
 
-test('gift shelves update exactly every six hours without consuming manual updates or accumulated offline stock',()=>{
-  const now=giftTime('2026-09-14T05:59:59');
+test('gift shelves update exactly every three hours without consuming manual updates or accumulated offline stock',()=>{
+  const now=giftTime('2026-09-14T02:59:59');
   const original={...createInitialState(now),giftShopSoldOut:['book'],giftShopManualRefreshes:2,inventory:{book:1},currency:777};
   let draws=0;const draw=()=>{draws++;return ['cookies','bouquet'];};
   assert.equal(updateGiftShopClock(original,now,draw),original);
-  const six=giftTime('2026-09-14T06:00:00');
-  const refreshed=updateGiftShopClock(original,six,draw);
+  const three=giftTime('2026-09-14T03:00:00');
+  const refreshed=updateGiftShopClock(original,three,draw);
   assert.equal(draws,1);assert.equal(refreshed.giftShopManualRefreshes,2);
   assert.deepEqual(refreshed.giftShopSoldOut,[]);assert.ok(refreshed.giftShopItems.includes('book'));
   assert.deepEqual(refreshed.inventory,{book:1});assert.equal(refreshed.currency,777);
-  assert.equal(giftShopNextRefreshAt(refreshed),giftTime('2026-09-14T12:00:00'));
-  assert.equal(updateGiftShopClock(refreshed,six+1,draw),refreshed);assert.equal(draws,1);
-  assert.equal(updateGiftShopClock(refreshed,six-1000,draw),refreshed);
+  assert.equal(giftShopNextRefreshAt(refreshed),giftTime('2026-09-14T06:00:00'));
+  assert.equal(updateGiftShopClock(refreshed,three+1,draw),refreshed);assert.equal(draws,1);
+  assert.equal(updateGiftShopClock(refreshed,three-1000,draw),refreshed);
   const offline=updateGiftShopClock(refreshed,giftTime('2026-09-17T14:00:00'),draw);
   assert.equal(draws,2);assert.equal(offline.giftShopManualRefreshes,0);
-  assert.equal(giftShopNextRefreshAt(offline),giftTime('2026-09-17T18:00:00'));
+  assert.equal(giftShopNextRefreshAt(offline),giftTime('2026-09-17T15:00:00'));
   assert.deepEqual(offline.inventory,{book:1});assert.equal(offline.currency,777);
-  const live=reducer(original,{type:'TICK',deltaMs:100,now:six});
-  assert.equal(live.giftShopAutoRefreshAt,giftShopAutoSlot(six));
+  const live=reducer(original,{type:'TICK',deltaMs:100,now:three});
+  assert.equal(live.giftShopAutoRefreshAt,giftShopAutoSlot(three));
   assert.deepEqual(live.giftShopSoldOut,[]);assert.equal(live.giftShopManualRefreshes,2);
-  const twice=reducer(live,{type:'TICK',deltaMs:100,now:six+100});
+  const twice=reducer(live,{type:'TICK',deltaMs:100,now:three+100});
   assert.deepEqual(twice.giftShopItems,live.giftShopItems);
 });
 
@@ -2186,6 +2186,23 @@ test('legacy gift shelves migrate from their last update and receive at most the
   assert.equal(loaded.giftShopManualRefreshes,0);assert.equal(giftShopNextRefreshAt(loaded),giftTime('2026-09-14T12:00:00'));
   const later=migrateSavedState(legacy,giftTime('2026-09-15T19:00:00'));
   assert.deepEqual(later.giftShopSoldOut,[]);assert.deepEqual(later.inventory,{book:5});assert.equal(later.currency,1234);
-  assert.equal(giftShopNextRefreshAt(later),giftTime('2026-09-16T00:00:00'));
+  assert.equal(giftShopNextRefreshAt(later),giftTime('2026-09-15T21:00:00'));
   assert.deepEqual(migrateSavedState(later,giftTime('2026-09-15T19:00:01')).giftShopItems,later.giftShopItems);
+});
+
+
+test('saved six-hour gift shelves adopt the three-hour schedule without losing purchased gifts or manual refreshes',()=>{
+  const previousSlot=giftTime('2026-09-14T06:00:00');
+  const saved={...createInitialState(previousSlot),giftShopAutoRefreshAt:previousSlot,giftShopSoldOut:['book'],giftShopManualRefreshes:2,inventory:{book:3},currency:777};
+  const loaded=migrateSavedState(saved,giftTime('2026-09-14T07:00:00'));
+  assert.equal(giftShopNextRefreshAt(loaded),giftTime('2026-09-14T09:00:00'));
+  assert.deepEqual(loaded.giftShopItems,saved.giftShopItems);
+  assert.deepEqual(loaded.giftShopSoldOut,['book']);
+  assert.equal(loaded.giftShopManualRefreshes,2);
+  const refreshed=migrateSavedState(loaded,giftTime('2026-09-14T09:00:00'));
+  assert.equal(giftShopNextRefreshAt(refreshed),giftTime('2026-09-14T12:00:00'));
+  assert.deepEqual(refreshed.giftShopSoldOut,[]);
+  assert.deepEqual(refreshed.inventory,{book:3});
+  assert.equal(refreshed.currency,777);
+  assert.equal(refreshed.giftShopManualRefreshes,2);
 });

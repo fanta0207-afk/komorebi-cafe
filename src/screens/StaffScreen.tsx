@@ -7,7 +7,6 @@ import { useGame } from "../game/GameContext";
 import { GAME_CONFIG } from "../game/config";
 import { specialties, staffBusy } from "../game/operations";
 import { staffHirePrice, staffHireStage, staffRoleAvailable } from "../game/automation";
-import { characterStaffReply } from "../game/conversation";
 import type { StaffRole } from "../types/game";
 
 const roles:{id:StaffRole;label:string}[]=[{id:"cook",label:"調理"},{id:"server",label:"提供"},{id:"procurement",label:"仕入れ"},{id:"rest",label:"お休み"}];
@@ -19,15 +18,12 @@ export function StaffCard({characterId}:{characterId:string}) {
   const specialty=specialties[characterId]||{label:"お店の仕事",tags:[]};
   const status=person?busy?"お仕事中":person.role==="rest"?"お休み中":"待機中":full?`雇用上限${GAME_CONFIG.maxStaff}人`:eligible?"雇用できます":`好感度${requiredStage}で雇用できます`;
   const stateName=person?busy?"busy":person.role==="rest"?"rest":"ready":eligible?"available":"locked";
-  const activeRole=state.orders.some(order=>order.status==="cooking"&&order.cookId===characterId)?"cook":person?.servingOrderId||person?.returningFromSlot!==undefined?"server":state.deliveries.some(delivery=>delivery.staffId===characterId)?"procurement":undefined;
-  const conversation=characterStaffReply(characterId,progress,person?.role,busy,activeRole);
   return <article className={`staff-card staff-${stateName}`} data-staff-state={stateName}>
     <div className="staff-heading"><Portrait character={character} small face unknown={!progress.met}/><div className="staff-identity">
       <div className="staff-meta"><span className="staff-level">♡ {progress.relationshipStage}/10</span><span className="staff-status">{status}</span></div>
       <h3>{progress.met?character.name:"まだ出会っていません"}</h3>
       <p className="staff-specialty"><span>得意</span><strong>{specialty.label}</strong><small>{skilled?"調理・提供20%短縮":"好感度8で速度UP"}</small></p>
     </div></div>
-    {conversation&&<div className="dialogue-box staff-dialogue ren-dialogue" aria-live="polite"><b>{character.name}</b><p>「{conversation}」</p></div>}
     {person?<div className="staff-assignment"><div className="staff-roles" aria-label={`${character.name}の担当`}>{roles.map(role=><button key={role.id} aria-pressed={person.role===role.id} className={person.role===role.id?"active":""} disabled={person.role!==role.id&&!staffRoleAvailable(state,role.id,characterId)} onClick={()=>dispatch({type:"ASSIGN_STAFF",characterId,role:role.id})}>{role.label}</button>)}</div>{busy&&<small className="staff-pending-note">変更は仕事後に反映</small>}</div>:<div className="staff-hire"><div className="staff-cost"><span>初回雇用</span><strong>● {hirePrice.toLocaleString()}</strong></div><div className="staff-roles">{roles.filter(role=>role.id!=="rest").map(role=><button key={role.id} disabled={full||!eligible||state.currency<hirePrice||!staffRoleAvailable(state,role.id)} onClick={()=>dispatch({type:"HIRE_STAFF",characterId,role:role.id})}>{role.label}をお願いする</button>)}</div></div>}
   </article>;
 }

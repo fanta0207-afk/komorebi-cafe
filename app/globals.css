@@ -355,6 +355,5 @@ body { background:#241c16; }
 
 /* Ren's everyday replies have enough space for a short, readable conversation. */
 .ren-dialogue p{font-size:14px;line-height:1.8;overflow-wrap:anywhere}
-.staff-dialogue{margin:0 0 12px;padding:10px 12px;box-shadow:none}
 
 .supplier-ticket-count{font-size:13px;color:var(--green);line-height:1.6;margin:8px 0 12px}.supply-ticket-button{width:100%;min-height:44px;margin-top:8px;font-size:14px;border-color:#b8c6a7;background:#edf3e5}.supply-ticket-button:disabled{opacity:.45}

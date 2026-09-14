@@ -6,7 +6,7 @@ import { randomShopItems } from "./logic";
 const dayMs=24*60*60*1000;
 const japanOffsetMs=9*60*60*1000;
 
-// Calendar limits and six-hour shelves follow Japanese time, including offline time.
+// Calendar limits and automatic shelves follow Japanese time, including offline time.
 export const giftShopDay=(now:number)=>Math.floor((now+japanOffsetMs)/dayMs);
 export const giftShopAutoSlot=(now:number)=>Math.floor((now+japanOffsetMs)/GAME_CONFIG.giftShopAutoRefreshMs)*GAME_CONFIG.giftShopAutoRefreshMs-japanOffsetMs;
 export const giftShopNextRefreshAt=(state:GameState)=>state.giftShopAutoRefreshAt+GAME_CONFIG.giftShopAutoRefreshMs;

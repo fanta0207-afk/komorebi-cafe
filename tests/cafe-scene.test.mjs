@@ -754,39 +754,54 @@ test('forest screen keeps pending loot across navigation and offers zero-energy 
  }finally{context.useGame=original;}
 });
 
-test('supplier ticket action confirms the whole delivery and completes only the selected procurement',()=>{
+// Drive only the control's local confirmation state; game updates still use the real reducer.
+function ticketControl(delivery, local) {
+ const original=React.useState;
+ React.useState=()=>[local.confirming,value=>{local.confirming=value;}];
+ try{return require(join(output,'components/SupplyTicketButton.js')).SupplyTicketButton({delivery});}
+ finally{React.useState=original;}
+}
+
+test('supplier ticket opens an in-game confirmation, cancels freely and settles only the chosen delivery',()=>{
  const context=require(join(output,'game/GameContext.js')),original=context.useGame;
- const {SupplyTicketButton}=require(join(output,'components/SupplyTicketButton.js'));
  const {SupplierScreen}=require(join(output,'screens/SupplierScreen.js'));
- const originalWindow=globalThis.window,originalNow=Date.now;
- let confirmed=false,prompt='',actions=[];
- Date.now=()=>2000;
- globalThis.window={confirm(message){prompt=message;return confirmed;}};
+ const originalNow=Date.now;Date.now=()=>2000;
+ const local={confirming:false},actions=[];
  let state=createInitialState();state.lastPlayedAt=2000;state.forest.tickets=2;state.unlockedIngredients=['singleOrigin'];
  state.deliveries=[{id:'owner',ingredientId:'coffeeBeans',packs:20,servingsPerPack:5,orderedAt:1000,arrivesAt:10000},{id:'staff',ingredientId:'singleOrigin',packs:1,servingsPerPack:5,staffId:'ren',orderedAt:1000,arrivesAt:10000}];
  context.useGame=()=>({state,dispatch(action){actions.push(action);state=reducer(state,action);}});
  try{
   const render=()=>renderToStaticMarkup(React.createElement(SupplierScreen,{supplierId:'coffee',onBack(){},onDate(){}}));
   const html=render();assert.match(html,/調達券 2枚/);assert.equal((html.match(/調達券で即完了/g)||[]).length,2);
-  let button=SupplyTicketButton({delivery:state.deliveries[0]});assert.equal(button.props.disabled,false);button.props.onClick();assert.equal(actions.length,0);assert.match(prompt,/20パック（100食分）/);assert.match(prompt,/調達券1枚/);
-  confirmed=true;button.props.onClick();assert.equal(state.ingredients.coffeeBeans,100);assert.equal(state.forest.tickets,1);assert.deepEqual(state.deliveries.map(d=>d.id),['staff']);assert.equal((render().match(/調達券で即完了/g)||[]).length,1);
-  button=SupplyTicketButton({delivery:state.deliveries[0]});button.props.onClick();assert.equal(state.ingredients.singleOrigin,5);assert.equal(state.forest.tickets,0);assert.equal(state.deliveries.length,0);assert.doesNotMatch(render(),/調達券で即完了/);
- }finally{context.useGame=original;Date.now=originalNow;if(originalWindow===undefined)delete globalThis.window;else globalThis.window=originalWindow;}
+  let control=ticketControl(state.deliveries[0],local);assert.equal(control.props.children[0].props.disabled,false);
+  control.props.children[0].props.onClick();assert.equal(actions.length,0);assert.equal(local.confirming,true);
+  control=ticketControl(state.deliveries[0],local);let popup=control.props.children[1];
+  const confirmation=renderToStaticMarkup(popup);assert.match(confirmation,/<dialog[^>]*aria-label="調達券を使いますか？"/);assert.match(confirmation,/20パック（100食分）/);assert.match(confirmation,/調達券1枚を使用/);assert.match(confirmation,/やめる/);
+  popup.props.onCancel();assert.equal(actions.length,0);assert.equal(state.forest.tickets,2);assert.equal(local.confirming,false);
+  ticketControl(state.deliveries[0],local).props.children[0].props.onClick();
+  ticketControl(state.deliveries[0],local).props.children[1].props.onConfirm();
+  assert.equal(state.ingredients.coffeeBeans,100);assert.equal(state.forest.tickets,1);assert.deepEqual(state.deliveries.map(d=>d.id),['staff']);assert.equal((render().match(/調達券で即完了/g)||[]).length,1);assert.equal(local.confirming,false);
+  ticketControl(state.deliveries[0],local).props.children[0].props.onClick();
+  ticketControl(state.deliveries[0],local).props.children[1].props.onConfirm();
+  assert.equal(state.ingredients.singleOrigin,5);assert.equal(state.forest.tickets,0);assert.equal(state.deliveries.length,0);assert.doesNotMatch(render(),/調達券で即完了/);
+ }finally{context.useGame=original;Date.now=originalNow;}
 });
 
-test('supplier ticket action is unavailable with no tickets or after natural arrival',()=>{
+test('ticket confirmation never spends a ticket when missing, expired or completed while open',()=>{
  const context=require(join(output,'game/GameContext.js')),original=context.useGame;
- const {SupplyTicketButton}=require(join(output,'components/SupplyTicketButton.js'));
- const originalNow=Date.now;Date.now=()=>2000;
+ const originalNow=Date.now;let now=2000;Date.now=()=>now;
+ const local={confirming:false};
  let state=createInitialState();state.lastPlayedAt=2000;
  const delivery={id:'late',ingredientId:'bread',packs:1,servingsPerPack:5,orderedAt:1000,arrivesAt:3000};state.deliveries=[delivery];
  let dispatched=0;context.useGame=()=>({state,dispatch(){dispatched++;}});
  try{
-  let button=SupplyTicketButton({delivery});assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(dispatched,0);
-  state.forest.tickets=1;state.deliveries=[{...delivery,arrivesAt:1500}];button=SupplyTicketButton({delivery:state.deliveries[0]});assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(dispatched,0);
+  let control=ticketControl(delivery,local);assert.equal(control.props.children[0].props.disabled,true);control.props.children[0].props.onClick();assert.equal(local.confirming,false);
+  state.forest.tickets=1;control=ticketControl(delivery,local);control.props.children[0].props.onClick();assert.equal(local.confirming,true);
+  control=ticketControl(delivery,local);now=4000;control.props.children[1].props.onConfirm();assert.equal(dispatched,0);assert.equal(state.forest.tickets,1);assert.equal(local.confirming,false);
+  state.lastPlayedAt=4000;control=ticketControl(delivery,local);assert.equal(control.props.children[0].props.disabled,true);
+  state.deliveries=[];control=ticketControl(delivery,local);assert.equal(control.props.children[0].props.disabled,true);control.props.children[0].props.onClick();assert.equal(local.confirming,false);assert.equal(dispatched,0);
  }finally{context.useGame=original;Date.now=originalNow;}
 });
-
 
 test('forest scenery keeps zero-energy return available and blocks exhausted gathering',()=>{
  const context=require(join(output,'game/GameContext.js')),original=context.useGame;

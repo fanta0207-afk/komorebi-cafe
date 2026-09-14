@@ -1,3 +1,213 @@
-.forest-screen{padding-bottom:28px;color:#304c3a}.forest-screen p{font-size:15px;line-height:1.7}.forest-screen small{font-size:13px;line-height:1.5}.forest-meter{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:#dfead9;border-radius:14px;margin-bottom:12px;font-size:14px}.forest-card{background:#fffdf5;border:1px solid #dcdcc9;border-radius:16px;padding:18px;margin:14px 0}.forest-card h2{font-size:21px}.forest-card h3{font-size:17px;margin:0 0 10px}.forest-card button,.forest-paths button{width:100%;margin-top:8px;min-height:44px}.forest-screen>.secondary-button{width:100%;margin:8px 0}.forest-cafe-status{font-size:13px;background:#f5efdf;padding:10px;border-radius:10px}.forest-place{display:flex;gap:14px;align-items:center;margin:20px 0}.forest-place>span{font-size:42px}.forest-place h2{font-size:22px;margin:0}.forest-place p{margin:4px 0}.forest-route{display:flex;overflow:auto;gap:8px;padding:4px 0 12px}.forest-route span{white-space:nowrap;font-size:12px;border:1px solid #dcdcc9;border-radius:20px;padding:6px 9px}.forest-route .current{background:#3d6546;color:white}.forest-map{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;border:1px solid #c7d8bf;background:#e8eddd;border-radius:18px}.forest-cell{min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}.forest-cell>span{font-size:27px}.harvest-cell{border-radius:12px;background:#fffcf1;padding:9px 5px}.forest-cell strong{font-size:13px}.forest-cell button{font-size:13px;padding:5px 6px;background:#dfead9;border-radius:8px;border:1px solid #c7d8bf;min-height:33px;width:100%}.forest-screen button:disabled{opacity:.45}.forest-description{color:#627261}.forest-fragment{width:100%;background:#f7edca;padding:14px;border-radius:13px;border:1px solid #e3cd88;margin:14px 0;font-size:16px}.forest-loot{list-style:none;padding:0;margin:10px 0}.forest-loot li{display:flex;align-items:center;gap:6px;justify-content:space-between;padding:7px 0;font-size:15px;border-bottom:1px solid #ebe7d9}.forest-loot li button{width:auto;margin:0;font-size:12px;min-height:32px}.forest-found{border:2px solid #88a877}.forest-book-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:12px 0}.forest-book-tabs button{font-size:13px;min-height:44px;background:#ede8da;border:0;border-radius:9px;padding:6px}.forest-book-tabs .active{background:#3d6546;color:white}.forest-paths small{display:block}.forest-screen select{padding:8px;border-radius:8px;background:#fffdf5}.forest-card progress{width:100%;accent-color:#507746}.forest-entry{display:flex;align-items:center;justify-content:space-between;width:100%;padding:18px;margin:14px 0;border:1px solid #bfceb5;background:#e6eedc;border-radius:16px;color:#304c3a;font-size:18px;text-align:left}.forest-entry small{display:block;font-size:13px;margin-top:5px}
+/* The field is the entire mobile viewport; the cafe keeps its own layout. */
+.game-shell.forest-shell{padding:0;background:#506a45}
+.forest-shell .screen-wrap{height:100dvh;overflow:hidden}
+.forest-adventure{height:100%;width:100%;position:relative;isolation:isolate;overflow:hidden;color:#493f2d;font-family:"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif}
+.forest-backdrop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-3}
+.forest-vignette{position:absolute;inset:0;z-index:-2;pointer-events:none;background:linear-gradient(#2c45352b,transparent 23%,transparent 74%,#2b493e55)}
+.forest-icon{width:24px;height:24px;flex-shrink:0}
+.forest-heading{position:absolute;left:20px;right:20px;top:max(18px,env(safe-area-inset-top));text-align:center;text-shadow:0 1px 0 #fff7df;pointer-events:none}
+.forest-heading>span{font-size:11px;letter-spacing:.16em;color:#526448}
+.forest-heading h1{font:700 24px/1.3 "Yu Mincho","Hiragino Mincho ProN",serif;margin:4px 0 0;color:#384833}
+.forest-hud{position:absolute;top:calc(max(18px,env(safe-area-inset-top)) + 66px);left:15px;right:15px;display:flex;gap:9px;z-index:3}
+.forest-energy,.forest-basket-hud{border:1px solid #c4c79e;background:#fff9e9eb;box-shadow:0 3px 0 #3b4b3626;border-radius:18px;min-height:49px;display:flex;align-items:center;gap:7px;padding:7px 11px}
+.forest-energy{flex:1;color:#526940}
+.forest-energy>div{min-width:68px;flex:1}
+.forest-energy strong{font-size:19px}
+.forest-energy strong small{font-size:12px;font-weight:500}
+.forest-energy>small{font-size:10px;max-width:40px;line-height:1.4}
+.forest-energy-track{display:block;height:5px;border-radius:8px;background:#dcdcc2;margin-top:4px;overflow:hidden}
+.forest-energy-track i{display:block;height:100%;background:#7b9853;border-radius:8px;transition:width .3s}
+.forest-basket-hud{color:#7e6640;font-size:12px;cursor:pointer}
+.forest-basket-hud b{font-size:20px}
+.forest-basket-hud small{font-size:11px}
+.forest-basket-hud.is-full{border-color:#b87c5b;color:#9c5b40}
+.forest-cafe-peek{position:absolute;top:calc(max(18px,env(safe-area-inset-top)) + 122px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap;padding:5px 9px;background:#fff9e2c7;border-radius:12px;font-size:10px;color:#586249;z-index:2}
+.forest-cafe-peek .forest-icon{width:14px;height:14px}
+.forest-landscape{position:absolute;inset:0;animation:forest-arrive .35s ease-out}
+.forest-waypost{position:absolute;transform:translate(-50%,-50%);width:145px;min-height:62px;border:0;background:none;padding:0 0 14px;cursor:pointer;z-index:2;filter:drop-shadow(0 3px 1px #52633a40)}
+.forest-waypost:after{content:"";position:absolute;left:46%;top:32px;width:9px;height:45px;background:#92704e;border:1px solid #6f5a41;border-radius:2px;z-index:-1;transform:rotate(-3deg)}
+.forest-waypost>span{display:flex;align-items:center;justify-content:center;gap:5px;background:#ead5a3;border:2px solid #997d55;border-radius:5px 12px 12px 5px;padding:11px 8px;min-height:42px;box-shadow:inset 0 0 0 3px #f8e6bc;transform:rotate(2deg)}
+.forest-waypost.points-left>span{transform:rotate(-3deg);border-radius:12px 5px 5px 12px}
+.forest-waypost.points-left .forest-icon{transform:rotate(180deg)}
+.forest-waypost b{font-size:13px;white-space:nowrap}
+.forest-waypost .forest-icon{width:19px;height:19px}
+.forest-waypost>small{display:flex;align-items:center;justify-content:center;gap:3px;position:relative;top:4px;font-size:11px;background:#fff9e8de;border:1px solid #b1ad83;border-radius:10px;width:max-content;max-width:100%;margin:auto;padding:2px 6px}
+.forest-waypost>small .forest-icon{width:13px;height:13px}
+.forest-waypost.is-locked>span{background:#c1bc9d;box-shadow:inset 0 0 0 3px #d6d0b2}
+.forest-gather{position:absolute;width:112px;height:116px;transform:translate(-50%,-50%);border:0;background:none;padding:0;cursor:pointer;z-index:1;touch-action:manipulation}
+.forest-object-art{width:100%;height:auto;opacity:var(--object-opacity,1);filter:drop-shadow(0 2px 0 #f9f0c750)}
+.forest-gather:not(:disabled):active .forest-object-art{transform:scale(.92)}
+.forest-glint{position:absolute;right:13px;top:3px;color:#fff3bb;filter:drop-shadow(0 0 3px #9c804e);animation:forest-glow 2.4s ease-in-out infinite}
+.forest-glint .forest-icon{width:21px;height:21px;fill:#f7e6a6}
+.forest-target-label,.forest-spent-mark{display:flex;justify-content:center;align-items:center;gap:3px;position:absolute;bottom:3px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;padding:4px 10px;border-radius:12px;background:#fff8dded;color:#536641;border:1px solid #bfc493;box-shadow:0 2px 0 #52633a29}
+.forest-spent-mark{font-size:10px;background:#e9ebd5c9;color:#6d7862}
+.forest-spent-mark .forest-icon{width:12px;height:12px}
+.forest-gather.is-spent{cursor:default}
+.forest-gather:disabled:not(.is-spent) .forest-object-art{opacity:.6}
+.forest-secret-object{position:absolute;left:88%;top:75%;transform:translate(-50%,-50%);width:72px;border:0;padding:0;background:none;cursor:pointer;z-index:2}
+.forest-secret-object>span{display:flex;justify-content:center;gap:2px;align-items:center;background:#fff3ccd9;border:1px solid #c4ae76;padding:3px;border-radius:9px;white-space:nowrap;font-size:10px}
+.forest-secret-object .forest-icon{width:12px;height:12px}
+.forest-secret-object:disabled{opacity:.5}
+.forest-departure{position:absolute;left:28px;right:28px;top:51%;transform:translateY(-50%);text-align:center}
+.forest-departure>p{font:700 18px/1.7 "Yu Mincho",serif;text-shadow:0 1px 5px #fff8e6,0 0 16px #fff8e6;color:#384833;margin:0 0 18px}
+.forest-departure>small{display:block;margin-top:12px;background:#fff9e6db;padding:8px;border-radius:12px;font-size:12px}
+.forest-main-action,.forest-careful-action{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;background:#567244;border:1px solid #3b5731;box-shadow:0 3px 0 #2f472e33,inset 0 0 0 3px #ffffff16;border-radius:15px;color:#fff9e7;font-size:16px;font-weight:700;padding:12px 15px;cursor:pointer}
+.forest-main-action:active,.forest-careful-action:active{transform:translateY(2px);box-shadow:none}
+.forest-main-action:disabled,.forest-careful-action:disabled{opacity:.45;cursor:default}
+.forest-careful-action{background:#f3e7bd;border-color:#bb9e63;color:#6d5732}
+.forest-text-action{display:block;width:100%;background:none;border:0;padding:14px 8px;min-height:44px;font-size:13px;text-decoration:underline;text-underline-offset:3px;color:#766749;cursor:pointer}
+.forest-departure .forest-text-action{background:#fff8e4cf;border-radius:12px;margin-top:12px}
+.forest-scene-message,.forest-rest-message{position:absolute;left:22px;right:22px;top:43%;text-align:center;line-height:1.7;font-size:13px;color:#526348;text-shadow:0 0 5px #fff8e6;background:#fff8e6c9;border-radius:14px;padding:8px;pointer-events:none}
+.forest-rest-message{top:77%;left:22px;right:100px;font-size:11px;z-index:3}
+.forest-dock{position:absolute;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));height:84px;display:flex;align-items:end;justify-content:space-between;gap:12px;z-index:5}
+.forest-dock>button{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;min-width:70px;min-height:66px;border:1px solid #b2aa83;border-radius:20px;background:#fff6dedf;color:#6c6546;box-shadow:0 3px 0 #34452d30;cursor:pointer;padding:10px 13px}
+.forest-dock>button>span{font-size:12px;white-space:nowrap}
+.forest-dock>button>.forest-icon{width:25px;height:25px}
+.forest-dock>button.forest-dock-basket{flex:1;max-width:165px;min-height:84px;background:#ead7aadf;border-color:#a98a5b;gap:3px}
+.forest-dock-basket>span b{font-size:11px;margin-left:6px;font-weight:500}
+.forest-basket-slots{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:114px;margin-top:3px}
+.forest-basket-slots i{height:5px;width:5px;border-radius:50%;background:#fff9e2;border:1px solid #ad986a}
+.forest-basket-slots i.filled{background:#6f884a;border-color:#576b3a}
+.forest-dock button:disabled{opacity:.45}
+.forest-sheet{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0 auto;width:min(100%,430px);max-width:430px;max-height:82dvh;border:1px solid #d0bc90;border-bottom:0;border-radius:25px 25px 0 0;background:#fff9e9;color:#4c4932;padding:0 22px max(20px,env(safe-area-inset-bottom));box-shadow:0 -8px 40px #273c3433;overflow:auto;animation:forest-sheet-enter .25s ease-out}
+.forest-sheet::backdrop{background:#243c3250;backdrop-filter:blur(2px)}
+.forest-sheet header{position:sticky;top:0;background:#fff9e9;z-index:2;padding:20px 35px 10px;text-align:center}
+.forest-sheet header h2{font:700 21px/1.4 "Yu Mincho",serif;margin:10px 0}
+.forest-sheet-handle{position:absolute;top:9px;left:50%;transform:translateX(-50%);height:4px;width:32px;border-radius:5px;background:#d9cbab}
+.forest-sheet-close{position:absolute;right:-8px;top:23px;border:0;background:#efe5cd;border-radius:50%;height:36px;width:36px;display:grid;place-items:center;cursor:pointer}
+.forest-sheet-close .forest-icon{width:18px;height:18px}
+.forest-items{list-style:none;padding:0;margin:4px 0 16px}
+.forest-items li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #e5dac0;font-size:15px}
+.forest-items li>span:nth-child(2){flex:1}
+.forest-items li small{display:block;font-size:10px;margin-top:4px;color:#8a8164}
+.forest-food-token{display:grid;place-items:center;background:#e9edcf;border:1px solid #c6ce9a;border-radius:12px;width:44px;height:44px;color:#778153}
+.forest-find-bonuses{display:flex;justify-content:center;gap:25px;background:#f1e8d1;padding:12px;border-radius:13px;margin-bottom:16px}
+.forest-find-bonuses span{display:flex;align-items:center;gap:6px;font-size:14px;color:#8b7749}
+.forest-find-bonuses .forest-icon{width:20px;height:20px}
+.forest-space-meter{display:flex;align-items:center;gap:7px;color:#80734f;font-size:12px;margin:14px 0}
+.forest-space-meter>span{margin-left:auto}
+.forest-space-meter .forest-icon{width:19px;height:19px}
+.forest-full-message{font-size:13px;line-height:1.6;color:#966147;background:#f7e4cd;border-radius:10px;padding:9px 12px}
+.forest-swap-list{list-style:none;padding:0;max-height:25dvh;overflow:auto;margin:12px 0}
+.forest-swap-list li{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e4d9be;font-size:13px}
+.forest-swap-list small{font-size:10px;margin-left:5px;color:#918466}
+.forest-swap-list button{background:#f0e4ca;border:1px solid #c4ae80;border-radius:9px;font-size:12px;min-height:40px;padding:8px 12px}
+.forest-pick-preview{display:flex;align-items:center;gap:10px;justify-content:center}
+.forest-pick-preview .forest-object-art{width:95px}
+.forest-pick-preview p{font-size:12px;color:#7e825b}
+.forest-pick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px}
+.forest-pick-actions small{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;gap:3px;margin-top:7px}
+.forest-pick-actions .forest-icon{width:13px;height:13px}
+.forest-return-note{display:flex;align-items:center;gap:8px;font-size:13px;line-height:1.7;padding:10px 0}
+.forest-empty-basket{text-align:center;font-size:14px;line-height:1.9;color:#87906b;padding:20px 0}
+.forest-adventure button:focus-visible,.forest-sheet button:focus-visible{outline:3px solid #eab966;outline-offset:4px}
 
-@keyframes forest-reveal{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.forest-found{animation:forest-reveal .35s ease-out}@media(prefers-reduced-motion:reduce){.forest-found{animation:none}}
+@keyframes forest-arrive{from{opacity:.4;transform:translateY(5px)}
+to{opacity:1;transform:translateY(0)}
+}
+@keyframes forest-glow{0%,100%{opacity:.55;transform:scale(.85)}
+50%{opacity:1;transform:scale(1.12)}
+}
+@keyframes forest-sheet-enter{from{transform:translateY(35px);opacity:0}
+to{transform:translateY(0);opacity:1}
+}
+
+@media(max-height:650px){.forest-heading{top:max(10px,env(safe-area-inset-top))}
+.forest-heading h1{font-size:21px}
+.forest-heading>span{font-size:10px}
+.forest-hud{top:64px}
+.forest-cafe-peek{top:119px}
+.forest-gather{width:102px;height:102px}
+.forest-dock{height:74px;bottom:8px}
+.forest-dock>button{min-height:58px}
+.forest-dock>button.forest-dock-basket{min-height:73px}
+.forest-secret-object{width:62px;top:76%}
+.forest-waypost{width:135px}
+.forest-waypost b{font-size:12px}
+.forest-waypost>span{padding:8px 6px}
+.forest-sheet{max-height:85dvh}
+}
+
+@media(prefers-reduced-motion:reduce){.forest-landscape,.forest-glint,.forest-sheet{animation:none}
+.forest-energy-track i{transition:none}
+}
+
+/* The recipe book remains a readable inventory, outside the scenic field. */
+.forest-screen{padding-bottom:28px;color:#304c3a}
+.forest-screen p{font-size:15px;line-height:1.7}
+.forest-screen small{font-size:13px;line-height:1.5}
+.forest-card{background:#fffdf5;border:1px solid #dcdcc9;border-radius:16px;padding:18px;margin:14px 0}
+.forest-card h3{font-size:17px;margin:0 0 10px}
+.forest-card button{width:100%;margin-top:8px;min-height:44px}
+.forest-screen>.secondary-button{width:100%;margin:8px 0}
+.forest-book-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:12px 0}
+.forest-book-tabs button{font-size:13px;min-height:44px;background:#ede8da;border:0;border-radius:9px;padding:6px}
+.forest-book-tabs .active{background:#3d6546;color:white}
+.forest-screen select{padding:8px;border-radius:8px;background:#fffdf5}
+.forest-card progress{width:100%;accent-color:#507746}
+.forest-screen button:disabled{opacity:.45}
+.forest-entry{display:flex;align-items:center;justify-content:space-between;width:100%;padding:18px;margin:14px 0;border:1px solid #bfceb5;background:#e6eedc;border-radius:16px;color:#304c3a;font-size:18px;text-align:left}
+.forest-entry small{display:block;font-size:13px;margin-top:5px}
+
+
+.forest-heading{left:50%;right:auto;width:max-content;max-width:90%;transform:translateX(-50%);background:#fff8e8de;border:1px solid #d3d3ac;border-radius:15px;padding:5px 20px;top:max(12px,env(safe-area-inset-top));box-shadow:0 2px 0 #354a3620}
+.forest-cafe-peek{font-size:11px}
+.forest-pick-actions small{font-size:11px}
+@media(max-height:650px){.forest-heading{top:max(7px,env(safe-area-inset-top));padding:4px 18px}
+.forest-heading h1{margin-top:2px}
+}
+
+
+.forest-sheet-actions{position:sticky;bottom:0;background:#fff9e9;padding-top:8px;z-index:3;box-shadow:0 -8px 12px #fff9e9}
+.forest-note-preview{text-align:center;padding:4px 0 22px}
+.forest-note-preview .forest-object-art{width:95px}
+.forest-note-preview p{font-size:15px}
+.forest-note-preview strong{font-size:17px;color:#70844d}
+.forest-sheet-close{width:44px;height:44px;top:18px}
+.forest-return-note{color:#77824e}
+
+
+/* Keep the HUD and routes clear even on a 320 × 568 phone. */
+.forest-heading>span{display:block;line-height:1.2}
+.forest-heading h1{line-height:1.2}
+
+.forest-hud{height:49px}
+.forest-energy,.forest-basket-hud{height:49px;min-height:49px;min-width:0;padding:7px 9px;box-sizing:border-box}
+.forest-energy>div{min-width:0}
+.forest-energy-numbers{display:flex;justify-content:space-between;align-items:center;gap:4px;white-space:nowrap}
+.forest-energy strong{font-size:19px;line-height:1}
+.forest-energy-numbers>small{font-size:10px;line-height:1;white-space:nowrap}
+.forest-energy strong small{font-size:11px}
+.forest-basket-hud{flex-shrink:0}
+.forest-basket-hud span{white-space:nowrap}
+.forest-energy .forest-icon,.forest-basket-hud .forest-icon{width:21px;height:21px}
+.forest-basket-hud b{font-size:18px}
+
+@media(max-width:350px){.forest-basket-hud{padding:7px 8px;gap:4px;font-size:10px}
+.forest-basket-hud small{font-size:10px}
+.forest-energy{gap:5px;padding:7px 8px}
+.forest-energy-numbers>small{font-size:9px}
+.forest-energy strong{font-size:18px}
+}
+
+
+/* Keep the replacement list and both decisions visible without overlapping. */
+.forest-sheet-has-swap[open]{display:flex;flex-direction:column;height:82dvh}
+.forest-sheet-has-swap header{flex-shrink:0;padding-bottom:6px}
+.forest-sheet-has-swap .forest-sheet-content{display:flex;flex-direction:column;min-height:0;flex:1;overflow:auto}
+.forest-sheet-has-swap .forest-sheet-content>*{flex-shrink:0}
+.forest-sheet-has-swap .forest-items{margin:0 0 6px}
+.forest-sheet-has-swap .forest-items li{padding:5px 0}
+.forest-sheet-has-swap .forest-find-bonuses{padding:7px;margin-bottom:4px}
+.forest-sheet-has-swap .forest-space-meter{margin:8px 0}
+.forest-sheet-has-swap .forest-full-message{margin:0;padding:6px 9px}
+.forest-sheet-has-swap .forest-swap-list{min-height:88px;max-height:none;flex:1;flex-shrink:1;overflow:auto;margin:8px 0}
+.forest-sheet-has-swap .forest-sheet-actions{position:static;padding-top:0;box-shadow:none}
+.forest-swap-list button{min-height:44px}
+.forest-sheet-has-swap .forest-swap-list li{padding:4px 0}
+
+@media(max-height:650px){.forest-sheet-has-swap[open]{height:85dvh}
+.forest-sheet-has-swap header h2{margin:6px 0}
+.forest-sheet-has-swap .forest-items li{font-size:13px}
+.forest-sheet-has-swap .forest-food-token{width:36px;height:36px}
+}

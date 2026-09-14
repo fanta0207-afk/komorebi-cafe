@@ -748,7 +748,7 @@ test('forest screen keeps pending loot across navigation and offers zero-energy 
  context.useGame=()=>({state,dispatch(){}});
  const {ForestScreen,ForestBook}=require(join(output,'screens/ForestScreen.js'));
  try{
-  let html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/見つけた！/);assert.match(html,/かごに入れる/);assert.match(html,/街へ帰る（体力0でもOK）/);
+  let html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/見つけた！/);assert.match(html,/かごに入れる/);assert.match(html,/店へ帰る、体力を使わず帰還/);
   state=reducer(state,{type:'FOREST_TAKE'});state=reducer(state,{type:'FOREST_RETURN'});html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/受け取る/);assert.doesNotMatch(html,/森へ出かける/);
   html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));assert.match(html,/秘密のレシピ/);assert.match(html,/限定料理/);assert.match(html,/月しずくベリー/);
  }finally{context.useGame=original;}
@@ -785,4 +785,50 @@ test('supplier ticket action is unavailable with no tickets or after natural arr
   let button=SupplyTicketButton({delivery});assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(dispatched,0);
   state.forest.tickets=1;state.deliveries=[{...delivery,arrivesAt:1500}];button=SupplyTicketButton({delivery:state.deliveries[0]});assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(dispatched,0);
  }finally{context.useGame=original;Date.now=originalNow;}
+});
+
+
+test('forest scenery keeps zero-energy return available and blocks exhausted gathering',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ let state=createInitialState();state.lifetimeStats.totalOrders=1;
+ state=reducer(state,{type:'FOREST_ENTER'});state=reducer(state,{type:'FOREST_MOVE',area:'clearing'});state.forest.energy=0;
+ context.useGame=()=>({state,dispatch(){}});
+ const {ForestScreen}=require(join(output,'screens/ForestScreen.js'));
+ try{
+  const html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));
+  assert.match(html,/role="meter" aria-label="残り体力" aria-valuenow="0"/);
+  assert.match(html,/<button(?![^>]*disabled)[^>]*aria-label="店へ帰る、体力を使わず帰還"/);
+  assert.equal((html.match(/disabled=""[^>]*aria-label="採集場所\dを調べる"/g)||[]).length,3);
+  assert.match(html,/空き10枠、全10枠/);
+ }finally{context.useGame=original;}
+});
+
+test('forest full basket requires making enough room before accepting weighted loot',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ let state=createInitialState();state.lifetimeStats.totalOrders=1;
+ state=reducer(state,{type:'FOREST_ENTER'});state=reducer(state,{type:'FOREST_MOVE',area:'clearing'});state=reducer(state,{type:'FOREST_GATHER',spot:0,careful:false});
+ state.forest.expedition.basket=Array(10).fill('bread');
+ state.forest.expedition.pending.food=['forestHoney'];
+ context.useGame=()=>({state,dispatch(){}});
+ const {ForestScreen}=require(join(output,'screens/ForestScreen.js'));
+ try{
+  const render=()=>renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));
+  let html=render();assert.match(html,/かごがいっぱい/);assert.match(html,/今回 2枠/);assert.match(html,/<button class="forest-main-action" disabled="">/);assert.match(html,/焼きたてパンを1個置いて空きを作る/);
+  state=reducer(state,{type:'FOREST_DROP',index:0});html=render();assert.match(html,/<button class="forest-main-action" disabled="">/);
+  state=reducer(state,{type:'FOREST_DROP',index:0});html=render();assert.match(html,/<button class="forest-main-action"><svg[^]*?かごに入れる/);
+  state=reducer(state,{type:'FOREST_TAKE'});html=render();assert.doesNotMatch(html,/dialog.*?見つけた/s);assert.match(html,/空き0枠、全10枠/);
+ }finally{context.useGame=original;}
+});
+
+test('forest locked path communicates its unlock conditions and recipe fragment stays actionable',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ let state=createInitialState();state.lifetimeStats.totalOrders=1;
+ state=reducer(state,{type:'FOREST_ENTER'});state.forest.expedition.area='roots';
+ context.useGame=()=>({state,dispatch(){}});
+ const {ForestScreen}=require(join(output,'screens/ForestScreen.js'));
+ try{
+  const html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));
+  assert.match(html,/disabled=""[^>]*aria-label="苔むす石畳へ進む、体力2、持ち帰り5回・料理提供20皿で解放"/);
+  assert.match(html,/レシピの切れ端を拾う、体力2/);
+ }finally{context.useGame=original;}
 });

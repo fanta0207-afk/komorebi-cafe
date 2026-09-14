@@ -93,8 +93,8 @@ function GameContent() {
   };
   // 画面を切り替えるたびに表示領域ごと入れ替え、前画面の画像が一瞬残るのを防ぐ。
   const screenKey=`${screen}:${supplierId||""}:${characterId||""}`;
-  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":""}`}>
-    {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>} 
+  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":screen==="forest"?"forest-shell":""}`}>
+    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
     <div key={screenKey} className="screen-wrap">
       {screen==="cafe"&&<CafeScreen
         missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
@@ -109,12 +109,12 @@ function GameContent() {
       {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
       {screen==="menu"&&<MenuScreen tab={menuTab} onTabChange={setMenuTab}/>}
-      {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("town")}/>}
+      {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("cafe")} onClaimReturn={()=>{dispatch({type:"FOREST_CLAIM"});setScreen("cafe");}}/>}
       {screen==="forestBook"&&<ForestBook onBack={()=>setScreen("forest")}/>}
       {screen==="staff"&&<StaffScreen/>}
     </div>
-    <BottomNav active={active} onChange={navigate}/>
-    {state.notice&&<div key={state.notice.id} className={`notice notice-${state.notice.type}`}>{state.notice.text}</div>}
+    {screen!=="forest"&&<BottomNav active={active} onChange={navigate}/>}
+    {state.notice&&screen!=="forest"&&<div key={state.notice.id} className={`notice notice-${state.notice.type}`}>{state.notice.text}</div>}
     {state.pendingGiftReaction&&<GiftReactionModal
       key={`${state.pendingGiftReaction.characterId}:${state.pendingGiftReaction.reaction}`}
       reaction={state.pendingGiftReaction}

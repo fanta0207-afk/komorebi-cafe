@@ -68,6 +68,7 @@ export interface GameState {
   ingredients:Record<string,number>; unlockedRecipes:string[]; unlockedIngredients:string[];
   characterProgress:Record<string,CharacterProgress>; inventory:Record<string,number>;
   giftShopItems:string[]; giftShopSoldOut:string[]; giftShopRefreshAt:number;
+  giftShopAutoRefreshAt:number; giftShopRefreshDay:number; giftShopManualRefreshes:number;
   dailyTalkStatus:Record<string,boolean>; dailyGiftStatus:Record<string,boolean>;
   lastPlayedAt:number; dailyStats:DailyStats; dayNews:string[]; orders:Order[];
   notice?:Notice; offlineOffer:number; maxActions:number; actionsRemaining:number;

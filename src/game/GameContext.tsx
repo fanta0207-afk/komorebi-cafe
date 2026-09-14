@@ -26,7 +26,7 @@ export function GameProvider({children}:{children:ReactNode}) {
   useEffect(()=>{
     if(!hydrated)return;
     try{window.localStorage.setItem(GAME_CONFIG.saveKey,JSON.stringify({...stateRef.current,notice:undefined,offlineOffer:0}));setSaveError(false);}catch{setSaveError(true);}
-  },[hydrated,state.forest,state.inventory,state.characterProgress]);
+  },[hydrated,state.forest,state.inventory,state.characterProgress,state.giftShopItems,state.giftShopSoldOut,state.giftShopAutoRefreshAt,state.giftShopRefreshDay,state.giftShopManualRefreshes]);
   useEffect(()=>{
     if (!state.notice) return;
     const timer=window.setTimeout(()=>dispatch({type:"CLEAR_NOTICE"}),2200);

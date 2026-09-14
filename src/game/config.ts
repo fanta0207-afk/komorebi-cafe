@@ -1,6 +1,6 @@
 export const GAME_CONFIG = {
   saveKey:"komorebi-cafe-save-v1",
-  saveVersion:20,
+  saveVersion:21,
   initialCurrency:200,
   saleMultiplier:0.5,
   daysPerSeason:28,
@@ -39,6 +39,8 @@ export const GAME_CONFIG = {
   talkAffection:2,
   procurementAffection:1,
   giftShopSize:8,
+  giftShopDailyRefreshLimit:3,
+  giftShopAutoRefreshMs:6*60*60*1000,
   maxDailyActions:5,
   giftAffection:{ love:10, like:6, normal:2, dislike:-4 },
   giftRarityMultiplier:{ common:1, rare:1.6, superRare:2.8, ultraRare:5 },

@@ -847,3 +847,22 @@ test('forest locked path communicates its unlock conditions and recipe fragment 
   assert.match(html,/レシピの切れ端を拾う、体力2/);
  }finally{context.useGame=original;}
 });
+
+
+test('gift shop shows daily updates and Japanese automatic refresh time, disabling exhausted updates',()=>{
+  const context=require(join(output,'game/GameContext.js'));const original=context.useGame;
+  let state=createInitialState(Date.parse('2026-09-14T07:00:00+09:00'));
+  context.useGame=()=>({state,dispatch(){},refreshGiftShop(){}});
+  const render=()=>renderToStaticMarkup(React.createElement(require(join(output,'screens/GiftShopScreen.js')).GiftShopScreen));
+  try {
+    const available=render();
+    assert.match(available,/手動更新 あと<b>3<\/b>\/3回/);
+    assert.match(available,/次の自動更新 <b>12:00<\/b>/);
+    assert.match(available,/毎日0時に回復/);
+    assert.doesNotMatch(available,/<button class="refresh-button" disabled/);
+    state={...state,giftShopManualRefreshes:3};
+    const exhausted=render();
+    assert.match(exhausted,/<button class="refresh-button" disabled="">本日の更新は終了<\/button>/);
+    assert.match(exhausted,/手動更新 あと<b>0<\/b>\/3回/);
+  }finally{context.useGame=original;}
+});

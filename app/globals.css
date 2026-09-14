@@ -64,6 +64,13 @@ button { font:inherit; color:inherit; }
 .gift-rarity-superRare{--rarity:#7c4c9d;--rarity-soft:#eee4f5}
 .gift-rarity-ultraRare{--rarity:#a66d08;--rarity-soft:#fff0b8}
 .gift-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.gift-shop-screen .screen-title{gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.gift-shop-screen .screen-title h1{font-size:25px}
+.gift-shop-screen .refresh-button{min-height:40px;flex-shrink:0}
+.gift-shop-refresh-status{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:14px;border-radius:10px;background:#f2eadb;color:#6c6852;font-size:12px;line-height:1.6}
+.gift-shop-refresh-status b{color:#496044;font-size:14px;margin:0 2px}
+.gift-shop-refresh-status small{display:block;color:#8b7d68;font-size:10px}
+.gift-shop-refresh-status>span:last-child{text-align:right}
 .gift-card{position:relative;min-width:0;padding:15px 10px 10px;border:1px solid color-mix(in srgb,var(--rarity) 42%,#dac5aa);border-left:5px solid var(--rarity);background:linear-gradient(150deg,#fffdf8,var(--rarity-soft));border-radius:12px;box-shadow:0 4px 0 color-mix(in srgb,var(--rarity) 18%,#eee0cf);overflow:hidden}
 .gift-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:var(--rarity)}
 .gift-card.gift-rarity-ultraRare{box-shadow:0 4px 0 #e3bd64,0 7px 18px #b9862838}

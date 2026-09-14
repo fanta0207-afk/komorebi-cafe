@@ -1,4 +1,5 @@
 import { emptyForest, recoverForest, reduceForest, syncForestRecipes, handmadeAmount, type ForestAction } from './forest';
+import { giftShopAutoSlot, giftShopDay, giftShopRefreshesLeft, replaceGiftShop, updateGiftShopClock } from "./giftShop";
 import { getGift, sortGiftIdsByRarity } from "../data/gifts";
 import { getCharacter } from "../data/characters";
 import { getIngredient, ingredients } from "../data/ingredients";
@@ -37,7 +38,7 @@ export type Action = ForestAction
   | {type:"COLLECT_ORDER"; orderId:string}
   | {type:"START_COOKING"; orderId:string}
   | {type:"TICK"; deltaMs:number; now?:number}
-  | {type:"REFRESH_SHOP"; items:string[]; costAction:boolean}
+  | {type:"REFRESH_SHOP"; items:string[]; costAction:boolean; now?:number}
   | {type:"COMPLETE_EVENT"; eventId:string; route?:Exclude<RelationshipRoute,"undecided">; choiceId?:string}
   | {type:"COMPLETE_STAFF_STORY"; eventId:string}
   | {type:"COMPLETE_GROWTH_EVENT"; eventId:string}
@@ -63,7 +64,7 @@ const handmadeResponses:Record<string,string>={ren:'手で作ったものって�
 const emptyStats = () => ({ sales:0, orders:0, recipeSales:{} });
 const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSales:{},totalOrders:0,totalRevenue:0,giftPurchases:0,staffProcurementOrders:0,automaticPacks:0,automatedOrders:0});
 
-export function createInitialState():GameState {
+export function createInitialState(now=Date.now()):GameState {
   const condition=conditionForDay(1);
   return {
     forest:emptyForest(),
@@ -72,7 +73,9 @@ export function createInitialState():GameState {
     saveVersion:GAME_CONFIG.saveVersion, season:"春", day:1, currency:GAME_CONFIG.initialCurrency,
     stations:initialEquipmentIds.map(id=>({id:`${id}-1`,equipmentId:id,level:1})),staff:[],activeMs:0,spawnRemainingMs:1000,nextOrderNumber:1,
     deliveries:[], ingredients:{}, unlockedRecipes:initialRecipeIds, unlockedIngredients:[], characterProgress:createCharacterProgress(), inventory:{},
-    giftShopItems:giftsForFirstDay(), giftShopSoldOut:[], giftShopRefreshAt:Date.now(), dailyTalkStatus:{}, dailyGiftStatus:{},
+    giftShopItems:giftsForFirstDay(), giftShopSoldOut:[], giftShopRefreshAt:now,
+    giftShopAutoRefreshAt:giftShopAutoSlot(now),giftShopRefreshDay:giftShopDay(now),giftShopManualRefreshes:0,
+    dailyTalkStatus:{}, dailyGiftStatus:{},
     lastPlayedAt:Date.now(), dailyStats:emptyStats(), dayNews:[], orders:[], offlineOffer:0,
     maxActions:0, actionsRemaining:0,
     dailyWeatherId:condition.weatherId,dailyCustomerGroupId:condition.customerGroupId,dailyEventId:condition.dailyEventId,
@@ -105,7 +108,7 @@ export function applyStoryReward(state:GameState, reward?:EventReward):GameState
 }
 
 export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):GameState {
-    const fresh=createInitialState();
+    const fresh=createInitialState(now);
     if (!saved || typeof saved!=="object") return fresh;
     const savedDay=saved.day || 1;
     const condition=conditionForDay(savedDay);
@@ -156,6 +159,10 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       pendingGiftReaction,
       giftShopItems:sortGiftIdsByRarity((saved.giftShopItems || fresh.giftShopItems).filter(id=>!!getGift(id)).slice(0,GAME_CONFIG.giftShopSize)),
       giftShopSoldOut:(saved.giftShopSoldOut||[]).filter(id=>(saved.giftShopItems||fresh.giftShopItems).includes(id)&&!!getGift(id)),
+      giftShopRefreshAt:Number.isFinite(saved.giftShopRefreshAt)?saved.giftShopRefreshAt!:now,
+      giftShopAutoRefreshAt:giftShopAutoSlot(Number.isFinite(saved.giftShopAutoRefreshAt)?saved.giftShopAutoRefreshAt!:Number.isFinite(saved.giftShopRefreshAt)?saved.giftShopRefreshAt!:now),
+      giftShopRefreshDay:Number.isInteger(saved.giftShopRefreshDay)?saved.giftShopRefreshDay!:giftShopDay(now),
+      giftShopManualRefreshes:Number.isInteger(saved.giftShopManualRefreshes)?Math.max(0,Math.min(GAME_CONFIG.giftShopDailyRefreshLimit,saved.giftShopManualRefreshes!)):0,
       dailyStats:{ ...emptyStats(), ...(saved.dailyStats || {}) },
       lifetimeStats:{...emptyLifetimeStats(),...(saved.lifetimeStats || {}),recipeSales:saved.lifetimeStats?.recipeSales || {},ingredientPurchases:saved.lifetimeStats?.ingredientPurchases || {},tagSales:saved.lifetimeStats?.tagSales || {}},
       unlockedIngredients:saved.unlockedIngredients || [],
@@ -210,7 +217,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       // Paid purchases minus pending packs are evidence of already completed deliveries.
       migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
     }
-    return updateMissions(syncForestRecipes(receiveSupplies(normalizeCookingTimes(migrated), now)));
+    return updateMissions(syncForestRecipes(updateGiftShopClock(receiveSupplies(normalizeCookingTimes(migrated), now),now)));
 }
 
 const notice = (type:NonNullable<GameState["notice"]>["type"], text:string) => ({ id:Date.now()+Math.random(), type, text });
@@ -285,11 +292,18 @@ function reduceAction(state:GameState, action:Action):GameState {
     case "TICK": {
       if(!Number.isFinite(action.deltaMs)||action.deltaMs<=0||action.deltaMs>1000)return state;
       const now=action.now ?? Date.now();
-      const next=advanceGame(runAutoProcurement(receiveSupplies({...state,forest:recoverForest(state.forest,now)},now),now),action.deltaMs);
+      const next=advanceGame(runAutoProcurement(receiveSupplies(updateGiftShopClock({...state,forest:recoverForest(state.forest,now)},now),now),now),action.deltaMs);
       return next===state?state:{...next,lastPlayedAt:now};
     }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);
-    case "REFRESH_SHOP": return {...state,giftShopItems:sortGiftIdsByRarity(state.characterProgress.ren.relationshipStage<2?[...new Set(["book",...action.items])].slice(0,GAME_CONFIG.giftShopSize):action.items.slice(0,GAME_CONFIG.giftShopSize)),giftShopSoldOut:[],giftShopRefreshAt:Date.now(),notice:notice("info","ギフトが入れ替わりました")};
+    case "REFRESH_SHOP": {
+      const now=action.now ?? Date.now();
+      if(!Number.isFinite(now))return state;
+      const current=updateGiftShopClock(state,now);
+      // The existing DEV menu passes false; ordinary shop updates use the daily limit.
+      if(action.costAction&&!giftShopRefreshesLeft(current))return {...current,notice:notice("info","本日の手動更新は3回までです。次の自動更新をお待ちください")};
+      return {...replaceGiftShop(current,action.items,now),giftShopManualRefreshes:current.giftShopManualRefreshes+(action.costAction?1:0),notice:notice("info","ギフトが入れ替わりました")};
+    }
     case "COMPLETE_EVENT": {
       const event=getRelationshipEvent(action.eventId);
       if (!event || !availableEvent(state,[event])) return state;

@@ -370,12 +370,13 @@ test('all four customers keep their appearance when recipes become ready or the 
   assert.deepEqual(ready.map(item => makeVisit(item, 50000).look), before.map(item => item.look));
 });
 
-test('missing asset markup keeps a visible fallback and uses the documented filename', () => {
+test('asset markup hides old artwork while loading and uses the documented filename', () => {
   const html = renderToStaticMarkup(React.createElement(CafeAsset, { src: cafeAsset.equipment('espressoMachine') }, '☕'));
-  assert.match(html, /data-asset-state="fallback"/);
-  assert.match(html, /class="cafe-asset-fallback">☕/);
+  assert.match(html, /data-asset-state="loading"/);
+  assert.match(html, /class="cafe-asset-fallback" hidden=""/);
+  assert.doesNotMatch(html, /☕/);
   assert.match(html, /src="\/assets\/cafe\/equipment\/espressoMachine\.png"/);
-  assert.doesNotMatch(html, /hidden=/);
+  assert.match(html, /class="asset-loaded"/);
 });
 
 test('priority artwork paints directly without flashing its legacy fallback', () => {
@@ -386,7 +387,8 @@ test('priority artwork paints directly without flashing its legacy fallback', ()
     priority: true,
   }, 'OLD ROOM'));
   assert.match(html, /data-asset-state="loading"/);
-  assert.match(html, /class="cafe-asset-fallback" hidden="">OLD ROOM/);
+  assert.match(html, /class="cafe-asset-fallback" hidden=""/);
+  assert.doesNotMatch(html, /OLD ROOM/);
   assert.match(html, /class="asset-loaded"/);
   assert.match(html, /loading="eager"/);
   assert.match(html, /fetchPriority="high"/);
@@ -629,7 +631,8 @@ test('the three supplied guests retain their artwork and turn with the entrance 
     const html = renderToStaticMarkup(React.createElement(CustomerSprite, { look, phase: 'entering' }));
     assert.match(html, /src="\/assets\/customers\/cafe-guests\.png"/);
     assert.ok(html.includes(`--customer-column:${index}`));
-    assert.ok(html.includes(`look-${look}`)); // CSS fallback remains available.
+    assert.doesNotMatch(html,/person-hair|person-body/);
+    assert.doesNotMatch(html,new RegExp(`/assets/customers/${look}-entering.png`));
   }
   const left = makeVisit(order('left-seat', 0), 0);
   const right = makeVisit(order('right-seat', 1), 0);
@@ -865,4 +868,13 @@ test('gift shop shows daily updates and Japanese automatic refresh time, disabli
     assert.match(exhausted,/<button class="refresh-button" disabled="">本日の更新は終了<\/button>/);
     assert.match(exhausted,/手動更新 あと<b>0<\/b>\/3回/);
   }finally{context.useGame=original;}
+});
+
+
+test('first cafe frame loads current manager and table art without mounting old drawings or missing nested assets',()=>{
+  const html=renderToStaticMarkup(React.createElement(CafeScene,{state:createInitialState(),onOrder(){},onCharacter(){},onEquipment(){}}));
+  assert.match(html,/src="\/assets\/cafe\/characters\/manager.png"[^>]*loading="eager"/);
+  assert.match(html,/src="\/assets\/cafe\/furniture\/table-set.png"[^>]*loading="eager"/);
+  assert.doesNotMatch(html,/person-hair|table-top|table-cloth|table-foot/);
+  assert.doesNotMatch(html,/src="\/assets\/cafe\/furniture\/(?:chair|table).png"/);
 });

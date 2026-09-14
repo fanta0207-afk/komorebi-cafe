@@ -24,6 +24,7 @@
 .cafe-asset-fallback[hidden] { display:none; }
 .cafe-asset img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; pointer-events:none; }
 .cafe-asset img.asset-loaded { opacity:1; }
+.cafe-asset-retry{position:absolute;inset:20% 5%;margin:auto;max-height:44px;border:1px solid #a68a63;border-radius:8px;background:#f6eddce8;color:#675137;font-size:10px;pointer-events:auto;cursor:pointer}
 .room-wall { position:absolute; inset:0 0 52%; }
 .wall-paper { position:absolute; inset:0 0 17%; background:repeating-linear-gradient(90deg,#e4cd9e66 0 2px,transparent 2px 18px),radial-gradient(ellipse at 25% 30%,#f5e8c6,#d9bb8e); }
 .wall-panels { position:absolute; inset:80% 0 0; background:repeating-linear-gradient(90deg,#71806a 0 12%,#435942 12% 12.6%,#849079 12.6% 13%); border-top:5px solid #836545; border-bottom:7px solid #715037; box-shadow:0 -3px 0 #f2dcb2; }

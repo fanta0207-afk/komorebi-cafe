@@ -74,7 +74,7 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
     </div>
     <div className="scene-layer layer-seating" data-layer="seating" aria-hidden="true">
       {TABLE_POSITIONS.slice(0,tableCapacity(state)).map(({ x, y }, slot) => <div className="room-table" key={slot} style={place(x, y)} data-table={slot}>
-        <CafeAsset src={cafeAsset.furniture("table-set")} className="table-set"><span className="table-chair chair-left"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
+        <CafeAsset src={cafeAsset.furniture("table-set")} className="table-set" fallbackOnError={false} priority><span className="table-chair chair-left"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
         <span className="table-chair chair-right"><CafeAsset src={cafeAsset.furniture("chair")}><i/></CafeAsset></span>
         <CafeAsset src={cafeAsset.furniture("table")}><i className="table-foot"/><i className="table-top"/><span className="table-cloth"/></CafeAsset>
         <span className="table-number">{String(slot + 1).padStart(2, "0")}</span><span className="table-flower">✿</span></CafeAsset>

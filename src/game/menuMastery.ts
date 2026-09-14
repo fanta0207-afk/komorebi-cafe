@@ -1,4 +1,4 @@
-import { recipes } from "../data/recipes";
+import { allRecipes as recipes } from "../data/recipes";
 import type { GameState } from "../types/game";
 import { MENU_MASTERY_LEVELS } from "./config";
 

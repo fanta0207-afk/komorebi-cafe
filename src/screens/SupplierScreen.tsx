@@ -5,6 +5,7 @@ import { deliveryCountdown, procurementQuote, supplyPackSize } from "../game/pro
 import { GAME_CONFIG } from "../game/config";
 import type { Ingredient } from "../types/game";
 import { getCharacter } from "../data/characters";
+import { characterGreeting, characterSupplyResponse } from "../game/conversation";
 import { ingredients } from "../data/ingredients";
 import { getSupplier } from "../data/suppliers";
 import { useGame } from "../game/GameContext";
@@ -18,12 +19,14 @@ export function SupplierScreen({supplierId,highlightIngredientId,onBack,onDate}:
   const targetRef=useRef<HTMLElement>(null);
   const progress=state.characterProgress[character.id]; const stock=ingredients.filter(item=>item.supplierId===supplierId&&(!item.unlockEventId||state.unlockedIngredients.includes(item.id)));
   const dates=getCharacterDates(character.id);const datesUnlocked=progress.relationshipStage>=GAME_CONFIG.dateUnlockStage;
-  const greeting=progress.route==="romance"?character.greetings.romance:progress.route==="friendship"?character.greetings.friendship:progress.visits<=1?character.greetings.first:progress.relationshipStage>=4?character.greetings.close:character.greetings.familiar;
+  const greeting=characterGreeting(character,progress);
+  const orderPending=["ren","sota","aki","itsuki","haru","nagisa","sae","cacao"].includes(character.id)&&state.deliveries.some(delivery=>!delivery.staffId&&ingredients.find(item=>item.id===delivery.ingredientId)?.supplierId===supplierId);
+  const conversation=orderPending?characterSupplyResponse(character,progress):greeting;
   useEffect(()=>{if(highlightIngredientId)targetRef.current?.scrollIntoView({block:"center"});},[supplierId,highlightIngredientId]);
   return <section className="screen fade-in">
     <button className="back-button" onClick={onBack}>← 街へ戻る</button>
     <div className="supplier-hero"><Portrait character={character} face/><div className="supplier-sign"><span>{supplier.icon} {supplier.name}</span><h1>{character.name}</h1><Hearts stage={progress.relationshipStage} route={progress.route}/><small>好感度 {progress.relationshipStage}/10 · {relationshipLabel(progress.relationshipStage,progress.route)}</small></div></div>
-    <div className="dialogue-box"><b>{character.name}</b><p>「{greeting}」</p></div>
+    <div className={`dialogue-box ${["ren","sota","aki","itsuki","haru","nagisa","sae","cacao"].includes(character.id)?"ren-dialogue":""}`} aria-live="polite"><b>{character.name}</b><p>「{conversation}」</p></div>
     <div className="section-heading"><div><h2>食材の仕入れ</h2></div><small>1パック = {supplyPackSize(state,stock[0]?.id||"")}食分・無料</small></div>
     <div className="shop-list">{stock.map(item => <SupplyItem key={item.id} item={item} highlighted={item.id===highlightIngredientId} targetRef={targetRef}/>)}</div>
     <section className={`date-invitation ${datesUnlocked?"":"locked"}`} aria-labelledby={`${character.id}-date-title`}>

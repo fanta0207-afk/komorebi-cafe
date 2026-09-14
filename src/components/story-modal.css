@@ -147,3 +147,8 @@
   .story-player h2 { font-size:17px; margin:0; }
   .story-player .story-dialogue-panel { padding:12px 14px; max-height:58dvh; }
 }
+
+.story-modal.story-player.gift-reaction-popup {
+  height:min(760px,calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+}
+.gift-reaction-popup .story-footer { justify-content:flex-end; }

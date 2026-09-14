@@ -1,3 +1,4 @@
+import { forestIngredients } from './forest';
 import type { Ingredient } from "../types/game";
 
 export const ingredients: Ingredient[] = [
@@ -46,4 +47,6 @@ export const ingredients: Ingredient[] = [
   {"id": "cacaoSignature", "name": "カカオのシグネチャーショコラ", "icon": "🏅", "price": 350, "supplierId": "chocolaterie", "limited": true, "unlockEventId": "cacao-stage10"},
 ];
 
-export const getIngredient = (id:string) => ingredients.find(item => item.id === id);
+export const getIngredient = (id:string) => ingredients.find(item => item.id === id) || forestIngredients.find(item => item.id === id);
+
+export const allIngredients=[...ingredients,...forestIngredients];

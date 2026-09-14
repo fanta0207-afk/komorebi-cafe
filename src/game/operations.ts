@@ -16,7 +16,7 @@ export const specialties:Record<string,{label:string;tags:string[]}>= {
 };
 export function preparation(recipe:Recipe) {
   const equipmentId=recipeEquipmentId(recipe);
-  const seconds=recipe.price<=GAME_CONFIG.starterRecipeMaxPrice?GAME_CONFIG.starterCookingSeconds:recipe.price<=GAME_CONFIG.midRecipeMaxPrice?GAME_CONFIG.midCookingSeconds:GAME_CONFIG.baseCookingSeconds;
+  const seconds=recipe.cookingSeconds??(recipe.price<=GAME_CONFIG.starterRecipeMaxPrice?GAME_CONFIG.starterCookingSeconds:recipe.price<=GAME_CONFIG.midRecipeMaxPrice?GAME_CONFIG.midCookingSeconds:GAME_CONFIG.baseCookingSeconds);
   return {equipmentId,seconds};
 }
 export function hasIngredients(state:GameState,recipe:Recipe) {
@@ -45,19 +45,19 @@ export function stationFor(state:GameState,recipe:Recipe,cookId?:string) {
   return state.stations.filter(station=>station.equipmentId===preparation(recipe).equipmentId&&!stationOccupied(state,station.id))
     .sort((a,b)=>cookingMs(state,recipe,a,cookId)-cookingMs(state,recipe,b,cookId))[0];
 }
-export function startProblem(state:GameState,recipe:Recipe) {
+export function startProblem(state:GameState,recipe:Recipe,reserved=false) {
   if(!state.unlockedRecipes.includes(recipe.id))return `未解放：${recipe.unlockHint}`;
   if(!isRecipeUsable(recipe.id,state))return "必要な設備を設置してください";
-  if(!hasIngredients(state,recipe))return `食材待ち：${recipe.requiredIngredients.filter(id=>!(state.ingredients[id]>0)).map(id=>getIngredient(id)?.name).join("・")}`;
+  if(!reserved&&!hasIngredients(state,recipe))return `食材待ち：${recipe.requiredIngredients.filter(id=>!(state.ingredients[id]>0)).map(id=>getIngredient(id)?.name).join("・")}`;
   if(!stationFor(state,recipe))return "設備の空きを待っています";
   return "";
 }
 export function startCooking(state:GameState,orderId:string,cookId?:string):GameState {
   const order=state.orders.find(item=>item.id===orderId),recipe=order&&getRecipe(order.recipeId);
-  if(!order||order.status!=="queued"||!recipe||startProblem(state,recipe))return state;
+  if(!order||order.status!=="queued"||!recipe||startProblem(state,recipe,!!order.forestReserved))return state;
   if(cookId&&(!state.staff.some(person=>person.characterId===cookId&&person.role==="cook")||state.orders.some(item=>item.status==="cooking"&&item.cookId===cookId)))return state;
   const station=stationFor(state,recipe,cookId)!;const totalMs=cookingMs(state,recipe,station,cookId);
-  const ingredients={...state.ingredients};for(const id of recipe.requiredIngredients)ingredients[id]-=1;
+  const ingredients={...state.ingredients};if(!order.forestReserved)for(const id of recipe.requiredIngredients)ingredients[id]-=1;
   return {...state,ingredients,orders:state.orders.map(item=>item.id===orderId?{...item,status:"cooking",stationId:station.id,cookId,remainingMs:totalMs,totalMs}:item)};
 }
 export function serveOrder(state:GameState,orderId:string):GameState {

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { getCharacter } from "../data/characters";
 import { equipment, getEquipment } from "../data/equipment";
 import { getIngredient } from "../data/ingredients";
-import { recipes } from "../data/recipes";
+import { allRecipes as recipes } from "../data/recipes";
 import { useGame } from "../game/GameContext";
 import { ScreenTitle } from "../components/GameUI";
 import { GAME_CONFIG } from "../game/config";

@@ -125,9 +125,9 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
       {state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
         const { x, y } = TABLE_POSITIONS[order.customerSlot];
-        const problem = order.status === "queued" ? startProblem(state, recipe) : "";
+        const problem = order.status === "queued" ? startProblem(state, recipe, !!order.forestReserved) : "";
         const pending = manager && managerPending(manager, order.id);
-        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? "調理中" : !state.unlockedRecipes.includes(recipe.id) ? "解放待ち" : !hasIngredients(state, recipe) ? "食材待ち" : problem ? "設備待ち" : "調理開始";
+        const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? "調理中" : !state.unlockedRecipes.includes(recipe.id) ? "解放待ち" : !order.forestReserved && !hasIngredients(state, recipe) ? "食材待ち" : problem ? "設備待ち" : "調理開始";
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
         return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}

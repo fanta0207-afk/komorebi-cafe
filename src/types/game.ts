@@ -8,8 +8,8 @@ export interface StoryLine { speaker:"narrator"|"character"|"player"; text:strin
 export interface StoryChoice { id:string; label:string; response:StoryLine[]; }
 
 export interface Ingredient { id:string; name:string; icon:string; price:number; supplierId:string; limited?:boolean; unlockEventId?:string; }
-export interface Recipe { id:string; name:string; icon:string; price:number; requiredIngredients:string[]; requiredEquipmentIds?:string[]; unlockHint:string; initiallyUnlocked?:boolean; tags:string[]; limited?:boolean; hidden?:boolean; unlockEventId?:string; }
-export interface Gift { id:string; name:string; icon:string; price:number; rarity:GiftRarity; tags:string[]; description:string; }
+export interface Recipe { forest?:boolean; cookingSeconds?:number; id:string; name:string; icon:string; price:number; requiredIngredients:string[]; requiredEquipmentIds?:string[]; unlockHint:string; initiallyUnlocked?:boolean; tags:string[]; limited?:boolean; hidden?:boolean; unlockEventId?:string; }
+export interface Gift { handmade?:boolean; materials?:Record<string,number>; lovedBy?:string[]; id:string; name:string; icon:string; price:number; rarity:GiftRarity; tags:string[]; description:string; }
 export interface Supplier { id:string; name:string; icon:string; description:string; characterId:string; }
 export interface Character {
   id:string; name:string; gender:Gender; occupation:string; supplierId:string;
@@ -40,11 +40,12 @@ export interface DateEvent { id:string; characterId:string; locationId:DateLocat
 export interface Equipment { id:string; name:string; icon:string; price:number; characterId:string; description:string; effectText:string; }
 export interface Decoration { id:string; name:string; icon:string; characterId:string; placement:"wall"|"shelf"|"counter"|"floor"; }
 export interface HiddenUnlock { id:string; requiredEvents:string[]; recipeId:string; note:string; }
-export interface CharacterProgress { affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; giftsGiven:number; route:RelationshipRoute; eventChoices:Record<string,string>; talkedStages:number[]; giftReactions:Record<string,GiftReaction>; }
+export interface CharacterProgress { lastGiftId?:string; giftStreak?:number; handmadeFirst?:string[]; affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; giftsGiven:number; route:RelationshipRoute; eventChoices:Record<string,string>; talkedStages:number[]; giftReactions:Record<string,GiftReaction>; viewedGiftReactions:GiftReaction[]; }
+export interface GiftReactionPopup { characterId:string; giftId:string; reaction:GiftReaction; response:string; }
 export interface Station { id:string; equipmentId:string; level:number; }
 export type StaffRole = "cook"|"server"|"procurement"|"rest";
 export interface Staff { characterId:string; role:StaffRole; servingOrderId?:string; returningFromSlot?:number; remainingMs:number; }
-export interface Order { request?:boolean; id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
+export interface Order { forestReserved?:boolean; request?:boolean; id:string; customerSlot:number; recipeId:string; status:"queued"|"cooking"|"ready"; stationId?:string; cookId?:string; remainingMs:number; totalMs:number; }
 export interface IngredientDelivery { id:string; ingredientId:string; packs:number; servingsPerPack:number; automatic?:boolean; staffId?:string; orderedAt:number; arrivesAt:number; }
 export interface DailyStats { sales:number; orders:number; recipeSales:Record<string,number>; }
 export interface LifetimeStats { recipeSales:Record<string,number>; ingredientPurchases:Record<string,number>; tagSales:Record<string,number>; totalOrders:number; totalRevenue:number; giftPurchases:number; staffProcurementOrders:number; automaticPacks:number; automatedOrders:number; }
@@ -57,6 +58,8 @@ export interface TownDailyEvent { id:string; name:string; icon:string; descripti
 export interface DailyCondition { weatherId:string; customerGroupId:string; dailyEventId:string; }
 
 export interface GameState {
+  forest:ForestState;
+  pendingGiftReaction?:GiftReactionPopup;
   tableCount:number;
   missions:MissionProgress;
   stations:Station[]; staff:Staff[]; activeMs:number; spawnRemainingMs:number; nextOrderNumber:number;
@@ -93,3 +96,7 @@ export interface MissionProgress {
   gaveBook:boolean;
   sideClaimed:string[];
 }
+
+export interface ForestLoot { food:string[]; coins:number; tickets:number; fragment?:string; }
+export interface ForestExpedition {id:number; seed:number; area:string; used:string[]; basket:string[]; coins:number; tickets:number; fragment?:string; harvested:boolean; deepGather:number; gotRare:boolean; returning:boolean; pending?:ForestLoot;}
+export interface ForestState { tutorialDone?:boolean; energy:number; recoveredAt:number; nextId:number; returns:number; fragments:Record<string,number>; discovered:string[]; crafted:string[]; tickets:number; sales:Record<string,number>; serveForestNext:boolean; expedition?:ForestExpedition; lastReturn?:ForestLoot; }

@@ -56,7 +56,7 @@ export function CafeScreen({ missionControl, storyOpen, panelRequest, onInventor
     if (!order || !recipe) return;
     if (managerPending(manager, id)) return;
     if (order.status === "ready") onCollect(id);
-    else if (order.status === "queued" && !startProblem(state, recipe)) onStart(id);
+    else if (order.status === "queued" && !startProblem(state, recipe, !!order.forestReserved)) onStart(id);
     else setNotebook({ page: "orders", selected: id });
   };
   return <section className="cafe-screen" aria-label="カフェ">
@@ -102,7 +102,7 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
       {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "来店待ち" : "食材がありません"}</p></div>}
       <div className="notebook-orders">{state.orders.map(order => {
         const recipe = getRecipe(order.recipeId); if (!recipe) return null;
-        const problem = order.status === "queued" ? startProblem(state, recipe) : "";
+        const problem = order.status === "queued" ? startProblem(state, recipe, !!order.forestReserved) : "";
         const pending = managerPending(manager, order.id);
         const missingConditions = orderRequirements(state, order).filter(condition => !condition.met && condition.id !== "cooking");
         return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>

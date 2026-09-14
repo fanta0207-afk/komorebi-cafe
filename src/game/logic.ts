@@ -2,7 +2,7 @@ import { GAME_CONFIG, giftRequirementTargets } from "./config";
 import { characters } from "../data/characters";
 import { gifts, sortGiftIdsByRarity } from "../data/gifts";
 import { ingredients } from "../data/ingredients";
-import { recipes, recipeEquipmentId } from "../data/recipes";
+import { recipes, getRecipe, recipeEquipmentId } from "../data/recipes";
 import { growthEvents } from "../data/growthEvents";
 import { staffStoryEvents } from "../data/events";
 import { hiddenUnlocks } from "../data/hiddenUnlocks";
@@ -31,9 +31,10 @@ export function randomShopItems(count=GAME_CONFIG.giftShopSize,random=Math.rando
 }
 
 export function giftReaction(character:Character, gift:Gift):GiftReaction {
+  if (gift.handmade&&gift.lovedBy?.includes(character.id))return 'love';
   if (gift.tags.some(tag => character.dislikedGiftTags.includes(tag))) return "dislike";
   const favoriteCount = gift.tags.filter(tag => character.favoriteGiftTags.includes(tag)).length;
-  if (favoriteCount >= 2) return "love";
+  if (!gift.handmade && favoriteCount >= 2) return "love";
   if (favoriteCount === 1) return "like";
   return "normal";
 }
@@ -46,14 +47,14 @@ export function giftAffectionAmount(gift:Gift,reaction:GiftReaction) {
 export function availableEvent(state:GameState, events:RelationshipEvent[]) {
   return events.find(event => {
     const progress=state.characterProgress[event.characterId];
-    return progress?.met && progress.relationshipStage===event.fromStage && progress.affection>=event.requiredAffection && relationshipRequirements(event,state).every(item=>item.met) && !progress.viewedEvents.includes(event.id);
+    return !state.pendingGiftReaction && progress?.met && progress.relationshipStage===event.fromStage && progress.affection>=event.requiredAffection && relationshipRequirements(event,state).every(item=>item.met) && !progress.viewedEvents.includes(event.id);
   });
 }
 
 export function availableStaffStory(state:GameState, events=staffStoryEvents) {
   return events.find(event=>{
     const progress=state.characterProgress[event.characterId];
-    return progress?.met && progress.relationshipStage>=event.requiredRelationshipStage
+    return !state.pendingGiftReaction && progress?.met && progress.relationshipStage>=event.requiredRelationshipStage
       && state.staff.some(person=>person.characterId===event.characterId)
       && !progress.viewedEvents.includes(event.id);
   });
@@ -97,7 +98,7 @@ export function nextGrowthEvent(characterId:string,state:GameState) {
 }
 
 export function availableGrowthEvent(state:GameState) {
-  return growthEvents.find(event=>state.characterProgress[event.characterId]?.met&&!state.viewedGrowthEvents.includes(event.eventId)&&growthRequirements(event,state).every(item=>item.met));
+  return !state.pendingGiftReaction?growthEvents.find(event=>state.characterProgress[event.characterId]?.met&&!state.viewedGrowthEvents.includes(event.eventId)&&growthRequirements(event,state).every(item=>item.met)):undefined;
 }
 
 export function hiddenRecipeRewards(viewedEvents:string[],unlockedRecipes:string[]) {
@@ -105,7 +106,7 @@ export function hiddenRecipeRewards(viewedEvents:string[],unlockedRecipes:string
 }
 
 export function createCharacterProgress() {
-  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,giftsGiven:0,route:"undecided" as const,eventChoices:{},talkedStages:[],giftReactions:{} }]));
+  return Object.fromEntries(characters.map(character => [character.id,{ affection:0,relationshipStage:0,viewedEvents:[],met:false,visits:0,giftsGiven:0,route:"undecided" as const,eventChoices:{},talkedStages:[],giftReactions:{},viewedGiftReactions:[] as GiftReaction[] }]));
 }
 
 export function bestSeller(recipeSales:Record<string,number>) {
@@ -113,7 +114,7 @@ export function bestSeller(recipeSales:Record<string,number>) {
 }
 
 export function salePrice(recipeId:string,state?:GameState) {
-  const recipe=recipes.find(item=>item.id===recipeId);
+  const recipe=getRecipe(recipeId);
   if(!recipe)return 0;
   const bonus=state?menuMastery(recipeId,state).current.bonus:0;
   return Math.max(1,Math.round(recipe.price*GAME_CONFIG.saleMultiplier*(1+bonus)));
@@ -125,7 +126,7 @@ export function ingredientCost(recipeId:string) {
 }
 
 export function isRecipeUsable(recipeId:string,state:GameState) {
-  const recipe=recipes.find(item=>item.id===recipeId);
+  const recipe=getRecipe(recipeId);
   return !!recipe&&state.unlockedRecipes.includes(recipe.id)&&state.stations.some(station=>station.equipmentId===recipeEquipmentId(recipe))&&(recipe.requiredEquipmentIds || []).every(id=>state.ownedEquipment.includes(id));
 }
 

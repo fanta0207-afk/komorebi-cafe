@@ -17,7 +17,7 @@ for (const folder of ['data', 'game', 'components', 'components/cafe', 'screens'
   mkdirSync(join(output, folder), { recursive: true });
   const source = new URL(`../src/${folder}/`, import.meta.url);
   for (const file of readdirSync(source).filter(name => /\.tsx?$/.test(name))) {
-    const compiled = ts.transpileModule(readFileSync(new URL(file, source), 'utf8'), {
+    const compiled = ts.transpileModule(readFileSync(new URL(file, source), 'utf8').replace(/^import ["'][^"']+\.css["'];?$/gm, ''), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX },
     }).outputText;
     writeFileSync(join(output, folder, file.replace(/\.tsx?$/, '.js')), compiled);
@@ -254,7 +254,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.doesNotMatch(profile, new RegExp(characters[0].profile));
     state.characterProgress.ren.giftReactions={mug:'love',ribbon:'dislike'};
     const discoveredProfile=render('screens/PeopleScreen.js', 'CharacterDetail', { characterId: 'ren', onBack() {}, onReplay() {} });
-    assert.match(discoveredProfile,/2\/100/);
+    assert.match(discoveredProfile,/2\/106/);
     assert.match(discoveredProfile,/大好物[\s\S]*陶器のマグ/);
     assert.match(discoveredProfile,/苦手[\s\S]*きらきらリボン/);
     state.characterProgress.ren.giftReactions={};
@@ -265,7 +265,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(supplier, /入荷まで/);
     assert.doesNotMatch(supplier, /WHOLESALE|所要時間/);
     assert.doesNotMatch(supplier, new RegExp(`${characters[0].occupation}`));
-    assert.match(supplier, /class="dialogue-box"/);
+    assert.match(supplier, /class="dialogue-box(?: [^"]*)?"/);
     assert.match(supplier,/\/assets\/characters\/ren\.png/);
     assert.match(highlightedSupplier,/supply-item-highlight/);
     assert.match(highlightedSupplier,/supply-order-button supply-order-highlight/);
@@ -684,4 +684,72 @@ test('standalone guest sizing matches sheet height and feet while preserving asp
     const html=renderToStaticMarkup(React.createElement(CustomerSprite,{look,phase:'seated'}));
     assert.doesNotMatch(html,/customer-standalone/,'existing sheet guests keep their sizing');
   }
+});
+
+test('Ren everyday supplier and staff dialogue follows live tasks and keeps shop and hiring controls',()=>{
+  const context=require(join(output,'game/GameContext.js'));
+  const original=context.useGame;
+  const {characterGreeting}=require(join(output,'game/conversation.js'));
+  const {renSupplyReplies,renStaffReplies}=require(join(output,'data/renConversations.js'));
+  const {SupplierScreen}=require(join(output,'screens/SupplierScreen.js'));
+  const {StaffCard}=require(join(output,'screens/StaffScreen.js'));
+  let state={...createInitialState(),currency:2000};
+  state.characterProgress.ren={...state.characterProgress.ren,met:true,relationshipStage:4,visits:3};
+  context.useGame=()=>({state,dispatch(){}});
+  const supplier=()=>renderToStaticMarkup(React.createElement(SupplierScreen,{supplierId:'coffee',onBack(){},onDate(){}}));
+  const staff=()=>renderToStaticMarkup(React.createElement(StaffCard,{characterId:'ren'}));
+  try{
+    const saved=JSON.stringify(state);
+    assert.ok(supplier().includes(characterGreeting(characters.find(person=>person.id==='ren'),state.characterProgress.ren)));
+    assert.match(staff(),/staff-dialogue/);
+    assert.match(staff(),/調理をお願いする/);
+    state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans',now:1000});
+    const pending=supplier();
+    assert.ok(pending.includes(renSupplyReplies.close));
+    assert.match(pending,/入荷待ち/);
+    state=reducer(state,{type:'HIRE_STAFF',characterId:'ren',role:'cook'});
+    assert.ok(staff().includes(renStaffReplies.cook.assign));
+    state={...state,orders:[{...order('ren-job'),cookId:'ren',status:'cooking'}]};
+    assert.ok(staff().includes(renStaffReplies.cook.working));
+    state=reducer(state,{type:'ASSIGN_STAFF',characterId:'ren',role:'rest'});
+    assert.ok(staff().includes(renStaffReplies.rest.busy),'role change during a task waits until it ends');
+    state={...state,orders:[]};
+    assert.ok(staff().includes(renStaffReplies.rest.assign));
+    state.characterProgress.ren={...state.characterProgress.ren,met:false};
+    assert.doesNotMatch(staff(),/staff-dialogue/,'unknown people cannot speak');
+    const unchanged=JSON.parse(saved);
+    state=unchanged;
+    supplier();staff();
+    assert.equal(JSON.stringify(state),saved,'rendering everyday conversation never spends or grants resources');
+  }finally{context.useGame=original;}
+});
+
+test('gift reaction popup renders each preference with existing standing artwork and the actual gift response',()=>{
+  const {GiftReactionModal}=require(join(output,'components/GiftReactionModal.js'));
+  const {giftReactionLabels}=require(join(output,'data/gifts.js'));
+  for(const reaction of ['love','like','normal','dislike']){
+    const html=renderToStaticMarkup(React.createElement(GiftReactionModal,{reaction:{characterId:'ren',giftId:'book',reaction,response:'選んでくれて、ありがとう。'},onClose(){}}));
+    assert.match(html,/gift-reaction-popup/);
+    assert.ok(html.includes(giftReactionLabels[reaction]));
+    assert.match(html,/src="\/assets\/characters\/ren\.png"/);
+    assert.match(html,/黒豆 蓮の立ち絵/);
+    assert.match(html,/選んでくれて、ありがとう。/);
+    assert.match(html,/プレゼントのリアクションを閉じる/);
+    assert.doesNotMatch(html,/完了|解放しました/);
+  }
+  const cacao=renderToStaticMarkup(React.createElement(GiftReactionModal,{reaction:{characterId:'cacao',giftId:'book',reaction:'like',response:'ありがとう。'},onClose(){}}));
+  assert.match(cacao,/src="\/assets\/characters\/cacao-story\.png"/,'uses the same story artwork as episodes');
+});
+
+test('forest screen keeps pending loot across navigation and offers zero-energy return after basket resolution',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ let state=createInitialState();state.lifetimeStats.totalOrders=20;state.forest.returns=5;
+ state=reducer(state,{type:'FOREST_ENTER'});state=reducer(state,{type:'FOREST_MOVE',area:'clearing'});state=reducer(state,{type:'FOREST_GATHER',spot:0,careful:false});state.forest.energy=0;
+ context.useGame=()=>({state,dispatch(){}});
+ const {ForestScreen,ForestBook}=require(join(output,'screens/ForestScreen.js'));
+ try{
+  let html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/見つけた！/);assert.match(html,/かごに入れる/);assert.match(html,/街へ帰る（体力0でもOK）/);
+  state=reducer(state,{type:'FOREST_TAKE'});state=reducer(state,{type:'FOREST_RETURN'});html=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));assert.match(html,/受け取る/);assert.doesNotMatch(html,/森へ出かける/);
+  html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));assert.match(html,/秘密のレシピ/);assert.match(html,/限定料理/);assert.match(html,/月しずくベリー/);
+ }finally{context.useGame=original;}
 });

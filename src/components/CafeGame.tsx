@@ -14,7 +14,9 @@ import { availableEvent, availableStaffStory, availableGrowthEvent, pickWeighted
 import type { DateEvent, GrowthEvent, RelationshipEvent } from "../types/game";
 import { BottomNav, Portrait, StatusBar } from "./GameUI";
 import { StoryModal } from "./StoryModal";
+import { GiftReactionModal } from "./GiftReactionModal";
 import { CafeScreen } from "../screens/CafeScreen";
+import { ForestScreen, ForestBook } from "../screens/ForestScreen";
 import { TownScreen } from "../screens/TownScreen";
 import { SupplierScreen } from "../screens/SupplierScreen";
 import { GiftShopScreen } from "../screens/GiftShopScreen";
@@ -25,7 +27,7 @@ import { useCafeManager } from "./cafe/useCafeManager";
 import { MissionGuide } from "./MissionGuide";
 import type { MissionDestination } from "../game/missions";
 
-type Screen="cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
+type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
 export default function CafeGame() { return <GameProvider><GameContent/></GameProvider>; }
 
@@ -59,16 +61,17 @@ function GameContent() {
   },[dispatch]);
 
   useEffect(()=>{
-    if(event||growthEvent||dateEvent||replay||devOpen)return;
+    if(state.forest.expedition||event||growthEvent||dateEvent||replay||devOpen||state.pendingGiftReaction)return;
     const next=availableStaffStory(state)||availableEvent(state,relationshipEvents);
     if(next){setEvent(next);setEventPage(0);return;}
     const growth=availableGrowthEvent(state);
     if(growth){setGrowthEvent(growth);setEventPage(0);}
   },[state,event,growthEvent,dateEvent,replay,devOpen]);
 
-  const navigate=(id:string)=>{setScreen(id as Screen);setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
+  useEffect(()=>{if(state.forest.expedition)setScreen(current=>current==="forestBook"?current:"forest");},[state.forest.expedition?.id]);
+  const navigate=(id:string)=>{if(state.forest.expedition){dispatch({type:"FOREST_RETURN"});setScreen("forest");return;}setScreen(id as Screen);setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
   const openSupplier=(id:string,ingredientId?:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});setSupplierId(id);setHighlightIngredientId(ingredientId);setScreen("supplier");};
-  const active=["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen==="menu"?"cafe":screen;
+  const active=["forest","forestBook"].includes(screen)?"town":["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen==="menu"?"cafe":screen;
   useEffect(()=>{
     if(screen==="town"||screen==="gifts")dispatch({type:"MISSION_VIEW",place:screen});
     if(screen==="character"&&characterId==="ren")dispatch({type:"MISSION_VIEW",place:"ren"});
@@ -83,7 +86,7 @@ function GameContent() {
     else navigate(destination);
   };
 
-  const missionControl=!event&&!growthEvent&&!dateEvent&&!replay?<MissionGuide onGo={missionGo}/>:undefined;
+  const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo}/>:undefined;
   const resetGameAndUi=()=>{
     resetGame();setScreen("cafe");setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);setMenuTab("equipment");
     setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setEventPage(0);setDevOpen(false);
@@ -94,22 +97,29 @@ function GameContent() {
     {screen!=="cafe"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>} 
     <div key={screenKey} className="screen-wrap">
       {screen==="cafe"&&<CafeScreen
-        missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay)} panelRequest={cafePanel}
+        missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
         onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame}
         onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})}
         onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}}
         onSupplier={ingredientId=>{const ingredient=getIngredient(ingredientId);if(ingredient)openSupplier(ingredient.supplierId,ingredientId);}}
         onRequestSupply={(orderId,ingredientId,staffId)=>dispatch({type:"REQUEST_STAFF_SUPPLY",orderId,ingredientId,staffId})}/>}
-      {screen==="town"&&<TownScreen onOpen={openSupplier}/>}
+      {screen==="town"&&<TownScreen onOpen={openSupplier} onForest={()=>setScreen("forest")}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} highlightIngredientId={highlightIngredientId} onBack={()=>{setHighlightIngredientId(undefined);setScreen("town");}} onDate={setDateEvent}/>}
       {screen==="gifts"&&<GiftShopScreen/>}
       {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
       {screen==="menu"&&<MenuScreen tab={menuTab} onTabChange={setMenuTab}/>}
+      {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("town")}/>}
+      {screen==="forestBook"&&<ForestBook onBack={()=>setScreen("forest")}/>}
       {screen==="staff"&&<StaffScreen/>}
     </div>
     <BottomNav active={active} onChange={navigate}/>
     {state.notice&&<div key={state.notice.id} className={`notice notice-${state.notice.type}`}>{state.notice.text}</div>}
+    {state.pendingGiftReaction&&<GiftReactionModal
+      key={`${state.pendingGiftReaction.characterId}:${state.pendingGiftReaction.reaction}`}
+      reaction={state.pendingGiftReaction}
+      onClose={()=>{const reaction=state.pendingGiftReaction!;dispatch({type:"CLOSE_GIFT_REACTION",characterId:reaction.characterId,reaction:reaction.reaction});}}
+    />}
     {event&&<StoryModal
       key={event.id}
       event={event}

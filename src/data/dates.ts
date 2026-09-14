@@ -1,4 +1,12 @@
+import { cacaoDateDialogue } from "./cacaoEpisodes";
+import { saeDateDialogue } from "./saeEpisodes";
+import { shizukaDateDialogue } from "./shizukaEpisodes";
 import type { DateEvent, DateLocationId } from "../types/game";
+
+import { taiyoDateDialogue } from "./taiyoEpisodes";
+import { earlDateDialogue } from "./earlEpisodes";
+import { aoiDateDialogue } from "./aoiEpisodes";
+import { makiDateDialogue } from "./makiEpisodes";
 
 export const dateLocations:{id:DateLocationId;title:string;icon:string;description:string}[]=[
   {id:"amusement",title:"遊園地",icon:"🎡",description:"夕焼けの観覧車とカルーセルへ"},
@@ -45,41 +53,13 @@ const dialogue:Record<string,Record<DateLocationId,string[]>>={
       "次は俺の方へ来るか。あの椅子、今度は上着をどけて待ってる。",
     ],
   },
-  sota:{
-    amusement:["メリーゴーランドの馬、一頭ずつ表情が違うね。","今日は誰かのためじゃなくて、僕たちが楽しむ日にしよう。"],
-    walk:["川の音、牛舎とはまた違って聞こえるね。","君と歩くと、休んでいる時間も大切だって思えるよ。"],
-    home:["お茶、おかわりあるよ。毛布も使ってね。","何もしなくても君と一緒にいられるの、すごくうれしいな。"],
-  },
-  aki:{
-    amusement:["店長、あの空中ブランコ勝負しよ！……やっぱ隣同士で乗ろっか。","こんなに楽しいと、帰りたくなくなるじゃん。もう一個だけ乗ろ！"],
-    walk:["散歩ってゆっくりするもんだろ？……分かってるって、走らないから！","店長とだと、いつもの道でも新しいもの見つかるな。"],
-    home:["野菜の映画にしようと思ったけど、そんなジャンルなかった！","今日は隣にいるだけでいいや。……ちょっと近い？　このままでいい？"],
-  },
-  itsuki:{
-    amusement:["エスコートはお任せください。……ただし観覧車の頂上では、私も少し緊張するかもしれません。","完璧な予定より、あなたと迷う時間のほうが楽しいとは。"],
-    walk:["今夜は行き先を決めずに歩きましょう。あなたの歩幅に合わせます。","沈黙を埋めなくてもいい相手は、とても貴重ですね。"],
-    home:["お茶は私が淹れます。菓子は……仕事になるので、今日は市販のものを。","飾らない私を見せても、あなたは笑わないのですね。……安心しました。"],
-  },
-  haru:{
-    amusement:["遊園地のパンも研究したいけど、今日は仕事抜きだ！","お前が笑ってると、乗り物よりそっちを見ちゃうな。"],
-    walk:["朝の配達路も、夕方に歩くとぜんぜん違うだろ。","次は弁当を作って来るよ。ゆっくり座って食べよう。"],
-    home:["焼きたては持ってきた。あとは好きな音楽でもかけようぜ。","お前の家での顔、店にいる時よりやわらかいな。また来てもいいか？"],
-  },
-  nagisa:{
-    amusement:["光がたくさんあるのに、不思議とうるさく感じないね。","あの観覧車に乗ろう。高い場所で、君とゆっくり話したい。"],
-    walk:["夜の葉が揺れる音、聞こえる？　君と並んで聞きたかった。","道に迷ってもいいよ。もう少し、一緒に歩けるから。"],
-    home:["雨の音を聞きながら読む本、二冊持ってきた。好きなほうを選んで。","同じページで笑えるの、いいね。この時間を覚えていたい。"],
-  },
-  sae:{
-    amusement:["混雑する前に回る順番を決めた。……不満か？　なら予定は捨てる。","次はお前が選べ。お前が楽しそうなほうに、俺も行く。"],
-    walk:["夜道は俺が車道側を歩く。……職業病だ、気にするな。","お前となら、目的のない時間も無駄には感じない。"],
-    home:["室温は調整した。飲み物もある。……他に必要なものは？","そうか、隣にいればいいのか。なら、ここにいる。"],
-  },
-  cacao:{
-    amusement:["僕と勝負する？　負けたら、今日一日僕の選んだ乗り物に付き合って。","……君が他を見ているのは気に入らない。次は僕の隣。異論は聞くけど、譲る気はないよ。"],
-    walk:["歩くのが遅い？　君といる時間を伸ばしてるんだ。気づくのが遅いね。","手を出して。嫌なら断っていい。……でも、つないでくれたら離したくない。"],
-    home:["試作は君の分だけ。ほかの誰にも同じ配合は出さない。","仕事抜きで会いたかったと言えば満足？　なら、もう少し僕のそばにいて。"],
-  },
+  sota:makiDateDialogue,
+  aki:aoiDateDialogue,
+  itsuki:earlDateDialogue,
+  haru:taiyoDateDialogue,
+  nagisa:shizukaDateDialogue,
+  sae:saeDateDialogue,
+  cacao:cacaoDateDialogue,
 };
 
 export const dateEvents:DateEvent[]=Object.entries(dialogue).flatMap(([characterId,locations])=>dateLocations.map(location=>({

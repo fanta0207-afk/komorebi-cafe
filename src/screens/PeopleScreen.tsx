@@ -1,12 +1,15 @@
 "use client";
+import { handmadeAmount } from '../game/forest';
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { characters, getCharacter } from "../data/characters";
+import { getCharacter } from "../data/characters";
+import { suppliers } from "../data/suppliers";
 import { relationshipEvents, staffStoryEvents } from "../data/events";
-import { compareGiftIds, getGift, gifts } from "../data/gifts";
+import { compareGiftIds, getGift, allGifts as gifts } from "../data/gifts";
 import { useGame } from "../game/GameContext";
 import { giftReaction, relationshipRequirements } from "../game/logic";
+import { characterGiftResponse } from "../game/conversation";
 import { relationshipLabel } from "../game/config";
 import type { GiftReaction, RelationshipEvent } from "../types/game";
 import { EmptyState, Hearts, Portrait, ScreenTitle } from "../components/GameUI";
@@ -19,7 +22,8 @@ const reactionGroups:{id:GiftReaction;label:string;mark:string}[]=[
 export function PeopleScreen({onOpen}:{onOpen:(id:string)=>void}) {
   const {state}=useGame();
   return <section className="screen fade-in"><ScreenTitle title="出会った人々"/>
-    <div className="people-list">{characters.map(character=>{
+    <div className="people-list">{suppliers.map(supplier=>{
+      const character=getCharacter(supplier.characterId)!;
       const p=state.characterProgress[character.id];
       return <button key={character.id} className={`person-row ${!p.met?"locked":""}`} disabled={!p.met} onClick={()=>onOpen(character.id)}>
         <Portrait character={character} small face unknown={!p.met}/>
@@ -39,13 +43,15 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
   const [choosing,setChoosing]=useState(false); const [reaction,setReaction]=useState<string>();
   const inventory=Object.entries(state.inventory).filter(([,count])=>count>0).sort(([left],[right])=>compareGiftIds(left,right));
   const give=(giftId:string)=>{
-    const gift=getGift(giftId)!; const result=giftReaction(character,gift);
+    const gift=getGift(giftId);
+    if(!gift || !(state.inventory[giftId]>0) || state.pendingGiftReaction)return;
+    const result=giftReaction(character,gift);
     dispatch({type:"GIVE_GIFT",characterId,giftId,reaction:result});
-    setReaction(`「${character.giftResponses[result]}」`);setChoosing(false);
+    setReaction(`「${characterGiftResponse(character,p,gift,result)}」`);setChoosing(false);
   };
   return <section className="screen fade-in"><button className="back-button" onClick={onBack}>← 人物一覧へ</button>
     <div className="profile-card"><div className="person-summary"><Portrait character={character} face/><div><h1>{character.name}</h1><Hearts stage={p.relationshipStage} route={p.route}/><strong>好感度 {p.relationshipStage}/10</strong><span>{relationshipLabel(p.relationshipStage,p.route)}</span></div></div>
-      {reaction&&<div className="gift-reaction"><b>{character.name}</b><p>{reaction}</p></div>}
+      {reaction&&<div className={`gift-reaction ${["ren","sota","aki","itsuki","haru","nagisa","sae","cacao"].includes(characterId)?"ren-dialogue":""}`}><b>{character.name}</b><p>{reaction}</p></div>}
       <button className="primary-button" onClick={()=>setChoosing(true)}>ギフトを渡す</button>
       <div className="relationship-card">
         <h2>ふたりの物語 <span>{p.relationshipStage}/10</span></h2>
@@ -76,6 +82,6 @@ export function CharacterDetail({characterId,onBack,onReplay}:{characterId:strin
         <div className="gift-taste-grid">{reactionGroups.map(group=>{const discovered=gifts.filter(gift=>p.giftReactions[gift.id]===group.id);return <article className={`gift-taste taste-${group.id}`} key={group.id}><h3><span>{group.mark}</span>{group.label}</h3>{discovered.length?<ul>{discovered.map(gift=><li key={gift.id}><span>{gift.icon}</span>{gift.name}</li>)}</ul>:<p>未発見</p>}</article>})}</div>
       </section>
     </div>
-    {choosing&&createPortal(<div className="modal-backdrop gift-backdrop" onClick={()=>setChoosing(false)}><div className="modal-card gift-picker" role="dialog" aria-modal="true" aria-label="ギフトを選ぶ" onClick={event=>event.stopPropagation()}><h2>ギフトを選ぶ</h2>{inventory.length===0?<EmptyState icon="♧" title="ギフトがありません" text="雑貨店で購入できます。"/>:<div className="inventory-list">{inventory.map(([id,count])=>{const gift=getGift(id);if(!gift)return null;return <button className={`gift-rarity-${gift.rarity}`} key={id} onClick={()=>give(id)}><span>{gift.icon}</span><div><strong>{gift.name}</strong><small>所持 {count}</small></div><b>渡す</b></button>})}</div>}<button className="secondary-button" onClick={()=>setChoosing(false)}>閉じる</button></div></div>,document.body)}
+    {choosing&&createPortal(<div className="modal-backdrop gift-backdrop" onClick={()=>setChoosing(false)}><div className="modal-card gift-picker" role="dialog" aria-modal="true" aria-label="ギフトを選ぶ" onClick={event=>event.stopPropagation()}><h2>ギフトを選ぶ</h2>{inventory.length===0?<EmptyState icon="♧" title="ギフトがありません" text="雑貨店で購入できます。"/>:<div className="inventory-list">{inventory.map(([id,count])=>{const gift=getGift(id);if(!gift)return null;return <button className={`gift-rarity-${gift.rarity}`} key={id} onClick={()=>give(id)}><span>{gift.icon}</span><div><strong>{gift.name}</strong><small>所持 {count}{gift.handmade&&p.giftReactions[id]&&` · 好感度 ${handmadeAmount(gift,p.giftReactions[id],p)>0?'+':''}${handmadeAmount(gift,p.giftReactions[id],p)}`}</small></div><b>渡す</b></button>})}</div>}<button className="secondary-button" onClick={()=>setChoosing(false)}>閉じる</button></div></div>,document.body)}
   </section>;
 }

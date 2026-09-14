@@ -24,6 +24,10 @@ export function GameProvider({children}:{children:ReactNode}) {
     return ()=>{save();window.clearInterval(timer);window.removeEventListener("pagehide",save);document.removeEventListener("visibilitychange",onVisibility);};
   },[hydrated]);
   useEffect(()=>{
+    if(!hydrated)return;
+    try{window.localStorage.setItem(GAME_CONFIG.saveKey,JSON.stringify({...stateRef.current,notice:undefined,offlineOffer:0}));setSaveError(false);}catch{setSaveError(true);}
+  },[hydrated,state.forest,state.inventory,state.characterProgress]);
+  useEffect(()=>{
     if (!state.notice) return;
     const timer=window.setTimeout(()=>dispatch({type:"CLEAR_NOTICE"}),2200);
     return ()=>window.clearTimeout(timer);

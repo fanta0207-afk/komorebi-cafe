@@ -1,4 +1,7 @@
-import type { Gift, GiftRarity } from "../types/game";
+import { handmadeGifts } from './forest';
+import type { Gift, GiftRarity, GiftReaction } from "../types/game";
+
+export const giftReactionLabels:Record<GiftReaction,string>={love:"大好物",like:"好き",normal:"ふつう",dislike:"苦手"};
 
 export const giftRarityInfo:Record<GiftRarity,{badge:string;label:string;effect:string}>={
   common:{badge:"N",label:"ノーマル",effect:"小"},
@@ -110,7 +113,7 @@ export const gifts: Gift[] = [
   { id:"handwovenCoat", name:"手織りのロングコート", icon:"🧥", price:3400, rarity:"ultraRare", tags:["warm","handmade","luxury"], description:"一冬かけて織られた特別な一着" },
 ];
 
-export const getGift = (id:string) => gifts.find(item => item.id === id);
+export const getGift = (id:string) => gifts.find(item => item.id === id) || handmadeGifts.find(item => item.id === id);
 
 export const giftRarityRank:Record<GiftRarity,number>={common:0,rare:1,superRare:2,ultraRare:3};
 
@@ -121,3 +124,5 @@ export function compareGiftIds(leftId:string,rightId:string) {
 }
 
 export const sortGiftIdsByRarity=(ids:string[])=>[...ids].sort(compareGiftIds);
+
+export const allGifts=[...gifts,...handmadeGifts];

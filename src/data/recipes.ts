@@ -1,3 +1,4 @@
+import { forestRecipes } from './forest';
 import type { Recipe } from "../types/game";
 
 export const recipeEquipmentId=(recipe:Recipe)=>recipe.requiredEquipmentIds?.[0] || (recipe.tags.includes("drink")?"coffeeCounter":recipe.tags.includes("bread")?"toastGrill":"prepTable");
@@ -73,4 +74,6 @@ export const recipes: Recipe[] = [
   {"id": "onlyOneBonbon", "name": "ただ一人のシグネチャーボンボン", "icon": "🎁", "price": 820, "requiredIngredients": ["cacaoSignature", "bitterCouverture"], "unlockHint": "カカオとの好感度10の物語で解放", "tags": ["chocolate", "sweet", "elegant", "limited"], "limited": true, "unlockEventId": "cacao-stage10", "requiredEquipmentIds": ["temperingMachine"]},
 ];
 
-export const getRecipe = (id:string) => recipes.find(item => item.id === id);
+export const getRecipe = (id:string) => recipes.find(item => item.id === id) || forestRecipes.find(item => item.id === id);
+
+export const allRecipes=[...recipes,...forestRecipes];

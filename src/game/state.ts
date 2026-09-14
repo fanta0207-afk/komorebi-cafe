@@ -1,3 +1,4 @@
+import { emptyForest, recoverForest, reduceForest, syncForestRecipes, handmadeAmount, type ForestAction } from './forest';
 import { getGift, sortGiftIdsByRarity } from "../data/gifts";
 import { getCharacter } from "../data/characters";
 import { getIngredient, ingredients } from "../data/ingredients";
@@ -16,9 +17,11 @@ import { orderSupplies, receiveSupplies, requestStaffSupply, runAutoProcurement 
 import { autoProcurementUnlocked, staffHirePrice, staffHireStage, staffRoleAvailable } from "./automation";
 import { stationOccupied } from "./kitchen";
 import { GAME_CONFIG, giftRequirementTargets, relationshipLabel } from "./config";
+import { characterGiftResponse } from "./conversation";
 import { availableEvent, availableStaffStory, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftAffectionAmount, giftReaction, relationshipRequirementTargets } from "./logic";
 
-export type Action =
+export type Action = ForestAction
+
   | {type:"BUY_TABLE"; expectedCount:number}
   | {type:"MISSION_VIEW"; place:MissionPlace}
   | {type:"CLAIM_MISSION"; missionId:string}
@@ -28,6 +31,7 @@ export type Action =
   | {type:"BUY_INGREDIENT"; ingredientId:string; packs?:number; now?:number}
   | {type:"BUY_GIFT"; giftId:string}
   | {type:"GIVE_GIFT"; characterId:string; giftId:string; reaction:GiftReaction}
+  | {type:"CLOSE_GIFT_REACTION"; characterId:string; reaction:GiftReaction}
   | {type:"SPAWN_ORDER"; order:Order}
   | {type:"DECLINE_ORDER"; orderId:string}
   | {type:"COLLECT_ORDER"; orderId:string}
@@ -55,12 +59,14 @@ export type Action =
   | {type:"DEV_ACTIONS"}
   | {type:"RESET"};
 
+const handmadeResponses:Record<string,string>={ren:'手で作ったものって、一杯のコーヒーと似てる。君の気持ちが伝わるよ。',sota:'作ってくれたんだね。あたたかい気持ちまで届いたよ。',aki:'森の恵みをこんなふうに使ってくれるなんて、うれしいな。',itsuki:'ひとつずつ仕上げたんだね。その丁寧さが好きだよ。',haru:'これ、君が作ったの？ 一緒に味わう時間も楽しみだな。',nagisa:'森の香りがするね。君の手作り、大事にするよ。',sae:'手作りか。……選んで、作ってくれた時間もうれしい。',cacao:'素材の組み合わせに君らしさが出てる。大切に味わうよ。'};
 const emptyStats = () => ({ sales:0, orders:0, recipeSales:{} });
 const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSales:{},totalOrders:0,totalRevenue:0,giftPurchases:0,staffProcurementOrders:0,automaticPacks:0,automatedOrders:0});
 
 export function createInitialState():GameState {
   const condition=conditionForDay(1);
   return {
+    forest:emptyForest(),
     tableCount:1,
     missions:emptyMissions(),
     saveVersion:GAME_CONFIG.saveVersion, season:"春", day:1, currency:GAME_CONFIG.initialCurrency,
@@ -111,8 +117,9 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       const stage=old.met?Math.max(legacy?1:0,Math.min(10,old.relationshipStage || 0)):0;
       const viewed=legacy?relationshipEvents.filter(event=>event.characterId===id && event.toStage<=stage).map(event=>event.id):(old.viewedEvents || []);
       const giftReactions=old.giftReactions || {};
+      const viewedGiftReactions=[...new Set((Array.isArray(old.viewedGiftReactions)?old.viewedGiftReactions:[]).filter(reaction=>["love","like","normal","dislike"].includes(reaction)))];
       const giftsGiven=Number.isInteger(old.giftsGiven)?Math.max(0,old.giftsGiven):Math.max(Object.keys(giftReactions).length,giftRequirementTargets[stage]);
-      return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,giftsGiven,route:old.route || "undecided",eventChoices:old.eventChoices || {},giftReactions}];
+      return [id,{...initial,...old,relationshipStage:stage,viewedEvents:viewed,giftsGiven,route:old.route || "undecided",eventChoices:old.eventChoices || {},giftReactions,viewedGiftReactions}];
     }));
     const ongoing=restoreOngoing(saved.missions?.ongoing);
     const missionIds=new Set([...missions,...milestoneMissions,...ongoing].map(m=>m.id));
@@ -127,8 +134,15 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
     const savedOrders=savedVersion<10?(legacyOrder?[{...legacyOrder,customerSlot:0}]:[]):validSavedOrders.filter(order=>order.customerSlot<previousTables);
     const keptOrderIds=new Set(savedOrders.map(order=>order.id));
     const discardedOrders=validSavedOrders.filter(order=>!keptOrderIds.has(order.id));
+    const pending=saved.pendingGiftReaction;
+    const pendingGiftReaction=pending&&getCharacter(pending.characterId)&&getGift(pending.giftId)
+      && ["love","like","normal","dislike"].includes(pending.reaction)
+      && pending.reaction===giftReaction(getCharacter(pending.characterId)!,getGift(pending.giftId)!)
+      && typeof pending.response==="string"&&pending.response.length>0
+      && !characterProgress[pending.characterId].viewedGiftReactions.includes(pending.reaction)?pending:undefined;
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
+      forest:recoverForest({...emptyForest(now),...saved.forest},now),
       tableCount:previousTables,
       missions:{...emptyMissions(),...saved.missions,
         ongoing,
@@ -139,6 +153,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
         sideClaimed:(saved.missions?.sideClaimed||[]).filter(id=>id.startsWith("side-")),
       },
       characterProgress,
+      pendingGiftReaction,
       giftShopItems:sortGiftIdsByRarity((saved.giftShopItems || fresh.giftShopItems).filter(id=>!!getGift(id)).slice(0,GAME_CONFIG.giftShopSize)),
       giftShopSoldOut:(saved.giftShopSoldOut||[]).filter(id=>(saved.giftShopItems||fresh.giftShopItems).includes(id)&&!!getGift(id)),
       dailyStats:{ ...emptyStats(), ...(saved.dailyStats || {}) },
@@ -195,14 +210,14 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       // Paid purchases minus pending packs are evidence of already completed deliveries.
       migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
     }
-    return updateMissions(receiveSupplies(normalizeCookingTimes(migrated), now));
+    return updateMissions(syncForestRecipes(receiveSupplies(normalizeCookingTimes(migrated), now)));
 }
 
 const notice = (type:NonNullable<GameState["notice"]>["type"], text:string) => ({ id:Date.now()+Math.random(), type, text });
 
 export function reducer(state:GameState, action:Action):GameState {
-  const next=reduceAction(state,action);
-  return next===state||action.type==="RESET"?next:updateMissions(next);
+  const next=action.type.startsWith("FOREST_")||action.type==="USE_SUPPLY_TICKET"?reduceForest(state,action as ForestAction):reduceAction(state,action);
+  return next===state||action.type==="RESET"?next:updateMissions(syncForestRecipes(next));
 }
 
 function reduceAction(state:GameState, action:Action):GameState {
@@ -222,7 +237,7 @@ function reduceAction(state:GameState, action:Action):GameState {
         ...state,
         characterProgress:{ ...state.characterProgress, [action.characterId]:{ ...current, met:true, visits:current.visits+1, talkedStages:firstToday?[...current.talkedStages,current.relationshipStage]:current.talkedStages, affection:current.affection+(firstToday?GAME_CONFIG.talkAffection:0) } },
         dailyTalkStatus:{ ...state.dailyTalkStatus, [action.characterId]:true },
-        notice:firstToday?notice("heart","新しい会話で気持ちが近づきました ♡"):notice("info","いつでも仕入れに来てくださいね"),
+        notice:firstToday?notice("heart","新しい会話で気持ちが近づきました ♡"):notice("info",action.characterId==="ren"?"蓮と話しました":action.characterId==="sota"?"牧と話しました":action.characterId==="aki"?"葵と話しました":action.characterId==="itsuki"?"アールと話しました":action.characterId==="haru"?"太陽と話しました":action.characterId==="nagisa"?"静と話しました":action.characterId==="sae"?"冴と話しました":action.characterId==="cacao"?"カカオと話しました":"いつでも仕入れに来てくださいね"),
       };
     }
     case "BUY_INGREDIENT": return orderSupplies(state, action.ingredientId, action.packs, action.now);
@@ -236,30 +251,41 @@ function reduceAction(state:GameState, action:Action):GameState {
     }
     case "GIVE_GIFT": {
       const item=getGift(action.giftId); const current=state.characterProgress[action.characterId];
-      if (!item || !current || !state.inventory[item.id]) return state;
+      if (!item || !current || !(state.inventory[item.id]>0) || state.pendingGiftReaction) return state;
       const reaction=giftReaction(getCharacter(action.characterId)!,item);
-      const amount=giftAffectionAmount(item,reaction);
+      const amount=item.handmade?handmadeAmount(item,reaction,current):giftAffectionAmount(item,reaction);
       const nextCount=state.inventory[item.id]-1;
       const nextInventory={ ...state.inventory, [item.id]:nextCount };
       return {
-        ...state, missions:{...state.missions,gaveBook:state.missions.gaveBook||(action.characterId==="ren"&&item.id==="book")},inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
-        characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,affection:Math.max(0,current.affection+amount),giftsGiven:current.giftsGiven+1,giftReactions:{...current.giftReactions,[item.id]:reaction} } },
+        ...state,
+        pendingGiftReaction:current.viewedGiftReactions.includes(reaction)?undefined:{characterId:action.characterId,giftId:item.id,reaction,response:(item.handmade?handmadeResponses[action.characterId]+' ':'')+characterGiftResponse(getCharacter(action.characterId)!,current,item,reaction)},
+        missions:{...state.missions,gaveBook:state.missions.gaveBook||(action.characterId==="ren"&&item.id==="book")},inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
+        characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,lastGiftId:item.id,giftStreak:current.lastGiftId===item.id?(current.giftStreak||0)+1:1,handmadeFirst:item.handmade&&(reaction==='love'||reaction==='like')?[...new Set([...(current.handmadeFirst||[]),item.id])]:(current.handmadeFirst||[]),affection:Math.max(0,current.affection+amount),giftsGiven:current.giftsGiven+1,giftReactions:{...current.giftReactions,[item.id]:reaction} } },
         notice:notice("heart",amount>0?`好感度 +${amount} ♡`:`好感度 ${amount}・好みと違ったようです`),
       };
     }
+    case "CLOSE_GIFT_REACTION": {
+      const pending=state.pendingGiftReaction;
+      if(!pending || pending.characterId!==action.characterId || pending.reaction!==action.reaction)return state;
+      const current=state.characterProgress[pending.characterId];
+      return {...state,pendingGiftReaction:undefined,characterProgress:{...state.characterProgress,[pending.characterId]:{
+        ...current,viewedGiftReactions:[...new Set([...current.viewedGiftReactions,pending.reaction])],
+      }}};
+    }
     case "SPAWN_ORDER": {
-      if (state.orders.length>=tableCapacity(state) || state.orders.some(order=>order.customerSlot===action.order.customerSlot||order.id===action.order.id)||!getRecipe(action.order.recipeId)||!Number.isInteger(action.order.customerSlot)||action.order.customerSlot<0||action.order.customerSlot>=tableCapacity(state)) return state;
+      if (state.orders.length>=tableCapacity(state) || state.orders.some(order=>order.customerSlot===action.order.customerSlot||order.id===action.order.id)||getRecipe(action.order.recipeId)?.forest||!getRecipe(action.order.recipeId)||!Number.isInteger(action.order.customerSlot)||action.order.customerSlot<0||action.order.customerSlot>=tableCapacity(state)) return state;
       return { ...state, orders:[...state.orders,{...action.order,status:"queued",remainingMs:0,totalMs:0,stationId:undefined,cookId:undefined}] };
     }
     case "DECLINE_ORDER": {
       const order=state.orders.find(item=>item.id===action.orderId);
       if(!order || order.status!=="queued")return state;
-      return {...state,orders:state.orders.filter(item=>item.id!==order.id),notice:notice("info","またお待ちしています。注文をお断りしました")};
+      return {...state,forest:order.forestReserved?{...state.forest,sales:{...state.forest.sales,[order.recipeId]:(state.forest.sales[order.recipeId]||0)+1}}:state.forest,orders:state.orders.filter(item=>item.id!==order.id),notice:notice("info","またお待ちしています。注文をお断りしました")};
     }
     case "START_COOKING": return startCooking(state,action.orderId);
     case "TICK": {
+      if(!Number.isFinite(action.deltaMs)||action.deltaMs<=0||action.deltaMs>1000)return state;
       const now=action.now ?? Date.now();
-      const next=advanceGame(runAutoProcurement(receiveSupplies(state,now),now),action.deltaMs);
+      const next=advanceGame(runAutoProcurement(receiveSupplies({...state,forest:recoverForest(state.forest,now)},now),now),action.deltaMs);
       return next===state?state:{...next,lastPlayedAt:now};
     }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);

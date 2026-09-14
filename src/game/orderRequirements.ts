@@ -13,7 +13,7 @@ export interface OrderRequirement { id: string; label: string; met: boolean; det
 export function orderRequirements(state: GameState, order: Order): OrderRequirement[] {
   const recipe = getRecipe(order.recipeId);
   if (!recipe) return [];
-  const started = order.status !== "queued";
+  const started = order.status !== "queued" || !!order.forestReserved;
   const unlocked = state.unlockedRecipes.includes(recipe.id);
   const requirements: OrderRequirement[] = [{ id: "recipe", label: "レシピの解放", met: unlocked,
     detail: unlocked ? "解放済み" : recipe.unlockEventId ? recipe.unlockHint : "必要な食材をすべて在庫にそろえる（入荷時に解放）" }];

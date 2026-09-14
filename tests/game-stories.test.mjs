@@ -40,6 +40,10 @@ const {receiveSupplies,procurementRate,procurementQuote,supplyPackSize,requestSt
 const {autoProcurementUnlocked}=require(join(output,'game/automation.js'));
 const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;
 const routeEvents=id=>relationshipEvents.filter(event=>event.characterId===id);
+function closeGiftPopup(state) {
+  const pending=state.pendingGiftReaction;
+  return pending?reducer(state,{type:'CLOSE_GIFT_REACTION',characterId:pending.characterId,reaction:pending.reaction}):state;
+}
 function complete(state,event,route='romance') {
   return reducer(state,{type:'COMPLETE_EVENT',eventId:event.id,choiceId:event.choices?.[0]?.id,route:event.toStage===9?route:undefined});
 }
@@ -69,7 +73,7 @@ function play(id,route='romance',until=10) {
       while(state.currency<gift.price+100)state=trade(state,10);
       if(state.giftShopSoldOut.includes(gift.id))state=reducer(state,{type:'REFRESH_SHOP',items:state.giftShopItems,costAction:false});
       state=reducer(state,{type:'BUY_GIFT',giftId:gift.id});
-      state=reducer(state,{type:'GIVE_GIFT',characterId:id,giftId:gift.id,reaction:giftReaction(character,gift)});
+      state=closeGiftPopup(reducer(state,{type:'GIVE_GIFT',characterId:id,giftId:gift.id,reaction:giftReaction(character,gift)}));
     }
     assert.equal(availableEvent(state,relationshipEvents)?.id,event.id);
     state=complete(state,event,route);
@@ -163,7 +167,7 @@ test('menu mastery raises only that recipe price and catalog progress hides undi
   const initial=createInitialState();
   const initialCatalog=menuCatalogProgress(initial);
   assert.equal(initialCatalog.unlocked,initial.unlockedRecipes.length);
-  assert.equal(initialCatalog.total,recipes.filter(recipe=>!recipe.hidden).length);
+  assert.equal(initialCatalog.total,recipes.filter(recipe=>!recipe.hidden).length+3);
   assert.equal(menuMastery('coffee',initial).current.level,1);
   assert.equal(salePrice('coffee',initial),25);
 
@@ -244,7 +248,7 @@ for(const character of characters.map(item=>item.id))test(`${character}: normal 
   for(const key of ['unlockedRecipes','unlockedIngredients','unlockedEquipment','unlockedDecorations'])assert.deepEqual(romance[key],friendship[key]);
   assert.equal(availableEvent(romance,relationshipEvents),undefined);
   // No other relationship or growth route is needed for any story recipe's ingredients or equipment.
-  for(const id of romance.unlockedRecipes){
+  for(const id of romance.unlockedRecipes.filter(id=>recipes.some(r=>r.id===id))){
     const recipe=recipes.find(item=>item.id===id);
     for(const materialId of recipe.requiredIngredients){
       const ingredient=ingredients.find(item=>item.id===materialId);
@@ -624,7 +628,7 @@ test('reload and suspended time never yield offline coins or progress; v4 migrat
 test('visiting and gifting have no daily limit, repeated dialogue is not farmable, and trade gates stories',()=>{
   let state=reducer(isolated(),{type:'VISIT',characterId:'ren'});const aff=state.characterProgress.ren.affection;
   for(let i=0;i<20;i++)state=reducer(state,{type:'VISIT',characterId:'ren'});assert.equal(state.characterProgress.ren.affection,aff);
-  state={...state,inventory:{mug:2}};for(let i=0;i<2;i++)state=reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:'mug',reaction:'love'});assert.equal(state.inventory.mug,0);assert.ok(state.characterProgress.ren.affection>aff);
+  state={...state,inventory:{mug:2}};for(let i=0;i<2;i++)state=closeGiftPopup(reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:'mug',reaction:'love'}));assert.equal(state.inventory.mug,0);assert.ok(state.characterProgress.ren.affection>aff);
   assert.equal(state.characterProgress.ren.giftReactions.mug,'love');
   assert.equal(migrateSavedState(JSON.parse(JSON.stringify(state))).characterProgress.ren.giftReactions.mug,'love');
   state={...state,characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,relationshipStage:2,affection:routeEvents('ren')[2].requiredAffection-1,viewedEvents:['ren-stage1','ren-stage2']}}};assert.equal(availableEvent(state,relationshipEvents),undefined);
@@ -831,7 +835,7 @@ test('a fresh player follows the first nine mission groups through the first dev
         case 'bread-first':buy('bread');break;
         case 'visit-gifts':view('gifts');break;
         case 'buy-book':act({type:'BUY_GIFT',giftId:'book'});break;
-        case 'give-book':act({type:'GIVE_GIFT',characterId:'ren',giftId:'book',reaction:'like'});break;
+        case 'give-book':act({type:'GIVE_GIFT',characterId:'ren',giftId:'book',reaction:'like'});state=closeGiftPopup(state);break;
         case 'meet-sota':act({type:'VISIT',characterId:'sota'});break;
         case 'buy-milk':buy('milk');break;
         case 'meet-cacao':act({type:'VISIT',characterId:'cacao'});break;
@@ -1297,5 +1301,719 @@ test('Ren staff memories render with their own heading and the friendship replay
   assert.match(html,/頼れる持ち場/);
   assert.match(html,/いつもの置き場所を一つずつ尋ねた/);
   assert.doesNotMatch(html,/紐を結ぶ彼/);
-  assert.ok(staffStoryEvents.every(event=>event.requiredRelationshipStage===4));
+  assert.ok(staffStoryEvents.filter(event=>event.characterId==='ren').every(event=>event.requiredRelationshipStage===4));
+});
+
+test('Ren everyday greetings respect relationship stage and route without changing saved progress',()=>{
+  const {characterGreeting}=require(join(output,'game/conversation.js'));
+  const {renGreetingsByStage,renRomanceGreetings,renFriendshipGreetings}=require(join(output,'data/renConversations.js'));
+  const ren=characters.find(character=>character.id==='ren');
+  const progress={...createInitialState().characterProgress.ren,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=8;stage++){
+    const current={...progress,relationshipStage:stage};
+    assert.ok(renGreetingsByStage[stage].includes(characterGreeting(ren,current)));
+    assert.notEqual(characterGreeting(ren,current),characterGreeting(ren,{...current,visits:3}),'repeat visits have another greeting');
+  }
+  assert.equal(characterGreeting(ren,{...progress,visits:1,relationshipStage:1}),ren.greetings.first);
+  assert.ok(renRomanceGreetings.includes(characterGreeting(ren,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(renFriendshipGreetings.includes(characterGreeting(ren,{...progress,relationshipStage:10,route:'friendship'})));
+  assert.equal(JSON.stringify(progress),before);
+  for(const other of [{...characters[0],id:'unrevised'}]){
+    assert.equal(characterGreeting(other,{...progress,visits:1}),other.greetings.first);
+    assert.equal(characterGreeting(other,{...progress,relationshipStage:5}),other.greetings.close);
+    assert.equal(characterGreeting(other,{...progress,route:'friendship'}),other.greetings.friendship);
+  }
+});
+
+test('Ren gifts have valid everyday replies across all gifts and both routes while other characters keep their responses',()=>{
+  const {characterGiftResponse}=require(join(output,'game/conversation.js'));
+  const {renGiftDetails}=require(join(output,'data/renConversations.js'));
+  const ren=characters.find(character=>character.id==='ren');
+  const progress={...createInitialState().characterProgress.ren,met:true,relationshipStage:4};
+  const before=JSON.stringify(progress);
+  for(const gift of gifts){
+    const reaction=giftReaction(ren,gift);
+    if(reaction==='like'||reaction==='love')assert.ok(renGiftDetails[gift.id],`${gift.id} needs an appropriate item-specific response`);
+    for(const route of ['undecided','romance','friendship']){
+      const response=characterGiftResponse(ren,{...progress,route},gift,reaction);
+      assert.equal(typeof response,'string');
+      assert.ok(response.length>10);
+      assert.doesNotMatch(response,/undefined|\[object Object\]/);
+    }
+  }
+  const book=gifts.find(gift=>gift.id==='book');
+  assert.notEqual(characterGiftResponse(ren,progress,book,'like'),characterGiftResponse(ren,{...progress,giftsGiven:1},book,'like'));
+  assert.notEqual(characterGiftResponse(ren,{...progress,route:'romance'},book,'like'),characterGiftResponse(ren,{...progress,route:'friendship'},book,'like'));
+  assert.equal(JSON.stringify(progress),before);
+  const other={...characters.find(character=>character.id==='cacao'),id:'unrevised'};
+  for(const reaction of ['love','like','normal','dislike'])assert.equal(characterGiftResponse(other,progress,book,reaction),other.giftResponses[reaction]);
+});
+
+test('all four gift preference reactions open once per character, even across different gifts of the same preference',()=>{
+  for(const character of characters){
+    let state=createInitialState();
+    state.characterProgress[character.id]={...state.characterProgress[character.id],met:true};
+    for(const reaction of ['love','like','normal','dislike']){
+      const matching=gifts.filter(gift=>giftReaction(character,gift)===reaction);
+      assert.ok(matching.length>=1,`${character.id} has a gift for ${reaction}`);
+      const first=matching[0],another=matching[1]||first;
+      state={...state,inventory:{...state.inventory,[first.id]:2,[another.id]:another.id===first.id?3:1}};
+      state=reducer(state,{type:'GIVE_GIFT',characterId:character.id,giftId:first.id,reaction:'normal'});
+      assert.equal(state.pendingGiftReaction.characterId,character.id);
+      assert.equal(state.pendingGiftReaction.reaction,reaction,'uses actual preference, not the caller supplied value');
+      assert.equal(state.inventory[first.id],another.id===first.id?2:1);
+      assert.ok(state.pendingGiftReaction.response);
+      assert.equal(availableEvent(state,relationshipEvents),undefined,'gift reaction finishes before a newly unlocked episode');
+      const open=state;
+      assert.equal(reducer(state,{type:'GIVE_GIFT',characterId:character.id,giftId:first.id,reaction}),open,'rapid second submission cannot consume another gift');
+      assert.equal(reducer(state,{type:'CLOSE_GIFT_REACTION',characterId:character.id,reaction:reaction==='love'?'like':'love'}),open);
+      state=closeGiftPopup(state);
+      assert.equal(state.pendingGiftReaction,undefined);
+      assert.equal(state.characterProgress[character.id].viewedGiftReactions.filter(value=>value===reaction).length,1);
+      state=reducer(state,{type:'GIVE_GIFT',characterId:character.id,giftId:first.id,reaction});
+      assert.equal(state.pendingGiftReaction,undefined);
+      state=reducer(state,{type:'GIVE_GIFT',characterId:character.id,giftId:another.id,reaction});
+      assert.equal(state.pendingGiftReaction,undefined,'another gift with the same preference does not reopen the popup');
+    }
+    assert.deepEqual(state.characterProgress[character.id].viewedGiftReactions,['love','like','normal','dislike']);
+    for(const other of characters.filter(other=>other.id!==character.id))assert.deepEqual(state.characterProgress[other.id].viewedGiftReactions,[]);
+  }
+});
+
+test('pending gift reactions survive reload without consuming or rewarding twice, and older saves can see all new popups',()=>{
+  let state=createInitialState();
+  state.characterProgress.ren={...state.characterProgress.ren,met:true};
+  state.inventory.book=1;
+  state=reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:'book',reaction:'like'});
+  const resumed=migrateSavedState(JSON.parse(JSON.stringify(state)));
+  assert.deepEqual(resumed.pendingGiftReaction,state.pendingGiftReaction);
+  assert.equal(resumed.inventory.book,0);
+  assert.equal(resumed.characterProgress.ren.affection,state.characterProgress.ren.affection);
+  assert.equal(resumed.characterProgress.ren.giftsGiven,1);
+  const closed=closeGiftPopup(resumed);
+  const reloaded=migrateSavedState(JSON.parse(JSON.stringify(closed)));
+  assert.equal(reloaded.pendingGiftReaction,undefined);
+  assert.deepEqual(reloaded.characterProgress.ren.viewedGiftReactions,['like']);
+  assert.equal(reloaded.characterProgress.ren.affection,state.characterProgress.ren.affection);
+  const old=JSON.parse(JSON.stringify(closed));
+  delete old.characterProgress.ren.viewedGiftReactions;
+  delete old.pendingGiftReaction;
+  const migrated=migrateSavedState(old);
+  assert.deepEqual(migrated.characterProgress.ren.viewedGiftReactions,[]);
+  assert.deepEqual(migrated.characterProgress.ren.giftReactions,{book:'like'});
+  assert.equal(migrated.characterProgress.ren.giftsGiven,1);
+  const invalid=migrateSavedState({...old,pendingGiftReaction:{characterId:'missing',giftId:'book',reaction:'love',response:'bad'}});
+  assert.equal(invalid.pendingGiftReaction,undefined);
+});
+
+test('Maki cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('sota-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('sota'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.sota={...state.characterProgress.sota,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'sota',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,sota:{...state.characterProgress.sota,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'sota',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.sota,{...state.characterProgress.sota,viewedEvents:[...state.characterProgress.sota.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Maki saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'sota',role:'rest',remainingMs:0}]};
+    state.characterProgress.sota={...state.characterProgress.sota,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('sota').map(event=>event.id),eventChoices:{'sota-stage4':'choice-2','sota-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'sota-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'sota-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.sota[key],state.characterProgress.sota[key]);
+    assert.deepEqual(resumed.characterProgress.sota.viewedEvents,[...state.characterProgress.sota.viewedEvents,'sota-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Maki daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {makiGreetingsByStage,makiRomanceGreetings,makiRomanceDailyGreetings,makiFriendshipGreetings,makiGiftDetails,makiSupplyReplies}=require(join(output,'data/makiConversations.js'));
+  const maki=characters.find(character=>character.id==='sota');
+  const progress={...createInitialState().characterProgress.sota,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(makiGreetingsByStage[stage].includes(characterGreeting(maki,atStage)));
+    assert.notEqual(characterGreeting(maki,atStage),characterGreeting(maki,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(maki,{...progress,visits:1,relationshipStage:1}),maki.greetings.first);
+  assert.ok(makiRomanceGreetings.includes(characterGreeting(maki,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(makiRomanceDailyGreetings.includes(characterGreeting(maki,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(makiFriendshipGreetings.includes(characterGreeting(maki,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(maki,gift);
+    if(['like','love'].includes(reaction))assert.ok(makiGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(maki,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.sota={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(maki,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(maki,state.characterProgress.sota,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'sota',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(maki,progress),makiSupplyReplies.early);
+  assert.equal(characterSupplyResponse(maki,{...progress,relationshipStage:4}),makiSupplyReplies.close);
+  assert.equal(characterSupplyResponse(maki,{...progress,route:'friendship'}),makiSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+test('Aoi cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('aki-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('aki'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.aki={...state.characterProgress.aki,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'aki',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,aki:{...state.characterProgress.aki,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'aki',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.aki,{...state.characterProgress.aki,viewedEvents:[...state.characterProgress.aki.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Aoi saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'aki',role:'rest',remainingMs:0}]};
+    state.characterProgress.aki={...state.characterProgress.aki,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('aki').map(event=>event.id),eventChoices:{'aki-stage4':'choice-2','aki-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'aki-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'aki-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.aki[key],state.characterProgress.aki[key]);
+    assert.deepEqual(resumed.characterProgress.aki.viewedEvents,[...state.characterProgress.aki.viewedEvents,'aki-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Aoi daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {aoiGreetingsByStage,aoiRomanceGreetings,aoiRomanceDailyGreetings,aoiFriendshipGreetings,aoiGiftDetails,aoiSupplyReplies}=require(join(output,'data/aoiConversations.js'));
+  const aoi=characters.find(character=>character.id==='aki');
+  const progress={...createInitialState().characterProgress.aki,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(aoiGreetingsByStage[stage].includes(characterGreeting(aoi,atStage)));
+    assert.notEqual(characterGreeting(aoi,atStage),characterGreeting(aoi,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(aoi,{...progress,visits:1,relationshipStage:1}),aoi.greetings.first);
+  assert.ok(aoiRomanceGreetings.includes(characterGreeting(aoi,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(aoiRomanceDailyGreetings.includes(characterGreeting(aoi,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(aoiFriendshipGreetings.includes(characterGreeting(aoi,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(aoi,gift);
+    if(['like','love'].includes(reaction))assert.ok(aoiGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(aoi,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.aki={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(aoi,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(aoi,state.characterProgress.aki,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'aki',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(aoi,progress),aoiSupplyReplies.early);
+  assert.equal(characterSupplyResponse(aoi,{...progress,relationshipStage:4}),aoiSupplyReplies.close);
+  assert.equal(characterSupplyResponse(aoi,{...progress,route:'friendship'}),aoiSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+test('Earl cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('itsuki-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('itsuki'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.itsuki={...state.characterProgress.itsuki,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'itsuki',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,itsuki:{...state.characterProgress.itsuki,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'itsuki',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.itsuki,{...state.characterProgress.itsuki,viewedEvents:[...state.characterProgress.itsuki.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Earl saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'itsuki',role:'rest',remainingMs:0}]};
+    state.characterProgress.itsuki={...state.characterProgress.itsuki,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('itsuki').map(event=>event.id),eventChoices:{'itsuki-stage4':'choice-2','itsuki-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'itsuki-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'itsuki-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.itsuki[key],state.characterProgress.itsuki[key]);
+    assert.deepEqual(resumed.characterProgress.itsuki.viewedEvents,[...state.characterProgress.itsuki.viewedEvents,'itsuki-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Earl daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {earlGreetingsByStage,earlRomanceGreetings,earlRomanceDailyGreetings,earlFriendshipGreetings,earlGiftDetails,earlSupplyReplies}=require(join(output,'data/earlConversations.js'));
+  const earl=characters.find(character=>character.id==='itsuki');
+  const progress={...createInitialState().characterProgress.itsuki,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(earlGreetingsByStage[stage].includes(characterGreeting(earl,atStage)));
+    assert.notEqual(characterGreeting(earl,atStage),characterGreeting(earl,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(earl,{...progress,visits:1,relationshipStage:1}),earl.greetings.first);
+  assert.ok(earlRomanceGreetings.includes(characterGreeting(earl,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(earlRomanceDailyGreetings.includes(characterGreeting(earl,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(earlFriendshipGreetings.includes(characterGreeting(earl,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(earl,gift);
+    if(['like','love'].includes(reaction))assert.ok(earlGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(earl,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.itsuki={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(earl,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(earl,state.characterProgress.itsuki,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'itsuki',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(earl,progress),earlSupplyReplies.early);
+  assert.equal(characterSupplyResponse(earl,{...progress,relationshipStage:4}),earlSupplyReplies.close);
+  assert.equal(characterSupplyResponse(earl,{...progress,route:'friendship'}),earlSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+test('revised staff voices keep assigned, working and deferred changes distinct without exposing unmet characters',()=>{
+  const {characterStaffReply}=require(join(output,'game/conversation.js'));
+  for(const [id,name] of [['ren','ren'],['sota','maki'],['aki','aoi'],['itsuki','earl'],['haru','taiyo'],['nagisa','shizuka'],['sae','sae'],['cacao','cacao']]){
+    const data=require(join(output,`data/${name}Conversations.js`));
+    const progress={...createInitialState().characterProgress[id],met:true,relationshipStage:10};
+    const replies=data[`${name}StaffReplies`];
+    assert.equal(characterStaffReply(id,{...progress,met:false}),undefined);
+    assert.equal(characterStaffReply(id,{...progress,relationshipStage:1}),data[`${name}StaffEarlyReply`]);
+    assert.equal(characterStaffReply(id,progress),data[`${name}StaffOffer`]);
+    for(const role of ['cook','server','procurement','rest']){
+      assert.equal(characterStaffReply(id,progress,role),replies[role].assign);
+      assert.equal(characterStaffReply(id,progress,role,true,role),replies[role].working||replies[role].busy);
+      assert.equal(characterStaffReply(id,progress,role,true,role==='cook'?'server':'cook'),replies[role].busy);
+    }
+  }
+  assert.equal(characterStaffReply('unrevised',{...createInitialState().characterProgress.cacao,met:true,relationshipStage:10},'cook'),undefined);
+});
+
+test('Taiyo cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('haru-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('haru'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.haru={...state.characterProgress.haru,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'haru',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,haru:{...state.characterProgress.haru,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'haru',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.haru,{...state.characterProgress.haru,viewedEvents:[...state.characterProgress.haru.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Taiyo saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'haru',role:'rest',remainingMs:0}]};
+    state.characterProgress.haru={...state.characterProgress.haru,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('haru').map(event=>event.id),eventChoices:{'haru-stage4':'choice-2','haru-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'haru-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'haru-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.haru[key],state.characterProgress.haru[key]);
+    assert.deepEqual(resumed.characterProgress.haru.viewedEvents,[...state.characterProgress.haru.viewedEvents,'haru-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Taiyo daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {taiyoGreetingsByStage,taiyoRomanceGreetings,taiyoRomanceDailyGreetings,taiyoFriendshipGreetings,taiyoGiftDetails,taiyoSupplyReplies}=require(join(output,'data/taiyoConversations.js'));
+  const taiyo=characters.find(character=>character.id==='haru');
+  const progress={...createInitialState().characterProgress.haru,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(taiyoGreetingsByStage[stage].includes(characterGreeting(taiyo,atStage)));
+    assert.notEqual(characterGreeting(taiyo,atStage),characterGreeting(taiyo,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(taiyo,{...progress,visits:1,relationshipStage:1}),taiyo.greetings.first);
+  assert.ok(taiyoRomanceGreetings.includes(characterGreeting(taiyo,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(taiyoRomanceDailyGreetings.includes(characterGreeting(taiyo,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(taiyoFriendshipGreetings.includes(characterGreeting(taiyo,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(taiyo,gift);
+    if(['like','love'].includes(reaction))assert.ok(taiyoGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(taiyo,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.haru={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(taiyo,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(taiyo,state.characterProgress.haru,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'haru',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(taiyo,progress),taiyoSupplyReplies.early);
+  assert.equal(characterSupplyResponse(taiyo,{...progress,relationshipStage:4}),taiyoSupplyReplies.close);
+  assert.equal(characterSupplyResponse(taiyo,{...progress,route:'friendship'}),taiyoSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+
+test('Shizuka cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('nagisa-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('nagisa'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.nagisa={...state.characterProgress.nagisa,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'nagisa',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,nagisa:{...state.characterProgress.nagisa,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'nagisa',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.nagisa,{...state.characterProgress.nagisa,viewedEvents:[...state.characterProgress.nagisa.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Shizuka saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'nagisa',role:'rest',remainingMs:0}]};
+    state.characterProgress.nagisa={...state.characterProgress.nagisa,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('nagisa').map(event=>event.id),eventChoices:{'nagisa-stage4':'choice-2','nagisa-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'nagisa-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'nagisa-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.nagisa[key],state.characterProgress.nagisa[key]);
+    assert.deepEqual(resumed.characterProgress.nagisa.viewedEvents,[...state.characterProgress.nagisa.viewedEvents,'nagisa-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Shizuka daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {shizukaGreetingsByStage,shizukaRomanceGreetings,shizukaRomanceDailyGreetings,shizukaFriendshipGreetings,shizukaGiftDetails,shizukaSupplyReplies}=require(join(output,'data/shizukaConversations.js'));
+  const shizuka=characters.find(character=>character.id==='nagisa');
+  const progress={...createInitialState().characterProgress.nagisa,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(shizukaGreetingsByStage[stage].includes(characterGreeting(shizuka,atStage)));
+    assert.notEqual(characterGreeting(shizuka,atStage),characterGreeting(shizuka,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(shizuka,{...progress,visits:1,relationshipStage:1}),shizuka.greetings.first);
+  assert.ok(shizukaRomanceGreetings.includes(characterGreeting(shizuka,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(shizukaRomanceDailyGreetings.includes(characterGreeting(shizuka,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(shizukaFriendshipGreetings.includes(characterGreeting(shizuka,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(shizuka,gift);
+    if(['like','love'].includes(reaction))assert.ok(shizukaGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(shizuka,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.nagisa={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(shizuka,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(shizuka,state.characterProgress.nagisa,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'nagisa',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(shizuka,progress),shizukaSupplyReplies.early);
+  assert.equal(characterSupplyResponse(shizuka,{...progress,relationshipStage:4}),shizukaSupplyReplies.close);
+  assert.equal(characterSupplyResponse(shizuka,{...progress,route:'friendship'}),shizukaSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+
+test('Sae cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('sae-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('sae'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.sae={...state.characterProgress.sae,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'sae',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,sae:{...state.characterProgress.sae,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'sae',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.sae,{...state.characterProgress.sae,viewedEvents:[...state.characterProgress.sae.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Sae saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'sae',role:'rest',remainingMs:0}]};
+    state.characterProgress.sae={...state.characterProgress.sae,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('sae').map(event=>event.id),eventChoices:{'sae-stage4':'choice-2','sae-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'sae-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'sae-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.sae[key],state.characterProgress.sae[key]);
+    assert.deepEqual(resumed.characterProgress.sae.viewedEvents,[...state.characterProgress.sae.viewedEvents,'sae-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Sae daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {saeGreetingsByStage,saeRomanceGreetings,saeRomanceDailyGreetings,saeFriendshipGreetings,saeGiftDetails,saeSupplyReplies}=require(join(output,'data/saeConversations.js'));
+  const sae=characters.find(character=>character.id==='sae');
+  const progress={...createInitialState().characterProgress.sae,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(saeGreetingsByStage[stage].includes(characterGreeting(sae,atStage)));
+    assert.notEqual(characterGreeting(sae,atStage),characterGreeting(sae,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(sae,{...progress,visits:1,relationshipStage:1}),sae.greetings.first);
+  assert.ok(saeRomanceGreetings.includes(characterGreeting(sae,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(saeRomanceDailyGreetings.includes(characterGreeting(sae,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(saeFriendshipGreetings.includes(characterGreeting(sae,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(sae,gift);
+    if(['like','love'].includes(reaction))assert.ok(saeGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(sae,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.sae={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(sae,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(sae,state.characterProgress.sae,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'sae',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(sae,progress),saeSupplyReplies.early);
+  assert.equal(characterSupplyResponse(sae,{...progress,relationshipStage:4}),saeSupplyReplies.close);
+  assert.equal(characterSupplyResponse(sae,{...progress,route:'friendship'}),saeSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+test('Cacao cafe-help story requires actual hiring at the configured level and records no extra rewards',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  const {staffHireStage}=require(join(output,'game/automation.js'));
+  const {getStaffStoryEvent}=require(join(output,'data/events.js'));
+  const episode=getStaffStoryEvent('cacao-help-cafe');
+  assert.equal(episode.requiredRelationshipStage,staffHireStage('cacao'));
+  let state={...createInitialState(),currency:3000};
+  state.characterProgress.cacao={...state.characterProgress.cacao,met:true,relationshipStage:6};
+  const action={type:'COMPLETE_STAFF_STORY',eventId:episode.id};
+  assert.equal(reducer(state,action),state);
+  assert.equal(reducer(state,{type:'HIRE_STAFF',characterId:'cacao',role:'server'}),state);
+  state={...state,characterProgress:{...state.characterProgress,cacao:{...state.characterProgress.cacao,relationshipStage:7}}};
+  assert.equal(availableStaffStory(state),undefined,'affection alone does not start the employment story');
+  state=reducer(state,{type:'HIRE_STAFF',characterId:'cacao',role:'server'});
+  assert.equal(availableStaffStory(state)?.id,episode.id);
+  assert.equal(state.currency,3000-GAME_CONFIG.hirePrice);
+  const completed=reducer(state,action);
+  for(const key of ['currency','ingredients','unlockedRecipes','unlockedIngredients','ownedEquipment','staff','lifetimeStats'])assert.deepEqual(completed[key],state[key]);
+  assert.deepEqual(completed.characterProgress.cacao,{...state.characterProgress.cacao,viewedEvents:[...state.characterProgress.cacao.viewedEvents,episode.id]});
+  assert.equal(availableStaffStory(completed),undefined);
+  assert.equal(reducer(completed,action),completed);
+  assert.equal(reducer(state,{type:'COMPLETE_EVENT',eventId:episode.id}),state);
+});
+
+test('advanced Cacao saves keep stage, route and old choice IDs while the new staff memory can be read once',()=>{
+  const {availableStaffStory}=require(join(output,'game/logic.js'));
+  for(const route of ['romance','friendship']){
+    let state={...createInitialState(),staff:[{characterId:'cacao',role:'rest',remainingMs:0}]};
+    state.characterProgress.cacao={...state.characterProgress.cacao,met:true,relationshipStage:10,affection:777,route,viewedEvents:routeEvents('cacao').map(event=>event.id),eventChoices:{'cacao-stage4':'choice-2','cacao-stage7':'choice-1'}};
+    const loaded=migrateSavedState(JSON.parse(JSON.stringify(state)));
+    assert.equal(availableStaffStory(loaded)?.id,'cacao-help-cafe');
+    const completed=reducer(loaded,{type:'COMPLETE_STAFF_STORY',eventId:'cacao-help-cafe'});
+    const resumed=migrateSavedState(JSON.parse(JSON.stringify(completed)));
+    for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.cacao[key],state.characterProgress.cacao[key]);
+    assert.deepEqual(resumed.characterProgress.cacao.viewedEvents,[...state.characterProgress.cacao.viewedEvents,'cacao-help-cafe']);
+    assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Cacao daily replies follow each relationship stage and both routes, and first gift popups capture that same reply',()=>{
+  const {characterGreeting,characterGiftResponse,characterSupplyResponse}=require(join(output,'game/conversation.js'));
+  const {cacaoGreetingsByStage,cacaoRomanceGreetings,cacaoRomanceDailyGreetings,cacaoFriendshipGreetings,cacaoGiftDetails,cacaoSupplyReplies}=require(join(output,'data/cacaoConversations.js'));
+  const cacao=characters.find(character=>character.id==='cacao');
+  const progress={...createInitialState().characterProgress.cacao,met:true,visits:2};
+  const before=JSON.stringify(progress);
+  for(let stage=1;stage<=10;stage++){
+    const atStage={...progress,relationshipStage:stage};
+    assert.ok(cacaoGreetingsByStage[stage].includes(characterGreeting(cacao,atStage)));
+    assert.notEqual(characterGreeting(cacao,atStage),characterGreeting(cacao,{...atStage,visits:3}));
+  }
+  assert.equal(characterGreeting(cacao,{...progress,visits:1,relationshipStage:1}),cacao.greetings.first);
+  assert.ok(cacaoRomanceGreetings.includes(characterGreeting(cacao,{...progress,relationshipStage:9,route:'romance'})));
+  assert.ok(cacaoRomanceDailyGreetings.includes(characterGreeting(cacao,{...progress,relationshipStage:10,route:'romance'})));
+  assert.ok(cacaoFriendshipGreetings.includes(characterGreeting(cacao,{...progress,route:'friendship'})));
+  for(const gift of gifts){
+    const reaction=giftReaction(cacao,gift);
+    if(['like','love'].includes(reaction))assert.ok(cacaoGiftDetails[gift.id],`${gift.id} has an appropriate item detail`);
+    for(const route of ['undecided','romance','friendship'])assert.doesNotMatch(characterGiftResponse(cacao,{...progress,route},gift,reaction),/undefined|\[object Object\]/);
+  }
+  for(const route of ['undecided','romance','friendship']){
+    for(const reaction of ['love','like','normal','dislike']){
+      let state=createInitialState();
+      state.characterProgress.cacao={...progress,relationshipStage:7,route};
+      const gift=gifts.find(gift=>giftReaction(cacao,gift)===reaction);
+      state.inventory={[gift.id]:1};
+      const expected=characterGiftResponse(cacao,state.characterProgress.cacao,gift,reaction);
+      const gifted=reducer(state,{type:'GIVE_GIFT',characterId:'cacao',giftId:gift.id,reaction});
+      assert.equal(gifted.pendingGiftReaction.response,expected);
+      assert.equal(migrateSavedState(JSON.parse(JSON.stringify(gifted))).pendingGiftReaction.response,expected);
+    }
+  }
+  assert.equal(characterSupplyResponse(cacao,progress),cacaoSupplyReplies.early);
+  assert.equal(characterSupplyResponse(cacao,{...progress,relationshipStage:4}),cacaoSupplyReplies.close);
+  assert.equal(characterSupplyResponse(cacao,{...progress,route:'friendship'}),cacaoSupplyReplies.friendship);
+  assert.equal(JSON.stringify(progress),before);
+});
+
+const forestModel=require(join(output,'game/forest.js'));
+const forestData=require(join(output,'data/forest.js'));
+const forestReady=(seed=42)=>{const initial=createInitialState();return {...initial,lifetimeStats:{...initial.lifetimeStats,totalOrders:20},forest:{...forestModel.emptyForest(1000),returns:5,nextId:2,expedition:{id:1,seed,area:'clearing',used:[],basket:[],coins:0,tickets:0,harvested:false,deepGather:0,gotRare:false,returning:false}}};};
+test('forest recovers real time with fractional minutes, cap and backward clock protection',()=>{
+ let f={...forestModel.emptyForest(1000),energy:60};f=forestModel.recoverForest(f,90500);assert.equal(f.energy,61);assert.equal(f.recoveredAt,61000);
+ assert.equal(forestModel.recoverForest(f,500),f);f=forestModel.recoverForest(f,9999999);assert.equal(f.energy,70);
+ let s={...forestReady(),forest:{...f,expedition:forestReady().forest.expedition}};s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:10000000});assert.equal(s.forest.energy,68);assert.equal(forestModel.recoverForest(s.forest,10030000).energy,68);assert.equal(forestModel.recoverForest(s.forest,10060000).energy,69);
+});
+test('forest food, one or two tickets, coins, pending loot and claim are deterministic and idempotent',()=>{
+ for(let seed=1;seed<=1500;seed++){
+  let s=forestReady(seed),before=JSON.parse(JSON.stringify(s));s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});const e=s.forest.expedition;
+  assert.ok(e.pending.food.length>=1);assert.ok(!getForestIngredient(e.pending.food[0]));assert.ok([1,2].includes(e.tickets));assert.ok(e.coins===0||(e.coins>=300&&e.coins<=2000));
+  assert.deepEqual(reducer(before,{type:'FOREST_GATHER',spot:0,careful:false,now:1000}).forest.expedition,e);
+  assert.equal(reducer(s,{type:'FOREST_GATHER',spot:0,careful:true,now:1000}),s);
+  s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.deepEqual(s.forest.expedition.pending,e.pending);
+  s=reducer(s,{type:'FOREST_TAKE'});const tickets=s.forest.expedition.tickets;s=reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000});assert.equal(s.forest.expedition.tickets,tickets);
+  s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const claimed=reducer(s,{type:'FOREST_CLAIM'});assert.equal(reducer(claimed,{type:'FOREST_CLAIM'}),claimed);assert.equal(claimed.forest.tickets,tickets);assert.ok(claimed.forest.returns===6);
+ }
+});
+function getForestIngredient(id){return forestData.forestIngredients.some(i=>i.id===id);}
+test('forest rare rates rise gently, careful adds five points, and deep pity is an extra reward',()=>{
+ assert.deepEqual(forestData.forestAreas.filter(a=>a.rate).map(a=>a.rate),[10,14,18,14,22,26,30]);
+ for(const area of ['clearing','spring'])for(const careful of [false,true]){let bonuses=0;const tries=6000;for(let seed=0;seed<tries;seed++){const s=forestReady(seed);s.forest.expedition.area=area;const next=reducer(s,{type:'FOREST_GATHER',spot:0,careful,now:1000});bonuses+=next.forest.expedition.pending.food.length===2?1:0;}const expected=(forestData.forestArea(area).rate+(careful?5:0))/100;assert.ok(Math.abs(bonuses/tries-expected)<.025,`${area}: ${bonuses/tries}`);}
+ let s=forestReady();s.forest.expedition={...s.forest.expedition,area:'spring',deepGather:3};s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});assert.equal(s.forest.expedition.pending.food[1],'forestMoonBerry');
+});
+test('forest basket replacement, free zero-energy return, fragments and deep unlock gates',()=>{
+ let s=forestReady();s.forest={...s.forest,returns:0,energy:2,expedition:{...s.forest.expedition,basket:Array(10).fill('bread')}};
+ s=reducer(s,{type:'FOREST_GATHER',spot:0,careful:false,now:1000});assert.equal(reducer(s,{type:'FOREST_TAKE'}),s);assert.equal(reducer(s,{type:'FOREST_MOVE',area:'fork',now:1000}),s);
+ while(forestModel.basketWeight([...s.forest.expedition.basket,...s.forest.expedition.pending.food])>10)s=reducer(s,{type:'FOREST_DROP',index:0});
+ s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});assert.equal(s.forest.energy,0);s=reducer(s,{type:'FOREST_CLAIM'});assert.equal(s.forest.returns,1);
+ s=forestReady();s.forest.expedition.area='pond';s.forest.fragments.forestSecretTea=2;s=reducer(s,{type:'FOREST_FRAGMENT',now:1000});assert.equal(reducer(s,{type:'FOREST_FRAGMENT',now:1000}),s);s=reducer(s,{type:'FOREST_RETURN'});s=reducer(s,{type:'FOREST_CLAIM'});assert.ok(s.unlockedRecipes.includes('forestSecretTea'));assert.equal(s.forest.fragments.forestSecretTea,3);
+ const old=createInitialState();assert.equal(forestModel.forestDeepUnlocked(old),false);assert.equal(forestModel.forestDeepUnlocked(forestReady()),true);assert.equal(forestModel.basketCapacity({...s.forest,fragments:{a:3,b:3}}),14);
+});
+test('limited sales reserve materials once, respect two types and three dishes, refund unsent units',()=>{
+ let s=forestReady();s.forest.expedition=undefined;s.ingredients={forestBerry:10,forestMint:10,sugar:10,forestPetal:10,forestHerb:10,teaLeaves:10,forestMushroom:10,bread:10};s=forestModel.syncForestRecipes(s);
+ s=reducer(s,{type:'FOREST_SELL',recipeId:'forestBerrySoda',count:3});assert.equal(s.ingredients.forestBerry,7);assert.equal(reducer(s,{type:'FOREST_SELL',recipeId:'forestBerrySoda',count:1}),s);
+ s=reducer(s,{type:'FOREST_SELL',recipeId:'forestPetalTea',count:1});assert.equal(reducer(s,{type:'FOREST_SELL',recipeId:'forestMushroomToast',count:1}),s);
+ s={...s,spawnRemainingMs:0};s=reducer(s,{type:'TICK',deltaMs:100,now:1000});const order=s.orders.find(o=>o.forestReserved);assert.equal(order.recipeId,'forestBerrySoda');const stock=s.ingredients.forestBerry;
+ s=reducer(s,{type:'START_COOKING',orderId:order.id});assert.equal(s.ingredients.forestBerry,stock);assert.equal(s.orders[0].totalMs,10000);assert.equal(salePrice('forestBerrySoda',s),1100);
+ s=reducer(s,{type:'FOREST_WITHDRAW',recipeId:'forestBerrySoda'});assert.equal(s.ingredients.forestBerry,9);
+});
+test('ticket settles exactly one entire delivery, never double consumes or affects unrelated supplies',()=>{
+ let s=forestReady();s.forest.tickets=2;s.deliveries=[{id:'one',ingredientId:'bread',packs:20,servingsPerPack:5,orderedAt:1000,arrivesAt:10000},{id:'two',ingredientId:'milk',packs:1,servingsPerPack:5,orderedAt:1000,arrivesAt:10000}];
+ s=reducer(s,{type:'USE_SUPPLY_TICKET',deliveryId:'one',now:2000});assert.equal(s.ingredients.bread,100);assert.equal(s.deliveries.length,1);assert.equal(s.forest.tickets,1);s=reducer(s,{type:'USE_SUPPLY_TICKET',deliveryId:'one',now:2000});assert.equal(s.forest.tickets,1);
+ s=reducer(s,{type:'USE_SUPPLY_TICKET',deliveryId:'two',now:11000});assert.equal(s.ingredients.milk,5);assert.equal(s.forest.tickets,1);assert.equal(s.missions.receivedPacks.bread,20);
+});
+test('handmade gifts craft exact quantities and diminish third consecutive gift with one-time first bonus',()=>{
+ let s=forestReady();s.currency=1000;s.ingredients={forestHerb:8,forestMint:4,teaLeaves:4};for(let i=0;i<3;i++)s=reducer(s,{type:'FOREST_CRAFT',giftId:'forestTeaGift'});assert.equal(s.currency,700);assert.equal(s.ingredients.forestHerb,2);
+ const gains=[];for(let i=0;i<3;i++){const before=s.characterProgress.nagisa.affection;s=closeGiftPopup(reducer(s,{type:'GIVE_GIFT',giftId:'forestTeaGift',characterId:'nagisa',reaction:'normal'}));gains.push(s.characterProgress.nagisa.affection-before);}assert.deepEqual(gains,[10,8,4]);
+ s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(s.characterProgress.nagisa.giftStreak,3);assert.deepEqual(s.characterProgress.nagisa.handmadeFirst,['forestTeaGift']);
 });

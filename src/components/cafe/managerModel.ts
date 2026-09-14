@@ -124,7 +124,7 @@ export function advanceManager(model: ManagerModel, state: GameState): { model: 
       if (run.kind === "start") {
         const recipe = order && getRecipe(order.recipeId);
         // Stock or machine availability can change while walking (staff works concurrently).
-        if (!recipe || startProblem(state, recipe)) {
+        if (!recipe || startProblem(state, recipe, !!order.forestReserved)) {
           return { model: { ...next, current: undefined, queue: [{ kind: run.kind, orderId: run.orderId }, ...next.queue], rest: { from: run.machine, to: run.machine, startedAt: now }, clock: now } };
         }
       }
@@ -135,7 +135,7 @@ export function advanceManager(model: ManagerModel, state: GameState): { model: 
     if (task.kind === "serve") return true;
     const order = state.orders.find(item => item.id === task.orderId);
     const recipe = order && getRecipe(order.recipeId);
-    return !!recipe && !startProblem(state, recipe);
+    return !!recipe && !startProblem(state, recipe, !!order.forestReserved);
   });
   if (availableIndex !== -1) {
     const task = next.queue[availableIndex];

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { forestIngredients } from "../../data/forest";
-import { getIngredient } from "../../data/ingredients";
-import { useGame } from "../../game/GameContext";
+import { SupplyTicketButton } from "../SupplyTicketButton";
 import { ingredients } from "../../data/ingredients";
 import { suppliers } from "../../data/suppliers";
 import { deliveryCountdown } from "../../game/procurement";
@@ -12,7 +11,6 @@ import type { GameState } from "../../types/game";
 export function InventoryModal({ state, onClose, onTown }: {
   state: GameState; onClose: () => void; onTown: () => void;
 }) {
-  const {dispatch}=useGame();
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -42,7 +40,7 @@ export function InventoryModal({ state, onClose, onTown }: {
       </section>;
     })}
     <section className="inventory-group"><h3>森の素材</h3><dl>{forestIngredients.filter(i=>(state.ingredients[i.id]||0)>0).map(i=><div className="inventory-row" key={i.id}><dt>{i.icon} {i.name}</dt><dd>{state.ingredients[i.id]}個</dd></div>)}</dl></section>
-    <section className="inventory-group"><h3>🎟 調達券 {state.forest.tickets}枚</h3><p>1枚で選んだ入荷1件がすべて届きます。</p>{state.deliveries.map(d=><button className="secondary-button" key={d.id} disabled={state.forest.tickets<1||d.arrivesAt<=state.lastPlayedAt} onClick={()=>{if(window.confirm(`${getIngredient(d.ingredientId)?.name} ${d.packs}パック（${d.packs*d.servingsPerPack}食分）、あと${deliveryCountdown(d.arrivesAt,Date.now())}の調達を即完了します。調達券1枚を使いますか？`))dispatch({type:'USE_SUPPLY_TICKET',deliveryId:d.id});}}>{getIngredient(d.ingredientId)?.name}を即入荷 · 1枚</button>)}</section>
+    <section className="inventory-group"><h3>🎟 調達券 {state.forest.tickets}枚</h3><p>1枚で選んだ入荷1件がすべて届きます。</p>{state.deliveries.map(delivery=><div key={delivery.id}><p>{visible.find(i=>i.id===delivery.ingredientId)?.name}</p><SupplyTicketButton delivery={delivery}/></div>)}</section>
     <div className="notebook-stock"><button type="button" onClick={() => { onClose(); onTown(); }}>街へ仕入れに行く →</button></div>
   </dialog>;
 }

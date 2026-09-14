@@ -753,3 +753,36 @@ test('forest screen keeps pending loot across navigation and offers zero-energy 
   html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));assert.match(html,/秘密のレシピ/);assert.match(html,/限定料理/);assert.match(html,/月しずくベリー/);
  }finally{context.useGame=original;}
 });
+
+test('supplier ticket action confirms the whole delivery and completes only the selected procurement',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ const {SupplyTicketButton}=require(join(output,'components/SupplyTicketButton.js'));
+ const {SupplierScreen}=require(join(output,'screens/SupplierScreen.js'));
+ const originalWindow=globalThis.window,originalNow=Date.now;
+ let confirmed=false,prompt='',actions=[];
+ Date.now=()=>2000;
+ globalThis.window={confirm(message){prompt=message;return confirmed;}};
+ let state=createInitialState();state.lastPlayedAt=2000;state.forest.tickets=2;state.unlockedIngredients=['singleOrigin'];
+ state.deliveries=[{id:'owner',ingredientId:'coffeeBeans',packs:20,servingsPerPack:5,orderedAt:1000,arrivesAt:10000},{id:'staff',ingredientId:'singleOrigin',packs:1,servingsPerPack:5,staffId:'ren',orderedAt:1000,arrivesAt:10000}];
+ context.useGame=()=>({state,dispatch(action){actions.push(action);state=reducer(state,action);}});
+ try{
+  const render=()=>renderToStaticMarkup(React.createElement(SupplierScreen,{supplierId:'coffee',onBack(){},onDate(){}}));
+  const html=render();assert.match(html,/調達券 2枚/);assert.equal((html.match(/調達券で即完了/g)||[]).length,2);
+  let button=SupplyTicketButton({delivery:state.deliveries[0]});assert.equal(button.props.disabled,false);button.props.onClick();assert.equal(actions.length,0);assert.match(prompt,/20パック（100食分）/);assert.match(prompt,/調達券1枚/);
+  confirmed=true;button.props.onClick();assert.equal(state.ingredients.coffeeBeans,100);assert.equal(state.forest.tickets,1);assert.deepEqual(state.deliveries.map(d=>d.id),['staff']);assert.equal((render().match(/調達券で即完了/g)||[]).length,1);
+  button=SupplyTicketButton({delivery:state.deliveries[0]});button.props.onClick();assert.equal(state.ingredients.singleOrigin,5);assert.equal(state.forest.tickets,0);assert.equal(state.deliveries.length,0);assert.doesNotMatch(render(),/調達券で即完了/);
+ }finally{context.useGame=original;Date.now=originalNow;if(originalWindow===undefined)delete globalThis.window;else globalThis.window=originalWindow;}
+});
+
+test('supplier ticket action is unavailable with no tickets or after natural arrival',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ const {SupplyTicketButton}=require(join(output,'components/SupplyTicketButton.js'));
+ const originalNow=Date.now;Date.now=()=>2000;
+ let state=createInitialState();state.lastPlayedAt=2000;
+ const delivery={id:'late',ingredientId:'bread',packs:1,servingsPerPack:5,orderedAt:1000,arrivesAt:3000};state.deliveries=[delivery];
+ let dispatched=0;context.useGame=()=>({state,dispatch(){dispatched++;}});
+ try{
+  let button=SupplyTicketButton({delivery});assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(dispatched,0);
+  state.forest.tickets=1;state.deliveries=[{...delivery,arrivesAt:1500}];button=SupplyTicketButton({delivery:state.deliveries[0]});assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(dispatched,0);
+ }finally{context.useGame=original;Date.now=originalNow;}
+});

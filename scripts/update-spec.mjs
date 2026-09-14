@@ -352,19 +352,19 @@ ${equipmentRows}
 `;
 
 mkdirSync(dirname(outputPath), { recursive: true });
-const { FOREST_CONFIG, forestAreas, forestIngredients, forestRecipes, handmadeGifts } = missionRequire(join(missionRuntimeRoot, "data", "forest.js"));
+const { FOREST_CONFIG, FOREST_COIN_BANDS, forestAreas, forestIngredients, forestRecipes, handmadeGifts } = missionRequire(join(missionRuntimeRoot, "data", "forest.js"));
 const forestNames = Object.fromEntries([...ingredients,...forestIngredients].map(i=>[i.id,i.name]));
 const forestSection = `
 ## 16. こもれびの森（実装済み）
 
-- 最初の料理を1皿提供すると、街の森入口から出かけられる。カフェの背景は変えない。
+- 最初の料理を1皿提供すると、街の森入口から出かけられる。カフェの背景は変えない。入口の帰還後メッセージ「森のおみやげを持ち帰りました」は表示せず、出発と持ち帰り履歴の操作を表示する。
 - 体力は初期・最大${FOREST_CONFIG.maxEnergy}。実時間${FOREST_CONFIG.recoveryMs/1000}秒で1回復し、閉じている間も回復。端数を保持し、満タン中の時間を貯めない。帰還や再入場でリセットしない。
 - 入口から広場へ1、広場から分かれ道へ1。分かれ道から川辺へ1／木立へ2。川辺から池へ1、池／木立から根元へ2、根元から石畳へ2、石畳から泉へ2。石畳・泉は持ち帰り${FOREST_CONFIG.deepReturns}回と提供${FOREST_CONFIG.deepOrders}皿で解放。
 - 探索はスマホ全画面の絵本風の森。広場・川辺・泉の背景を使い、風景の中の分け合い箱・茂み・きのこをタップして採集方法を選ぶ。従来のカード式地図や全地点の文字列一覧は表示しない。
 - 各採取地に3か所。採取2、丁寧な採取3。探索ごとに位置を変更。場所ごとの結果は探索ID・種・地点・方法で固定し、再読込で再抽選しない。
 - 普通の食材を必ず1個。そのほかに下表の確率で限定食材1個。既に解放済みの物語限定食材があれば追加枠の25%をその食材、75%を森の食材に割り当てる。初回の採取はパン1個。
 - 石畳・泉の採取を合わせて4回目までに琥珀花蜜／月しずくベリーが出なければ、4回目の追加枠を保証。下表の通常確率とは別の救済。
-- コインは各採取で独立に${FOREST_CONFIG.coinChance*100}%、${FOREST_CONFIG.coinMin}〜${FOREST_CONFIG.coinMax}の整数を一様抽選。複数回分を合算。
+- コインを拾う確率は各採取で独立に${FOREST_CONFIG.coinChance*100}%。拾えたときの金額は${FOREST_CONFIG.coinMin}〜${FOREST_CONFIG.coinMax}の整数で、高額ほど出にくい重み付き抽選。${FOREST_COIN_BANDS.map(b => `${b.min}〜${b.max}は${b.weight}%`).join('、')}。300〜1000が${FOREST_COIN_BANDS.filter(b => b.max <= 1000).reduce((sum, b) => sum + b.weight, 0)}%を占め、各区間内は一様抽選。複数回分を合算。既に保留・持ち帰り済みのコイン額は変更しない。
 - 調達券は採取1回ごとに独立して${FOREST_CONFIG.ticketChance*100}%の確率で1枚発見。採取回数に応じて複数枚出る場合も、0枚の場合もある。通常・丁寧、場所、最初／2回目以降で確率は同じ。探索単位の保証はなし。切れ端だけ拾って帰る場合は出ない。抽選結果は探索の種と採取地点で固定し、再読込・方法変更で再抽選しない。
 - かご初期10枠、持ち帰り3回で12、秘密レシピ2種類完成で14、4種類完成で16。普通食材・森の基本食材は1枠、物語限定食材・琥珀花蜜・月しずくベリーは2枠。コイン・券・切れ端は0枠。
 - 場所名、体力ゲージと回復秒数、かごの空きを上部に固定。下部に店へ帰る・かご・手帳を配置。次の行き先は森の道標で選び、必要体力と解放条件を短く表示。採集済みは目印を消してチェックを付ける。

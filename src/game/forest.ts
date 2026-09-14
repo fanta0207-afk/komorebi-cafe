@@ -1,4 +1,4 @@
-import { FOREST_CONFIG as C, forestArea, forestRecipes, handmadeGifts } from '../data/forest';
+import { FOREST_CONFIG as C, FOREST_COIN_BANDS, forestArea, forestRecipes, handmadeGifts } from '../data/forest';
 import { getIngredient, ingredients } from '../data/ingredients';
 import { getRecipe } from '../data/recipes';
 import { findNewRecipes } from './logic';
@@ -81,6 +81,18 @@ function weighted(pool: Record<string, number>, random: () => number) { let n = 
     if (n < 0)
         return id;
 } return Object.keys(pool)[0]; }
+// One draw selects both the weighted band and its uniform integer amount.
+// Keeping one draw preserves the existing gather RNG sequence.
+export function forestCoinAmount(roll: number): number {
+    let remaining = roll * FOREST_COIN_BANDS.reduce((sum, band) => sum + band.weight, 0);
+    for (const band of FOREST_COIN_BANDS) {
+        if (remaining < band.weight) {
+            return band.min + Math.floor(remaining / band.weight * (band.max - band.min + 1));
+        }
+        remaining -= band.weight;
+    }
+    return C.coinMax;
+}
 export function syncForestRecipes(s: GameState): GameState { if (s.lifetimeStats.totalOrders < 1)
     return s; const ids = forestRecipes.filter(r => !r.hidden || (s.forest.fragments[r.id] || 0) >= 3).map(r => r.id); if (ids.every(id => s.unlockedRecipes.includes(id)))
     return s; return { ...s, unlockedRecipes: [...new Set([...s.unlockedRecipes, ...ids])] }; }
@@ -122,7 +134,7 @@ export function reduceForest(state: GameState, a: ForestAction): GameState {
                 const story = ingredients.filter(i => i.unlockEventId && state.unlockedIngredients.includes(i.id));
                 food.push(pity ? (e.area === 'stone' ? 'forestHoney' : 'forestMoonBerry') : story.length && random() < .25 ? story[Math.floor(random() * story.length)].id : weighted(area.bonus, random));
             }
-            const coins = random() < C.coinChance ? C.coinMin + Math.floor(random() * (C.coinMax - C.coinMin + 1)) : 0;
+            const coins = random() < C.coinChance ? forestCoinAmount(random()) : 0;
             const tickets = forestRandom(e.seed, `${key}:tickets`)() < C.ticketChance ? 1 : 0;
             return finish({ ...f, energy: f.energy - cost, tutorialDone: true, expedition: { ...e, used: [...e.used, key], harvested: true, deepGather, gotRare: e.gotRare || food.some(id => id === 'forestHoney' || id === 'forestMoonBerry'), coins: e.coins + coins, tickets: e.tickets + tickets, pending: { food, coins, tickets } } });
         }

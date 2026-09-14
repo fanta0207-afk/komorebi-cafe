@@ -2030,3 +2030,38 @@ test('tickets drop at 15 percent on every gather, with no first-gather or method
  for(const hit of hits)assert.ok(Math.abs(hit/tries-.15)<.015,`observed ${hit/tries}`);
  assert.ok(sawEmpty&&sawMultiple&&sawLaterOnly);
 });
+
+
+test('forest coin amounts favor low values, preserve the drop rate, and get rarer at higher prices',()=>{
+ const bands=forestData.FOREST_COIN_BANDS;
+ assert.equal(bands.reduce((sum,b)=>sum+b.weight,0),100);
+ assert.equal(bands.filter(b=>b.max<=1000).reduce((sum,b)=>sum+b.weight,0),70);
+ assert.equal(bands[0].min,300);assert.equal(bands.at(-1).max,2000);
+ for(let i=1;i<bands.length;i++){
+  assert.equal(bands[i].min,bands[i-1].max+1);
+  assert.ok(bands[i].weight/(bands[i].max-bands[i].min+1)<bands[i-1].weight/(bands[i-1].max-bands[i-1].min+1));
+ }
+ let drops=0,total=0,low=0;const counts=Array(bands.length).fill(0),tries=12000;
+ for(let seed=0;seed<tries;seed++){
+  const s=reducer(forestReady(seed),{type:'FOREST_GATHER',spot:0,careful:false,now:1000});
+  const coins=s.forest.expedition.pending.coins;
+  if(!coins)continue;
+  assert.ok(Number.isInteger(coins)&&coins>=300&&coins<=2000);
+  drops++;total+=coins;low+=coins<=1000?1:0;counts[bands.findIndex(b=>coins>=b.min&&coins<=b.max)]++;
+ }
+ assert.ok(Math.abs(drops/tries-.3)<.02,`drop rate ${drops/tries}`);
+ assert.ok(Math.abs(low/drops-.7)<.025,`low share ${low/drops}`);
+ for(let i=0;i<bands.length;i++)assert.ok(Math.abs(counts[i]/drops-bands[i].weight/100)<.025,`band ${i}: ${counts[i]/drops}`);
+ assert.ok(total/drops>800&&total/drops<900,`average ${total/drops}`);
+ assert.equal(forestModel.forestCoinAmount(0),300);
+ assert.equal(forestModel.forestCoinAmount(1-Number.EPSILON),2000);
+});
+
+test('changing forest coin distribution never rewrites saved pending rewards or rerolls them',()=>{
+ let s=forestReady();s.forest.expedition.pending={food:['bread'],coins:1999,tickets:1};s.forest.expedition.coins=1999;s.forest.expedition.tickets=1;
+ s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);
+ assert.equal(s.forest.expedition.pending.coins,1999);
+ assert.equal(reducer(s,{type:'FOREST_GATHER',spot:1,careful:false,now:1000}),s);
+ s=reducer(s,{type:'FOREST_TAKE'});s=reducer(s,{type:'FOREST_RETURN'});const before=s.currency;
+ s=reducer(s,{type:'FOREST_CLAIM'});assert.equal(s.currency-before,1999);assert.equal(s.forest.tickets,1);
+});

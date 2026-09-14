@@ -301,6 +301,7 @@ ${equipmentRows}
 - 太陽の店づくり5話・デート3本、手動発注の入荷待ち、スタッフの担当・仕事中・担当変更待ち・休憩にも同じ口調の会話を用意する。お手伝い話は好感度${GAME_CONFIG.staffHireStage}以上で実際に雇用すると開始し、パン屋と相談した持ち場の確認、近くで働く緊張、交代と二人の休憩を描く。
 - カフェを手伝う追加話は${staffStoryEvents.length}件。${list(staffStoryEvents.map(event=>`${characters.find(character=>character.id===event.characterId)?.name}「${event.title}」は好感度${event.requiredRelationshipStage}以上かつ雇用後に自動開始する`))}。既存の高段階セーブでも未読なら開始し、好感度・ルート・資金・食材・報酬は変更しない。既読状態は人物のviewedEventsへ保存し、人物ページの「カフェを手伝う物語」から読み返せる。友情ルートでは専用の台本を表示する。
 - 店づくりの物語は各1人5段階。第1話は仕入れ手順の改善で、担当仕入れ先の1パックを${GAME_CONFIG.ingredientPackSize}食分から${GAME_CONFIG.improvedPackSize}食分へ増やす。以降は食材・料理・設備を解放する。
+- 店づくりの物語はモーダルで表示し、下部ナビやカフェの操作ボタンより前面に置く。スマホの表示高とセーフエリア内に収め、長い会話や報酬は本文部分だけスクロールし、「次へ／完了」とページ数は常に操作できる位置に表示する。
 - デートは好感度${GAME_CONFIG.dateUnlockStage}で解放。各キャラクターに${list(dateLocations.map(location=>location.title))}の3本がある。お家デートは穏やかな会話のみで、性的表現は扱わない。
 - 恋愛ルートと友情ルートで、料理や設備の報酬に差はつけない。
 - 人物一覧は街と同じ仕入れ先の順序を使用する。表示順は${list(suppliers.map(supplier=>characters.find(character=>character.id===supplier.characterId)?.name))}。未遭遇の人物も同じ位置を保つ。

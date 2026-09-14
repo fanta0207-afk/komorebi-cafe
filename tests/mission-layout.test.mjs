@@ -74,3 +74,30 @@ test('bottom navigation has one shared theme and a common reserved height on eve
   assert.match(globalCss,/height:calc\(100dvh - 70px - var\(--bottom-nav-height\)/);
   assert.match(globalCss,/height:calc\(100% - var\(--bottom-nav-height\)\)/);
 });
+
+test('growth stories use the native modal layer instead of an overlay beneath bottom navigation',()=>{
+  const component=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+  const growth=component.slice(component.indexOf('function GrowthEventModal('),component.indexOf('function DevMenu('));
+  assert.match(growth,/<dialog ref=\{dialog\} className="story-modal story-player growth-event-overlay"/);
+  assert.match(growth,/element\?\.showModal\(\)/);
+  assert.match(growth,/return\(\)=>element\?\.close\(\)/);
+  assert.doesNotMatch(growth,/className="event-overlay/);
+  assert.match(growth,/dialogueContent\.current\?\.scrollTo\(\{top:0\}\)/);
+});
+
+test('growth story text can scroll without hiding next and complete buttons',()=>{
+  const rules=postcss.parse(readFileSync(new URL('../src/components/story-modal.css',import.meta.url),'utf8'));
+  const styles=selector=>{
+    const values={};
+    rules.walkRules(selector,rule=>rule.walkDecls(decl=>{values[decl.prop]=decl.value;}));
+    return values;
+  };
+  assert.match(styles('.story-modal.story-player').height,/100dvh.*safe-area-inset-top.*safe-area-inset-bottom/);
+  assert.equal(styles('.story-player .growth-story-dialogue').display,'flex');
+  assert.equal(styles('.story-player .growth-story-dialogue').overflow,'hidden');
+  assert.equal(styles('.growth-story-dialogue .story-content')['min-height'],'0');
+  assert.equal(styles('.growth-story-dialogue .story-content')['overflow-y'],'auto');
+  assert.equal(styles('.growth-story-dialogue .story-footer').flex,'none');
+  const component=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+  assert.match(component,/<div ref=\{dialogueContent\} className="story-content[\s\S]*?<\/div>\s*<div className="story-footer">/);
+});

@@ -152,3 +152,24 @@
   height:min(760px,calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
 }
 .gift-reaction-popup .story-footer { justify-content:flex-end; }
+
+/* Growth stories also use the browser's modal layer, above navigation and HUD. */
+.growth-event-overlay .growth-story-scene {
+  height:100%;
+  border:0;
+  border-radius:0;
+}
+.story-player .growth-story-dialogue {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  min-height:0;
+}
+.growth-story-dialogue .story-content {
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+.growth-story-dialogue .story-content>p { color:#594338; text-shadow:none; }
+.growth-story-dialogue .story-footer { flex:none; }
+.growth-story-dialogue .story-footer>span { color:#79634f; }

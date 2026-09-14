@@ -157,18 +157,24 @@ function DateEventModal({event,completed,onClose,onComplete}:{event:DateEvent;co
 
 function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onNext:()=>void}) {
   const character=getCharacter(event.characterId)!;const finalPage=page===event.dialogue.length-1;
+  const dialog=useRef<HTMLDialogElement>(null);
+  const dialogueContent=useRef<HTMLDivElement>(null);
+  useEffect(()=>{const element=dialog.current;element?.showModal();return()=>element?.close();},[]);
+  useEffect(()=>{dialogueContent.current?.scrollTo({top:0});},[page]);
   const storyImage=character.storyImage||character.image;
   const [artFailed,setArtFailed]=useState(false);
   const rewardNames=[...(event.routeStage===1?["仕入れ効率アップ"]:[]),...(event.rewards.ingredientIds || []).map(id=>getIngredient(id)?.name),...(event.rewards.recipeIds || []).map(id=>getRecipe(id)?.name),...(event.rewards.equipmentIds || []).map(id=>getEquipment(id)?.name)].filter(Boolean);
-  return <div className="event-overlay growth-event-overlay"><div className="event-scene story-player growth-story-scene" role="dialog" aria-label={`${event.title}のイベント`}>
+  return <dialog ref={dialog} className="story-modal story-player growth-event-overlay" aria-label={`${event.title}のイベント`} onCancel={event=>event.preventDefault()}><div className="event-scene story-player growth-story-scene">
     <div className="story-stage is-speaking" data-character={character.id}>
       {storyImage&&!artFailed
         ?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
         :<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
     </div>
-    <div className="event-dialogue growth-story-dialogue"><b>{character.name}</b><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="event-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}<button onClick={onNext}>{finalPage?"完了":"次へ"} →</button></div>
-    <div className="page-dots">{event.dialogue.map((_,i)=><i className={i===page?"active":""} key={i}/>)}</div>
-  </div></div>;
+    <div className="story-dialogue-panel growth-story-dialogue">
+      <div ref={dialogueContent} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="story-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}</div>
+      <div className="story-footer"><span>{page+1} / {event.dialogue.length}</span><button type="button" className="primary-button" onClick={onNext}>{finalPage?"完了":"次へ →"}</button></div>
+    </div>
+  </div></dialog>;
 }
 
 function DevMenu({selected,onSelect,onClose,onSpawn,onRefresh,onReset}:{selected:string;onSelect:(id:string)=>void;onClose:()=>void;onSpawn:()=>void;onRefresh:()=>void;onReset:()=>void}) {

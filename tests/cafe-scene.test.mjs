@@ -325,7 +325,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.doesNotMatch(globalCss,/\.date-event-overlay/);
     assert.match(storyCss,/--story-height:100%/);
     assert.doesNotMatch(cafeGame,/>店づくりの物語 · \{event\.routeStage\}\/5</);
-    assert.match(cafeGame,/className="event-scene story-player growth-story-scene" role="dialog" aria-label=\{`\$\{event\.title\}のイベント`\}/);
+    assert.match(cafeGame,/<dialog ref=\{dialog\} className="story-modal story-player growth-event-overlay" aria-label=\{`\$\{event\.title\}のイベント`\}/);
    for (const source of [cafeGame, recipesSource, missionsSource]) assert.doesNotMatch(source,/共同成長/);
     assert.equal(JSON.stringify(state), saved);
   } finally {

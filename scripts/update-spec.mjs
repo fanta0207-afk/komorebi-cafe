@@ -260,7 +260,7 @@ ${recipeSections}
 |---|---:|---|---|
 ${equipmentRows}
 
-- 設備の増設価格は「基本価格 × 1.5^現在台数」。
+- 設備の増設価格は「基本価格 × 1.5^現在台数」。トースターだけは導入ミッション用の1台目を${GAME_CONFIG.firstToasterPrice}コインとし、基本価格${equipment.find(item=>item.id==='toastGrill').price}コインは2台目以降と強化に使う。
 - 強化価格は「基本価格 × 0.5 × 現在Lv.」。強化ごとに調理時間が15%短縮される。
 
 ## 11. 好感度と店づくり

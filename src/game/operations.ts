@@ -76,7 +76,9 @@ export function serveOrder(state:GameState,orderId:string):GameState {
     notice:{id:Date.now()+Math.random(),type:nextLevel>previousLevel?"unlock":"coin",text:nextLevel>previousLevel?`${recipe.name}がLv.${nextLevel}に成長！ 次から売上アップ`:`${recipe.name}を提供 +${price} コイン`}};
 }
 export function equipmentPrice(state:GameState,equipmentId:string) {
-  return Math.round((getEquipment(equipmentId)?.price||0)*Math.pow(1.5,state.stations.filter(item=>item.equipmentId===equipmentId).length));
+  const count=state.stations.filter(item=>item.equipmentId===equipmentId).length;
+  if(equipmentId==="toastGrill"&&count===0)return GAME_CONFIG.firstToasterPrice;
+  return Math.round((getEquipment(equipmentId)?.price||0)*Math.pow(1.5,count));
 }
 export function upgradePrice(station:Station) { return Math.round((getEquipment(station.equipmentId)?.price||0)*0.5*station.level); }
 export function staffBusy(state:GameState,id:string) { return state.orders.some(order=>order.status==="cooking"&&order.cookId===id)||state.staff.some(person=>person.characterId===id&&(!!person.servingOrderId||person.returningFromSlot!==undefined))||state.deliveries.some(delivery=>delivery.staffId===id); }

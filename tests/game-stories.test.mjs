@@ -464,6 +464,13 @@ test('recipes and requests require the actual base station until it is purchased
   assert.equal(isRecipeUsable('toast',state),true);
   assert.ok(['coffee','toast'].includes(pickWeightedRecipe(state)));
 });
+test('only the first mission toaster costs 50 while expansion and upgrades use the normal 900 base',()=>{
+ let state={...createInitialState(),currency:5000};assert.equal(equipment.find(item=>item.id==='toastGrill').price,900);
+ assert.equal(equipmentPrice(state,'toastGrill'),50);state=reducer(state,{type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});assert.equal(state.currency,4950);
+ const toaster=state.stations.find(item=>item.equipmentId==='toastGrill');assert.equal(equipmentPrice(state,'toastGrill'),1350);assert.equal(upgradePrice(toaster),450);
+ state=reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:toaster.id});assert.equal(state.currency,4500);assert.equal(state.stations.find(item=>item.id===toaster.id).level,2);
+ state=reducer(state,{type:'BUY_EQUIPMENT',equipmentId:'toastGrill'});assert.equal(state.currency,3150);assert.equal(equipmentPrice(state,'toastGrill'),2025);
+});
 const addOrder=(state,id='manual',recipe='coffee',slot=0)=>reducer(state,{type:'SPAWN_ORDER',order:order(id,recipe,slot)});
 const start=(state,id='manual')=>reducer(state,{type:'START_COOKING',orderId:id});
 const collect=(state,id='manual')=>reducer(state,{type:'COLLECT_ORDER',orderId:id});

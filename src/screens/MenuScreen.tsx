@@ -14,6 +14,7 @@ import { isRecipeUsable, salePrice } from "../game/logic";
 import { menuCatalogProgress, menuMastery } from "../game/menuMastery";
 import { stationActivity, stationOccupied } from "../game/kitchen";
 import { equipmentPrice, hasIngredients, preparation, upgradePrice } from "../game/operations";
+import "./equipment-shop.css";
 
 export function MenuScreen({tab="equipment",onTabChange:setTab}:{tab?:"recipes"|"equipment";onTabChange:(tab:"recipes"|"equipment")=>void}) {
   const {state,dispatch}=useGame();
@@ -22,7 +23,29 @@ export function MenuScreen({tab="equipment",onTabChange:setTab}:{tab?:"recipes"|
     <div className="menu-tabs"><button className={tab==="equipment"?"active":""} onClick={()=>setTab("equipment")}>設備</button><button className={tab==="recipes"?"active":""} onClick={()=>setTab("recipes")}>料理</button></div>
     {tab==="equipment"&&<SeatingUpgrade/>}
     {tab==="recipes"?<RecipeCatalog/>:
-    <div className="equipment-list">{equipment.map(item=>{const unlocked=state.unlockedEquipment.includes(item.id),stations=state.stations.filter(station=>station.equipmentId===item.id),price=equipmentPrice(state,item.id);return <article key={item.id} className={`equipment-group ${!unlocked?"locked":""}`}><div className="equipment-card"><div className="equipment-icon">{unlocked?item.icon:"?"}</div><div className="equipment-info"><small>{unlocked?`設置 ${stations.length}/${GAME_CONFIG.maxStationsPerType}台`:"未解放"}</small><h3>{unlocked?item.name:"まだ知らない設備"}</h3><p>{unlocked?item.effectText:`${getCharacter(item.characterId)?.name}の物語で解放`}</p></div></div>{unlocked&&<div className="station-list">{stations.map((station,index)=>{const activity=stationActivity(state,station.id),busy=stationOccupied(state,station.id),max=station.level>=GAME_CONFIG.maxStationLevel,cost=upgradePrice(station);return <div className="station-row" key={station.id}><div><b>{index+1}号機 · Lv.{station.level}</b><small>{Math.round(Math.pow(0.85,station.level-1)*100)}% · {activity.label}{activity.status==="cooking"?` · あと${Math.ceil(activity.order.remainingMs/1000)}秒`:""}</small></div><button disabled={max||busy||state.currency<cost} onClick={()=>dispatch({type:"UPGRADE_EQUIPMENT",stationId:station.id})}>{max?"最大レベル":busy?"提供後に強化":`強化 ● ${cost.toLocaleString()}`}</button></div>})}{stations.length<GAME_CONFIG.maxStationsPerType&&<button className="secondary-button add-station" disabled={state.currency<price} onClick={()=>dispatch({type:"BUY_EQUIPMENT",equipmentId:item.id})}>{stations.length?"増設":"設置"} ● {price.toLocaleString()}</button>}</div>}</article>})}</div>}
+    <div className="equipment-list">{equipment.map(item=>{
+      const unlocked=state.unlockedEquipment.includes(item.id);
+      const stations=state.stations.filter(station=>station.equipmentId===item.id);
+      const hasSlot=stations.length<GAME_CONFIG.maxStationsPerType;
+      const price=equipmentPrice(state,item.id);
+      const shortfall=Math.max(0,price-state.currency);
+      const buyable=unlocked&&hasSlot&&!shortfall;
+      const availability=!unlocked?"is-locked":!hasSlot?"is-complete":buyable?"is-affordable":"is-short";
+      return <article key={item.id} data-equipment-id={item.id} className={`equipment-group ${availability}`}>
+        <div className="equipment-card"><div className="equipment-icon">{unlocked?item.icon:"?"}</div><div className="equipment-info">
+          <div className="equipment-meta"><small>{unlocked?`設置 ${stations.length}/${GAME_CONFIG.maxStationsPerType}台`:"未解放"}</small><span className="equipment-buy-state">{!unlocked?"物語で解放":!hasSlot?"設置上限":buyable?"✦ 購入OK":`あと ${shortfall.toLocaleString()}コイン`}</span></div>
+          <h3>{unlocked?item.name:"まだ知らない設備"}</h3><p>{unlocked?item.effectText:`${getCharacter(item.characterId)?.name}の物語で解放`}</p>
+        </div></div>
+        {unlocked&&<div className="station-list">
+          {stations.map((station,index)=>{
+            const activity=stationActivity(state,station.id),busy=stationOccupied(state,station.id),max=station.level>=GAME_CONFIG.maxStationLevel,cost=upgradePrice(station);
+            const upgradeShortfall=Math.max(0,cost-state.currency),canUpgrade=!max&&!busy&&!upgradeShortfall;
+            return <div className="station-row" key={station.id}><div><b>{index+1}号機 · Lv.{station.level}</b><small>{Math.round(Math.pow(0.85,station.level-1)*100)}% · {activity.label}{activity.status==="cooking"?` · あと${Math.ceil(activity.order.remainingMs/1000)}秒`:""}</small></div><div className="station-upgrade-action"><button className={`station-upgrade ${canUpgrade?"is-ready":"is-unavailable"}`} disabled={!canUpgrade} onClick={()=>dispatch({type:"UPGRADE_EQUIPMENT",stationId:station.id})}>{max?"最大レベル":busy?"提供後に強化":`強化 ● ${cost.toLocaleString()}`}</button>{!max&&!busy&&!!upgradeShortfall&&<small>あと {upgradeShortfall.toLocaleString()}コイン</small>}</div></div>;
+          })}
+          {hasSlot&&<div className="equipment-purchase-area"><button className="secondary-button add-station equipment-purchase" disabled={!buyable} onClick={()=>dispatch({type:"BUY_EQUIPMENT",equipmentId:item.id})}><span>{buyable?"✦ ":""}{stations.length?"増設する":"設置する"}</span><strong>● {price.toLocaleString()}</strong></button>{!buyable&&<p>あと {shortfall.toLocaleString()}コインで{stations.length?"増設":"設置"}できます</p>}</div>}
+        </div>}
+      </article>;
+    })}</div>}
   </section>;
 }
 
@@ -51,13 +74,13 @@ function SeatingUpgrade() {
   const count=tableCapacity(state),offer=nextTableUpgrade(state);
   const unlocked=!!offer&&tableUpgradeUnlocked(state,offer.missionId);
   const required=missions.find(mission=>mission.id===offer?.missionId);
-  return <article className="equipment-group seating-upgrade">
+  const shortfall=offer?Math.max(0,offer.price-state.currency):0;
+  const buyable=!!offer&&unlocked&&!shortfall;
+  return <article data-equipment-id="seating" className={`equipment-group seating-upgrade ${!offer?"is-complete":!unlocked?"is-locked":buyable?"is-affordable":"is-short"}`}>
     <div className="equipment-card"><div className="equipment-icon">🪑</div><div className="equipment-info">
-      <small>設置 {count}/{GAME_CONFIG.maxOrders}セット</small><h3>客席（机・椅子）</h3>
+      <div className="equipment-meta"><small>設置 {count}/{GAME_CONFIG.maxOrders}セット</small><span className="equipment-buy-state">{!offer?"設置上限":!unlocked?"ミッションで解放":buyable?"✦ 購入OK":`あと ${shortfall.toLocaleString()}コイン`}</span></div><h3>客席（机・椅子）</h3>
       <p>{!offer?"最大6セット":unlocked?`${offer.count}セット目を購入できます`:`「${required?.title}」達成で${offer.count}セット目を解放`}</p>
     </div></div>
-    {offer&&<div className="station-list"><button className="secondary-button add-station" disabled={!unlocked||state.currency<offer.price} onClick={()=>dispatch({type:"BUY_TABLE",expectedCount:count})}>
-      {unlocked?"増設する":"ミッションで解放"} ● {offer.price.toLocaleString()}
-    </button></div>}
+    {offer&&<div className="station-list equipment-purchase-area"><button className="secondary-button add-station equipment-purchase" disabled={!buyable} onClick={()=>dispatch({type:"BUY_TABLE",expectedCount:count})}><span>{!unlocked?"ミッションで解放":`${buyable?"✦ ":""}増設する`}</span><strong>● {offer.price.toLocaleString()}</strong></button>{unlocked&&!buyable&&<p>あと {shortfall.toLocaleString()}コインで増設できます</p>}</div>}
   </article>;
 }

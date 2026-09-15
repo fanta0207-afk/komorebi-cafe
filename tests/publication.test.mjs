@@ -33,9 +33,18 @@ test('Vercel builds only the static client, with an asset-safe SPA fallback', ()
   for (const match of html.matchAll(/(?:src|href)="(\/[^"?#]+)"/g)) {
     assert.ok(existsSync(new URL(match[1].slice(1), output)), match[1]);
   }
-  assert.match(read('src/main.tsx'), /<CafeGame publicBuild/);
-  assert.match(read('src/components/CafeGame.tsx'), /dev-trigger-floating/);
-  assert.match(read('src/components/CafeGame.tsx'), /devOpen&&<DevMenu/);
+  assert.match(read('src/main.tsx'), /<CafeGame \/>/);
+  assert.match(read('src/components/CafeGame.tsx'), /screen==="forest"&&<button[^>]*dev-trigger-floating/);
+  assert.match(read('src/components/CafeGame.tsx'), /onMenu=\{openGameMenu\} menuLabel=\{gameMenuLabel\}/);
+  assert.match(read('src/screens/CafeScreen.tsx'), /className="cafe-menu-toggle cafe-settings-toggle"/);
+  assert.match(read('app/globals.css'), /\.cafe-hud-right\s*\{[^}]*flex-direction:column;[^}]*gap:8px;/);
+  assert.match(read('app/globals.css'), /\.dev-trigger-floating\s*\{[^}]*position:absolute;[^}]*right:8px;/);
+  assert.match(read('src/components/CafeGame.tsx'), /import\.meta\.env\.DEV/);
+  assert.match(read('src/components/CafeGame.tsx'), /showDev&&devOpen&&<DevMenu/);
+  assert.match(read('src/components/CafeGame.tsx'), /!showDev&&settingsOpen&&<SettingsMenu/);
+  const bundledJs=files(output).filter(file=>/\.js$/.test(file.pathname)).map(file=>readFileSync(file,'utf8')).join('\n');
+  assert.match(bundledJs,/セーブデータを初期化/);
+  assert.doesNotMatch(bundledJs,/DEVメニュー/);
 });
 
 test('all supplied public media are copied; documentation and development files are not published', () => {

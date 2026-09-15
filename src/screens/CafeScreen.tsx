@@ -21,6 +21,9 @@ import { managerPending, type ManagerFrame, type ManagerModel } from "../compone
 
 interface CafeProps {
   missionControl?:ReactNode;
+  onMenu:()=>void;
+  menuLabel:string;
+  menuCaption:string;
   storyOpen?:boolean;
   panelRequest?:{page:"orders"|"inventory";nonce:number};
   onInventory:()=>void;
@@ -39,7 +42,7 @@ interface CafeProps {
 type Notebook = { page: "orders"; selected?: string };
 const deliveryRunner=(staffId?:string)=>staffId?getCharacter(staffId)?.shortName||"スタッフ":"店長";
 
-export function CafeScreen({ missionControl, storyOpen, panelRequest, onInventory, state, manager, managerFrame, onCollect, onDecline, onStart, onCharacter, onTown, onEquipment, onSupplier, onRequestSupply }: CafeProps) {
+export function CafeScreen({ missionControl, onMenu, menuLabel, menuCaption, storyOpen, panelRequest, onInventory, state, manager, managerFrame, onCollect, onDecline, onStart, onCharacter, onTown, onEquipment, onSupplier, onRequestSupply }: CafeProps) {
   const [notebook, setNotebook] = useState<Notebook>();
   const [inventoryOpen, setInventoryOpen] = useState(false);
   useEffect(()=>{
@@ -70,6 +73,7 @@ export function CafeScreen({ missionControl, storyOpen, panelRequest, onInventor
       </div>
       <div className="cafe-hud-right">
         <button className="cafe-menu-toggle" type="button" onClick={() => setInventoryOpen(true)} aria-label="現在の在庫状況を開く"><span aria-hidden="true">▤</span><small>在庫</small></button>
+        <button className="cafe-menu-toggle cafe-settings-toggle" type="button" onClick={onMenu} aria-label={menuLabel}><span aria-hidden="true">⚙</span><small>{menuCaption}</small></button>
       </div>
     </header>
     <CafeScene state={state} manager={manager} managerPose={managerFrame} onOrder={actOnOrder} onCharacter={onCharacter} onEquipment={onEquipment}/>

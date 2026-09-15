@@ -4,4 +4,4 @@ import "../app/globals.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Game root is missing");
-createRoot(root).render(<CafeGame publicBuild />);
+createRoot(root).render(<CafeGame />);

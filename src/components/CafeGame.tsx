@@ -26,13 +26,15 @@ import { StaffScreen } from "../screens/StaffScreen";
 import { useCafeManager } from "./cafe/useCafeManager";
 import { MissionGuide } from "./MissionGuide";
 import { Prologue } from "./Prologue";
+import { SettingsMenu } from "./SettingsMenu";
 import type { MissionDestination } from "../game/missions";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
-export default function CafeGame(_props:{publicBuild?:boolean}={}) { return <GameProvider><GameContent/></GameProvider>; }
+export default function CafeGame() { return <GameProvider><GameContent/></GameProvider>; }
 
 function GameContent() {
+  const showDev=import.meta.env.DEV;
   const {state,hydrated,dispatch,refreshGiftShop,resetGame}=useGame();
   const cafeManager=useCafeManager(state,dispatch);
   const [screen,setScreen]=useState<Screen>("cafe");
@@ -42,6 +44,7 @@ function GameContent() {
   const [cafePanel,setCafePanel]=useState<{page:"orders"|"inventory";nonce:number}>();
   const [menuTab,setMenuTab]=useState<"equipment"|"recipes">("equipment");
   const [devOpen,setDevOpen]=useState(false);
+  const [settingsOpen,setSettingsOpen]=useState(false);
   const [devCharacter,setDevCharacter]=useState(characters[0].id);
   const [event,setEvent]=useState<RelationshipEvent>();
   const [replay,setReplay]=useState<RelationshipEvent>();
@@ -62,12 +65,12 @@ function GameContent() {
   },[dispatch]);
 
   useEffect(()=>{
-    if(state.forest.expedition||event||growthEvent||dateEvent||replay||devOpen||state.pendingGiftReaction)return;
+    if(state.forest.expedition||event||growthEvent||dateEvent||replay||devOpen||settingsOpen||state.pendingGiftReaction)return;
     const next=availableStaffStory(state)||availableEvent(state,relationshipEvents);
     if(next){setEvent(next);setEventPage(0);return;}
     const growth=availableGrowthEvent(state);
     if(growth){setGrowthEvent(growth);setEventPage(0);}
-  },[state,event,growthEvent,dateEvent,replay,devOpen]);
+  },[state,event,growthEvent,dateEvent,replay,devOpen,settingsOpen]);
 
   useEffect(()=>{if(state.forest.expedition)setScreen(current=>current==="forestBook"?current:"forest");},[state.forest.expedition?.id]);
   const navigate=(id:string)=>{if(state.forest.expedition){dispatch({type:"FOREST_RETURN"});setScreen("forest");return;}setScreen(id as Screen);setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
@@ -88,20 +91,23 @@ function GameContent() {
     else navigate(destination);
   };
 
-  const missionTutorial=hydrated&&screen==="cafe"&&state.onboardingStage==="mission"&&!devOpen&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction;
+  const missionTutorial=hydrated&&screen==="cafe"&&state.onboardingStage==="mission"&&!devOpen&&!settingsOpen&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction;
   const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo} tutorial={missionTutorial} onTutorialSkip={()=>dispatch({type:"FINISH_ONBOARDING"})}/>:undefined;
   const resetGameAndUi=()=>{
     resetGame();setScreen("cafe");setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);setMenuTab("equipment");
-    setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setEventPage(0);setDevOpen(false);
+    setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setEventPage(0);setDevOpen(false);setSettingsOpen(false);
   };
+  const openGameMenu=()=>showDev?setDevOpen(true):setSettingsOpen(true);
+  const gameMenuLabel=showDev?"開発メニュー":"設定";
   // 画面を切り替えるたびに表示領域ごと入れ替え、前画面の画像が一瞬残るのを防ぐ。
   const screenKey=`${screen}:${supplierId||""}:${characterId||""}`;
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":screen==="forest"?"forest-shell":""}${missionTutorial?" is-mission-tutorial":""}`}>
-    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
-    {(screen==="cafe"||screen==="forest")&&<button className="dev-trigger dev-trigger-floating" onClick={()=>setDevOpen(true)} aria-label="開発メニュー">⚙</button>}
+    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onMenu={openGameMenu} menuLabel={gameMenuLabel} missionControl={missionControl}/>}
+    {screen==="forest"&&<button type="button" className="dev-trigger dev-trigger-floating" onClick={openGameMenu} aria-label={gameMenuLabel}>⚙</button>}
     <div key={screenKey} className="screen-wrap">
       {screen==="cafe"&&<CafeScreen
-        missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
+        missionControl={missionControl} onMenu={openGameMenu} menuLabel={gameMenuLabel} menuCaption={showDev?"DEV":"設定"}
+        storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
         onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame}
         onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})}
         onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}}
@@ -138,7 +144,8 @@ function GameContent() {
       onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
     />}
     {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
-    {devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
+    {showDev&&devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
+    {!showDev&&settingsOpen&&<SettingsMenu onClose={()=>setSettingsOpen(false)} onReset={resetGameAndUi}/>}
   </main>;
 }
 

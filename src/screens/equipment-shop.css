@@ -1,0 +1,41 @@
+.equipment-list { gap:12px; }
+.equipment-list .equipment-group,.seating-upgrade.equipment-group { position:relative; border-width:2px; transition:border-color .2s,box-shadow .2s,background .2s; }
+.equipment-list .equipment-group.is-affordable,.seating-upgrade.equipment-group.is-affordable { border-color:#d5aa5c; background:linear-gradient(135deg,#fffaf0,#fff0cf); box-shadow:0 4px 0 #dbc18e,0 10px 24px #7853291a; }
+.equipment-list .equipment-group.is-short,.seating-upgrade.equipment-group.is-short { border-color:#cfc4b2; background:#fbf8f1; }
+.equipment-list .equipment-group.is-locked,.seating-upgrade.equipment-group.is-locked { border-color:#d9d3c8; background:#f4f1e9; }
+.equipment-list .equipment-group.is-complete,.seating-upgrade.equipment-group.is-complete { border-color:#c9d7c0; background:#f6f8f0; }
+.equipment-group .equipment-card { align-items:start; padding:13px; }
+.equipment-group .equipment-icon { border:1px solid #d4c6aa; border-radius:12px; background:#efe4cf; }
+.equipment-group.is-affordable .equipment-icon { border-color:#e0bb73; background:#ffe7aa; box-shadow:inset 0 0 0 2px #fff8dc; }
+.equipment-group.is-locked .equipment-icon { filter:grayscale(1); opacity:.58; }
+.equipment-group .equipment-meta { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:5px 8px; }
+.equipment-group .equipment-meta>small { color:#6c7357; font:700 11px/1.35 "Yu Gothic",sans-serif; letter-spacing:0; }
+.equipment-group .equipment-buy-state { display:inline-flex; align-items:center; min-height:24px; padding:3px 8px; border:1px solid #bcb4a4; border-radius:999px; background:#eee9df; color:#73675b; font-size:11px; line-height:1.25; font-weight:800; white-space:nowrap; }
+.equipment-group.is-affordable .equipment-buy-state { border-color:#d7a957; background:#fce09e; color:#68491f; }
+.equipment-group.is-short .equipment-buy-state { border-color:#c5bdaf; background:#eee9df; color:#756859; }
+.equipment-group.is-complete .equipment-buy-state { border-color:#c9d7c0; background:#e8efdf; color:#5c7355; }
+.equipment-group .equipment-info h3 { margin:8px 0 4px; }
+.equipment-group .equipment-info p { color:#726957; }
+.equipment-group.is-locked .equipment-info p { color:#817b70; }
+.equipment-group .station-list { padding:0 13px 14px; }
+.equipment-group .station-row { gap:8px; }
+.equipment-group .station-row>div:first-child { flex:1; min-width:0; }
+.equipment-group .station-upgrade-action { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.equipment-group .station-upgrade-action>small { color:#9a7052; font-size:11px; font-weight:700; }
+.equipment-group .station-row .station-upgrade { min-height:44px; padding:8px 11px; border-radius:9px; font-size:12px; font-weight:800; cursor:pointer; }
+.equipment-group .station-row .station-upgrade.is-ready { border-color:#3d6950; background:#557e5d; color:#fffaf0; box-shadow:0 3px 0 #355a3f; }
+.equipment-group .station-row .station-upgrade.is-unavailable { border-color:#cbc3b6; background:#eee9df; color:#716a5f; box-shadow:none; cursor:default; }
+.equipment-group .station-row .station-upgrade:disabled { opacity:1; }
+.equipment-group .equipment-purchase-area { padding-top:7px; }
+.equipment-group .equipment-purchase { display:flex; justify-content:space-between; align-items:center; gap:8px; width:100%; min-height:54px; margin:0; padding:10px 14px; border-radius:12px; font-size:15px; text-align:left; touch-action:manipulation; cursor:pointer; }
+.equipment-group .equipment-purchase strong { flex:none; font-size:16px; font-variant-numeric:tabular-nums; }
+.equipment-group.is-affordable .equipment-purchase { border-color:#315c3f; background:linear-gradient(110deg,#426e4b,#315e3e); color:#fff8df; box-shadow:0 4px 0 #264b34,0 8px 18px #244c3726; }
+.equipment-group.is-affordable .equipment-purchase strong { color:#ffdc84; }
+.equipment-group .equipment-purchase:disabled { border-color:#c8c0b1; background:#e9e4d9; color:#70675c; box-shadow:none; opacity:1; cursor:not-allowed; }
+.equipment-group .equipment-purchase:disabled strong { color:#766f62; }
+.equipment-group .equipment-purchase-area>p { margin:8px 2px 0; color:#806f5f; font-size:12px; line-height:1.4; font-weight:700; }
+.equipment-group button:focus-visible { outline:3px solid #4f7959; outline-offset:3px; }
+.equipment-group.is-affordable .equipment-purchase:hover { filter:brightness(1.08); }
+.equipment-group.is-affordable .equipment-purchase:active,.equipment-group .station-upgrade.is-ready:active { transform:translateY(3px); box-shadow:0 1px 0 #264b34; }
+@media (max-width:360px) { .equipment-group .station-row { align-items:stretch; flex-direction:column; } .equipment-group .station-upgrade-action { align-items:stretch; } .equipment-group .station-upgrade-action>small { text-align:right; } }
+@media (prefers-reduced-motion:reduce) { .equipment-list .equipment-group,.seating-upgrade.equipment-group { transition:none; } }

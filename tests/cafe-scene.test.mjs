@@ -164,13 +164,44 @@ test('seating purchase card shows mission gates, prices and the maximum',()=>{
   const {MenuScreen}=require(join(output,'screens/MenuScreen.js'));
   let state=createInitialState();
   const render=()=>renderToStaticMarkup(React.createElement(MenuScreen,{tab:'equipment',onTabChange(){}}));
+  const seating=()=>render().match(/<article data-equipment-id="seating"[\s\S]*?<\/article>/)?.[0]||'';
   context.useGame=()=>({state,dispatch(){}});
   try{
-    assert.match(render(),/コーヒー豆を1パック受け取る/);assert.match(render(),/ミッションで解放.*100/);
+    assert.match(seating(),/コーヒー豆を1パック受け取る/);assert.match(seating(),/ミッションで解放.*100/);
     state={...state,currency:100,missions:{...state.missions,completed:['beans-arrive']}};
-    assert.match(render(),/class="secondary-button add-station">増設する/);
-    state={...state,tableCount:6};assert.match(render(),/最大6セット/);
-    assert.doesNotMatch(render(),/増設する/);
+    assert.match(seating(),/class="secondary-button add-station equipment-purchase"[^>]*><span>✦ 増設する/);
+    state={...state,tableCount:6};assert.match(seating(),/最大6セット/);
+    assert.doesNotMatch(seating(),/増設する/);
+  }finally{context.useGame=original;}
+});
+
+test('equipment shop distinguishes affordable, coin-short and story-locked stations',()=>{
+  const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+  const {MenuScreen}=require(join(output,'screens/MenuScreen.js'));
+  let state=createInitialState();
+  const render=()=>renderToStaticMarkup(React.createElement(MenuScreen,{tab:'equipment',onTabChange(){}}));
+  const card=(html,id)=>html.match(new RegExp(`<article[^>]*data-equipment-id="${id}"[\\s\\S]*?<\\/article>`))?.[0]||'';
+  context.useGame=()=>({state,dispatch(){}});
+  try{
+    let html=render();
+    assert.doesNotMatch(html,/今すぐ買える設備|次の設備を目指そう/);
+    assert.match(card(html,'toastGrill'),/equipment-group is-affordable/);
+    assert.match(card(html,'toastGrill'),/購入OK/);
+    assert.doesNotMatch(card(html,'toastGrill'),/equipment-purchase" disabled/);
+    assert.match(card(html,'prepTable'),/equipment-group is-short/);
+    assert.match(card(html,'prepTable'),/あと 100コイン/);
+    assert.match(card(html,'prepTable'),/equipment-purchase" disabled/);
+    assert.match(card(html,'coffeeCounter'),/station-upgrade is-unavailable/);
+    assert.match(card(html,'coffeeCounter'),/あと 250コイン/);
+    assert.match(card(html,'espressoMachine'),/equipment-group is-locked/);
+    assert.match(card(html,'espressoMachine'),/物語で解放/);
+    state={...state,currency:300};
+    html=render();
+    assert.match(card(html,'prepTable'),/equipment-group is-affordable/);
+    assert.doesNotMatch(card(html,'prepTable'),/equipment-purchase" disabled/);
+    state={...state,currency:1000};
+    html=render();
+    assert.match(card(html,'coffeeCounter'),/station-upgrade is-ready/);
   }finally{context.useGame=original;}
 });
 

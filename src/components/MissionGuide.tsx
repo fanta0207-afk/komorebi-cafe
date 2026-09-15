@@ -12,9 +12,13 @@ export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void
   const [open,setOpen]=useState(false);
   const done=sortedMissions(state).some(m=>missionRank(state,m)===0)||activeSideMissions(state).some(m=>m.value(state)>=m.target);
   return <>
-    <button type="button" className="mission-launcher" onClick={()=>setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={done?"ミッションを開く・受け取れる報酬があります":"ミッションを開く"}>
-      <span aria-hidden="true">☑</span> ミッション
-      {done&&<span className="mission-badge" aria-hidden="true">!</span>}
+    <button type="button" className={`mission-launcher${done?" mission-ready":""}`} onClick={()=>setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={done?"ミッションを開く・受け取れる報酬があります":"ミッションを開く"}>
+      <span className="mission-launcher-label"><span aria-hidden="true">☑</span> ミッション</span>
+      {done&&<>
+        <span className="mission-ready-shine" aria-hidden="true"/>
+        <span className="mission-ready-sparkles" aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span></span>
+        <span className="mission-badge" aria-hidden="true">!</span>
+      </>}
     </button>
     {open&&createPortal(<MissionNotebook onClose={()=>setOpen(false)} onGo={destination=>{setOpen(false);onGo(destination);}}/>,document.body)}
   </>;

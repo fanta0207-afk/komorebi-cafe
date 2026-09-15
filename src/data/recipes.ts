@@ -1,9 +1,10 @@
 import { forestRecipes } from './forest';
 import type { Recipe } from "../types/game";
+import { inferMenuRarity } from './menuRarity';
 
 export const recipeEquipmentId=(recipe:Recipe)=>recipe.requiredEquipmentIds?.[0] || (recipe.tags.includes("drink")?"coffeeCounter":recipe.tags.includes("bread")?"toastGrill":"prepTable");
 
-export const recipes: Recipe[] = [
+const recipeCatalog: Omit<Recipe, 'rarity'>[] = [
   { id:"coffee", name:"深煎りコーヒー", icon:"☕", price:50, requiredIngredients:["coffeeBeans"], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["coffee","drink","warm"] },
   { id:"toast", name:"バタートースト", icon:"🍞", price:150, requiredIngredients:["bread"], unlockHint:"最初から作れます", initiallyUnlocked:true, tags:["bread","breakfast","warm"] },
   { id:"latte", name:"カフェラテ", icon:"🥛", price:260, requiredIngredients:["coffeeBeans","milk"], unlockHint:"牛乳を仕入れると作れそう", tags:["coffee","drink","milk","warm"] },
@@ -73,6 +74,8 @@ export const recipes: Recipe[] = [
   {"id": "rubyChocolateParfait", "name": "ルビーショコラパフェ", "icon": "💗", "price": 690, "requiredIngredients": ["rubyChocolate", "strawberry", "milk"], "unlockHint": "カカオとの好感度8の物語で解放", "tags": ["chocolate", "sweet", "dessert", "elegant"], "limited": true, "unlockEventId": "cacao-stage8", "requiredEquipmentIds": ["temperingMachine"]},
   {"id": "onlyOneBonbon", "name": "ただ一人のシグネチャーボンボン", "icon": "🎁", "price": 820, "requiredIngredients": ["cacaoSignature", "bitterCouverture"], "unlockHint": "カカオとの好感度10の物語で解放", "tags": ["chocolate", "sweet", "elegant", "limited"], "limited": true, "unlockEventId": "cacao-stage10", "requiredEquipmentIds": ["temperingMachine"]},
 ];
+
+export const recipes: Recipe[] = recipeCatalog.map(recipe => ({ ...recipe, rarity: inferMenuRarity(recipe) }));
 
 export const getRecipe = (id:string) => recipes.find(item => item.id === id) || forestRecipes.find(item => item.id === id);
 

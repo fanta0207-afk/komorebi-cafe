@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { getCharacter } from "../data/characters";
 import { getRecipe, recipes } from "../data/recipes";
+import { menuRarityInfo } from "../data/menuRarity";
 import { orderRequirements } from "../game/orderRequirements";
 import { deliveryCountdown } from "../game/procurement";
 import { getIngredient } from "../data/ingredients";
@@ -105,9 +106,9 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
         const problem = order.status === "queued" ? startProblem(state, recipe, !!order.forestReserved) : "";
         const pending = managerPending(manager, order.id);
         const missingConditions = orderRequirements(state, order).filter(condition => !condition.met && condition.id !== "cooking");
-        return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>
+        return <article ref={order.id === notebook.selected ? selectedRef : undefined} className={`notebook-order order-${order.status} menu-rarity-${recipe.rarity} ${order.id === notebook.selected ? "order-selected" : ""}`} key={order.id}>
           <span className="notebook-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
-          <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {orderSalePrice(order,state)}コイン{order.request ? " · リクエスト報酬25%増" : ""}</small><h3>{recipe.name}</h3>
+          <div className="notebook-order-info"><small>テーブル {order.customerSlot + 1} · {orderSalePrice(order,state)}コイン{order.request ? " · リクエスト報酬25%増" : ""}</small><h3>{recipe.name}<span className="menu-rarity-badge">{menuRarityInfo[recipe.rarity].code}</span></h3>
             {order.stationId && <small>{getEquipment(state.stations.find(station => station.id === order.stationId)?.equipmentId || "")?.name}{order.cookId ? ` · ${getCharacter(order.cookId)?.shortName}` : ""}</small>}
             {order.status === "cooking" ? <><progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/><p>調理中</p></> : order.status === "ready" ? <p>{state.staff.some(person => person.servingOrderId === order.id) ? "スタッフが提供中" : "完成"}</p> : problem ? <p>{problem}</p> : null}
           </div>

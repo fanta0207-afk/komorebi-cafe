@@ -2,13 +2,14 @@ export type Season = "春" | "夏" | "秋" | "冬";
 export type Gender = "male" | "female" | "nonbinary";
 export type GiftReaction = "love" | "like" | "normal" | "dislike";
 export type GiftRarity = "common" | "rare" | "superRare" | "ultraRare";
+export type MenuRarity = "normal" | "rare" | "superRare" | "secret";
 export type RelationshipRoute = "undecided" | "romance" | "friendship";
 export type DateLocationId = "amusement" | "walk" | "home";
 export interface StoryLine { speaker:"narrator"|"character"|"player"; text:string; }
 export interface StoryChoice { id:string; label:string; response:StoryLine[]; }
 
 export interface Ingredient { id:string; name:string; icon:string; price:number; supplierId:string; limited?:boolean; unlockEventId?:string; }
-export interface Recipe { forest?:boolean; cookingSeconds?:number; id:string; name:string; icon:string; price:number; requiredIngredients:string[]; requiredEquipmentIds?:string[]; unlockHint:string; initiallyUnlocked?:boolean; tags:string[]; limited?:boolean; hidden?:boolean; unlockEventId?:string; }
+export interface Recipe { forest?:boolean; cookingSeconds?:number; id:string; name:string; icon:string; price:number; requiredIngredients:string[]; requiredEquipmentIds?:string[]; unlockHint:string; initiallyUnlocked?:boolean; tags:string[]; rarity:MenuRarity; limited?:boolean; hidden?:boolean; unlockEventId?:string; }
 export interface Gift { handmade?:boolean; materials?:Record<string,number>; lovedBy?:string[]; id:string; name:string; icon:string; price:number; rarity:GiftRarity; tags:string[]; description:string; }
 export interface Supplier { id:string; name:string; icon:string; description:string; characterId:string; }
 export interface Character {

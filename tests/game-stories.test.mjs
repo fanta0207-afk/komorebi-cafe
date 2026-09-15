@@ -23,7 +23,8 @@ const {characters}=require(join(output,'data/characters.js'));
 const {relationshipEvents}=require(join(output,'data/events.js'));
 const {growthEvents}=require(join(output,'data/growthEvents.js'));
 const {dateEvents,dateLocations}=require(join(output,'data/dates.js'));
-const {recipes}=require(join(output,'data/recipes.js'));
+const {recipes,allRecipes}=require(join(output,'data/recipes.js'));
+const {menuRarityInfo}=require(join(output,'data/menuRarity.js'));
 const {gifts,giftRarityInfo}=require(join(output,'data/gifts.js'));
 const {ingredients}=require(join(output,'data/ingredients.js'));
 const {equipment}=require(join(output,'data/equipment.js'));
@@ -541,6 +542,18 @@ test('all recipes have real ingredients, a valid station, intended cooking time 
     state=collect(tick(state,prep.seconds*1000));assert.equal(state.lifetimeStats.recipeSales[recipe.id],1,recipe.id);
     assert.ok(Object.values(state.ingredients).every(count=>count===0));
   }
+});
+
+test('menu rarity follows progression and uses text labels without decorative symbols',()=>{
+  assert.deepEqual(Object.keys(menuRarityInfo),['normal','rare','superRare','secret']);
+  assert.deepEqual(Object.values(menuRarityInfo).map(info=>info.code),['N','R','SR','SSR']);
+  assert.ok(Object.values(menuRarityInfo).every(info=>!/[◆✦★●]/u.test(`${info.code}${info.label}`)));
+  assert.equal(allRecipes.find(recipe=>recipe.id==='coffee').rarity,'normal');
+  assert.equal(allRecipes.find(recipe=>recipe.id==='strawberryCake').rarity,'rare');
+  assert.equal(allRecipes.find(recipe=>recipe.id==='craftLatte').rarity,'superRare');
+  assert.equal(allRecipes.find(recipe=>recipe.id==='signatureEspresso').rarity,'secret');
+  assert.ok(allRecipes.filter(recipe=>recipe.forest).every(recipe=>recipe.rarity==='secret'));
+  assert.deepEqual(new Set(allRecipes.map(recipe=>recipe.rarity)),new Set(Object.keys(menuRarityInfo)));
 });
 
 test('upgrades shorten preparation and enforce costs, busy state, levels and machine cap',()=>{

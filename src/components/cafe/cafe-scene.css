@@ -222,3 +222,8 @@
 .notebook-equipment>div>b.cooking { color:#58703b; }.notebook-equipment>div>b.ready{color:#9b7136}
 .notebook-equipment>div>b>small { display:block; margin-top:3px; }
 .notebook-equipment-link { width:100%; min-height:44px; margin-top:15px; border:1px solid #c1ae83; border-radius:7px; background:#ebdfc0; color:#615436; font-size:14px; cursor:pointer; }
+.scene-order[class*="menu-rarity-"] { border-top-color:var(--menu-rarity); box-shadow:inset 0 4px 0 var(--menu-rarity),0 4px 0 #75553a33,0 5px 12px #503b2222; }
+.bubble-rarity { position:absolute; top:3px; right:4px; min-width:18px; padding:1px 3px; border-radius:99px; background:var(--menu-rarity-soft); color:var(--menu-rarity); font-size:7px; font-weight:900; line-height:1.35; }
+.notebook-order[class*="menu-rarity-"] { border-left:5px solid var(--menu-rarity); padding-left:10px; background:linear-gradient(90deg,var(--menu-rarity-soft),transparent 34%); }
+.notebook-order-info h3 { display:flex; align-items:center; gap:6px; }
+.notebook-order-info h3 .menu-rarity-badge { font-size:8px; min-height:18px; padding:1px 5px; }

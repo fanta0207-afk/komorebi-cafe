@@ -3,6 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import { getCharacter } from "../../data/characters";
 import { getRecipe } from "../../data/recipes";
+import { menuRarityInfo } from "../../data/menuRarity";
 import { hasIngredients, serveDuration, startProblem } from "../../game/operations";
 import { orderSalePrice } from "../../game/logic";
 import { tableCapacity } from "../../game/seating";
@@ -130,11 +131,11 @@ export function CafeScene({ state, manager, managerPose, onOrder, onCharacter, o
         const label = pending === "serve" ? "お届け中" : pending === "start" ? "店長が準備" : order.status === "ready" ? "提供する" : order.status === "cooking" ? "調理中" : !state.unlockedRecipes.includes(recipe.id) ? "解放待ち" : !order.forestReserved && !hasIngredients(state, recipe) ? "食材待ち" : problem ? "設備待ち" : "調理開始";
         const arrival = activeVisits.find(visit => visit.id === order.id && visit.phase === "entering");
         const entering = !!arrival;
-        return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
+        return <button type="button" key={order.id} disabled={!!pending} className={`scene-order bubble-${order.status} menu-rarity-${recipe.rarity} ${pending ? "bubble-manager-pending" : ""} ${entering ? "bubble-entering" : ""}`}
           style={{ ...place(x + 1, y - 2), "--arrival-delay": arrival ? `${-(state.activeMs - arrival.arrivedAt)}ms` : "0ms" } as CSSProperties} onClick={() => onOrder(order.id)}
           aria-label={`テーブル${order.customerSlot + 1}、${recipe.name}、${problem || label}`}>
           <span className="bubble-food"><CafeAsset src={cafeAsset.food(recipe.id)}>{recipe.icon}</CafeAsset></span>
-          {order.request && <span className="bubble-request">リクエスト +25%</span>}<span className="bubble-recipe-name">{recipe.name}</span><span className="bubble-sale">+{orderSalePrice(order,state)}コイン</span><span className="bubble-label">{label}</span>
+          {order.request && <span className="bubble-request">リクエスト +25%</span>}<span className="bubble-recipe-name">{recipe.name}</span><span className="bubble-rarity">{menuRarityInfo[recipe.rarity].code}</span><span className="bubble-sale">+{orderSalePrice(order,state)}コイン</span><span className="bubble-label">{label}</span>
           {order.status === "cooking" && <progress max={order.totalMs} value={order.totalMs - order.remainingMs} aria-label={`${recipe.name}の調理進捗`}/>}
           {order.status === "ready" && <i className="ready-star">✦</i>}
         </button>;

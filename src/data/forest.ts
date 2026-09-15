@@ -8,7 +8,7 @@ export const FOREST_COIN_BANDS = [
     { min: 2000, max: 2000, weight: 4 },
 ] as const;
 export const forestIngredients: Ingredient[] = [['forestBerry', '野いちご', '🍓'], ['forestWalnut', '森くるみ', '🌰'], ['forestHerb', '香草', '🌿'], ['forestMint', '森ミント', '🍃'], ['forestPetal', '食用花', '🌸'], ['forestMushroom', '森きのこ', '🍄'], ['forestHoney', '琥珀花蜜', '🍯'], ['forestMoonBerry', '月しずくベリー', '🫐']].map(([id, name, icon]) => ({ id, name, icon, price: 0, supplierId: 'forest', limited: true }));
-const recipe = (id: string, name: string, icon: string, sale: number, seconds: number, materials: string[], equipment: string, tags: string[]): Recipe => ({ id, name, icon, price: sale * 2, cookingSeconds: seconds, requiredIngredients: materials, requiredEquipmentIds: [equipment], tags, limited: true, forest: true, hidden: true, unlockHint: '森でレシピの切れ端を3枚集める' });
+const recipe = (id: string, name: string, icon: string, sale: number, seconds: number, materials: string[], equipment: string, tags: string[]): Recipe => ({ id, name, icon, price: sale * 2, cookingSeconds: seconds, requiredIngredients: materials, requiredEquipmentIds: [equipment], tags, rarity: 'secret', limited: true, forest: true, hidden: true, unlockHint: '森でレシピの切れ端を3枚集める' });
 export const forestRecipes: Recipe[] = [
     recipe('forestBerrySoda', '野いちごソーダ', '🍹', 1100, 10, ['forestBerry', 'forestMint', 'sugar'], 'coffeeCounter', ['fruit', 'drink']),
     recipe('forestPetalTea', '花びらティー', '🫖', 1300, 10, ['forestPetal', 'forestHerb', 'teaLeaves'], 'coffeeCounter', ['tea', 'drink']),

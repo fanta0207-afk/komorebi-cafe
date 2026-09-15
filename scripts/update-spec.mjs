@@ -43,7 +43,8 @@ const { growthEvents } = missionRequire(join(missionRuntimeRoot, "data", "growth
 const { dateEvents, dateLocations } = missionRequire(join(missionRuntimeRoot, "data", "dates.js"));
 const { giftRarityInfo, gifts } = missionRequire(join(missionRuntimeRoot, "data", "gifts.js"));
 const { ingredients } = missionRequire(join(missionRuntimeRoot, "data", "ingredients.js"));
-const { recipes } = missionRequire(join(missionRuntimeRoot, "data", "recipes.js"));
+const { recipes, allRecipes } = missionRequire(join(missionRuntimeRoot, "data", "recipes.js"));
+const { menuRarityInfo } = missionRequire(join(missionRuntimeRoot, "data", "menuRarity.js"));
 const { suppliers } = missionRequire(join(missionRuntimeRoot, "data", "suppliers.js"));
 const { affectionThresholds, GAME_CONFIG, MENU_MASTERY_LEVELS, relationshipNames } = missionRequire(join(missionRuntimeRoot, "game", "config.js"));
 
@@ -129,6 +130,7 @@ const recipeGroups = [
   ["隠しレシピ", recipes.filter((recipe) => recipe.hidden)],
 ];
 const recipeSections = recipeGroups.map(([label, items]) => `- ${label}（${items.length}種）：${list(items.map((recipe) => recipe.name))}`).join("\n");
+const menuRarityRows = Object.entries(menuRarityInfo).map(([id, info]) => `| ${info.code} | ${info.label} | ${allRecipes.filter(recipe => recipe.rarity === id).length}種 |`).join("\n");
 
 const spec = `# こもれびカフェ ゲーム仕様書
 
@@ -249,6 +251,12 @@ ${supplierRows}
 ## 9. 料理
 
 ${recipeSections}
+
+料理カードと注文では、記号を使わず、色と文字で4段階を表示する。未発見の隠し料理はレアリティも伏せる。
+
+| 表示 | 区分 | 料理数 |
+|---|---|---:|
+${menuRarityRows}
 
 - 未解放、食材不足、必要設備の未設置、他の料理を調理中の場合は調理を開始できない。
 - 調理開始時に必要食材を1食分ずつ消費する。売上は提供完了時にのみ加算される。

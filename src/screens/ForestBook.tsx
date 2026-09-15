@@ -7,6 +7,7 @@ import { getIngredient } from '../data/ingredients';
 import { canCookForestDish } from '../game/forest';
 import { salePrice } from '../game/logic';
 import { ScreenTitle } from '../components/GameUI';
+import { menuRarityInfo } from '../data/menuRarity';
 
 export function ForestBook({ onBack }: { onBack: () => void }) {
   const { state, dispatch } = useGame(), f = state.forest;
@@ -47,8 +48,9 @@ export function ForestBook({ onBack }: { onBack: () => void }) {
           <p>レシピ未完成</p>
           <button className="primary-button" disabled>未解放</button>
         </article>;
-        return <article className="forest-card" key={r.id}>
-          <h3>{r.icon} {r.name}</h3>
+        const rarity = menuRarityInfo[r.rarity];
+        return <article className={`forest-card menu-rarity-${r.rarity}`} key={r.id}>
+          <h3>{r.icon} {r.name}<span className="menu-rarity-badge">{rarity.code} {rarity.label}</span></h3>
           <p>● {salePrice(r.id, state)} コイン</p>
           {materials(Object.fromEntries(r.requiredIngredients.map(id => [id, 1])), amount)}
           <small>所持 {reserved}/3皿{inFlight > 0 && ` · お客さん ${inFlight}`}</small>

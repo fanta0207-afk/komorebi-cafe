@@ -98,14 +98,15 @@ export function createForestLayer(s:GameState,floor:number,seed:number,meal?:For
             if(random()<C.coinChance)coins=forestCoinAmount(random());
             if(random()<C.ticketChance)tickets=1;
         } else {
-            const roll=random(),rareRate=Object.keys(rarePool).length?Math.min(1-band.emptyRate,band.rareRate+(meal?.rareBonus||0)):0;
-            if(roll<rareRate)food.push(weighted(rarePool,random));
-            else if(roll<rareRate+band.forestRate) {
+            const found=random()<C.findChance;
+            const roll=random(),rareRate=Object.keys(rarePool).length?Math.min(1-band.forestRate,band.rareRate+(meal?.rareBonus||0)):0;
+            if(found&&roll<rareRate)food.push(weighted(rarePool,random));
+            else if(found&&roll<rareRate+band.forestRate) {
                 const preferred:Record<string,number>={...basicPool};
                 const preference:Partial<Record<ForestSpotKind,string[]>>={berries:['forestBerry','forestWalnut'],herbs:['forestHerb','forestMint'],flowers:['forestPetal'],mushrooms:['forestMushroom'],roots:['forestMushroom','forestWalnut']};
                 for(const preferredId of preference[kind]||[])if(preferred[preferredId])preferred[preferredId]*=2;
                 food.push(weighted(preferred,random));
-            } else if(roll<1-band.emptyRate) {
+            } else if(found) {
                 food.push(weighted(area.normal,random));
                 if(random()<C.abundantChance)food.push(food[0]);
             }

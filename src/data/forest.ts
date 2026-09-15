@@ -1,5 +1,5 @@
 import type { Ingredient, Recipe, Gift } from '../types/game';
-export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, maxFloor: 70, actionCost: 1, boxChance: .12, maxBoxes: 1, coinChance: .3, ticketChance: .1, coinMin: 50, coinMax: 2000, deepReturns: 5, deepOrders: 20, fragmentChance: .4, abundantChance: .06, maxRareBonus: .05, maxPathReduction: 2 };
+export const FOREST_CONFIG = { maxEnergy: 70, recoveryMs: 60000, maxFloor: 70, actionCost: 1, findChance: .14, boxChance: .12, maxBoxes: 1, coinChance: .3, ticketChance: .3, coinMin: 50, coinMax: 2000, deepReturns: 5, deepOrders: 20, fragmentChance: .4, abundantChance: .06, maxRareBonus: .05, maxPathReduction: 2 };
 // Amounts after a coin drop: mostly small finds, with a fixed 4% jackpot.
 export const FOREST_COIN_BANDS = [
     { min: 50, max: 300, weight: 70 },
@@ -35,15 +35,15 @@ export interface ForestArea {
     bonus: Record<string, number>;
     secret?: string;
 }
-export interface ForestBand { area:string; from:number; to:number; spots:[number,number]; pathLimit:number; rareRate:number; forestRate:number; emptyRate:number; obstacleChance:number; obstacleMax:number; background:'clearing'|'river'|'spring'; }
+export interface ForestBand { area:string; from:number; to:number; spots:[number,number]; pathLimit:number; rareRate:number; forestRate:number; obstacleChance:number; obstacleMax:number; background:'clearing'|'river'|'spring'; }
 export const FOREST_BANDS: ForestBand[] = [
-    { area:'clearing', from:1, to:10, spots:[6,8], pathLimit:4, rareRate:0, forestRate:0.08, emptyRate:.35, obstacleChance:0, obstacleMax:0, background:'clearing' },
-    { area:'river', from:11, to:20, spots:[7,9], pathLimit:5, rareRate:0, forestRate:0.1, emptyRate:.35, obstacleChance:0, obstacleMax:0, background:'river' },
-    { area:'pond', from:21, to:30, spots:[7,9], pathLimit:5, rareRate:.05, forestRate:0.12, emptyRate:.3, obstacleChance:.2, obstacleMax:1, background:'river' },
-    { area:'grove', from:31, to:40, spots:[8,10], pathLimit:6, rareRate:.05, forestRate:0.14, emptyRate:.3, obstacleChance:.2, obstacleMax:1, background:'clearing' },
-    { area:'roots', from:41, to:50, spots:[8,10], pathLimit:6, rareRate:.1, forestRate:0.16, emptyRate:.3, obstacleChance:.3, obstacleMax:2, background:'clearing' },
-    { area:'stone', from:51, to:60, spots:[9,11], pathLimit:7, rareRate:.15, forestRate:0.18, emptyRate:.25, obstacleChance:.3, obstacleMax:2, background:'spring' },
-    { area:'spring', from:61, to:70, spots:[10,12], pathLimit:7, rareRate:.25, forestRate:0.2, emptyRate:.2, obstacleChance:.4, obstacleMax:3, background:'spring' },
+    { area:'clearing', from:1, to:10, spots:[6,8], pathLimit:4, rareRate:0, forestRate:.08, obstacleChance:0, obstacleMax:0, background:'clearing' },
+    { area:'river', from:11, to:20, spots:[7,9], pathLimit:5, rareRate:0, forestRate:.10, obstacleChance:0, obstacleMax:0, background:'river' },
+    { area:'pond', from:21, to:30, spots:[7,9], pathLimit:5, rareRate:.05, forestRate:.12, obstacleChance:.2, obstacleMax:1, background:'river' },
+    { area:'grove', from:31, to:40, spots:[8,10], pathLimit:6, rareRate:.05, forestRate:.14, obstacleChance:.2, obstacleMax:1, background:'clearing' },
+    { area:'roots', from:41, to:50, spots:[8,10], pathLimit:6, rareRate:.10, forestRate:.16, obstacleChance:.3, obstacleMax:2, background:'clearing' },
+    { area:'stone', from:51, to:60, spots:[9,11], pathLimit:7, rareRate:.15, forestRate:.18, obstacleChance:.3, obstacleMax:2, background:'spring' },
+    { area:'spring', from:61, to:70, spots:[10,12], pathLimit:7, rareRate:.25, forestRate:.20, obstacleChance:.4, obstacleMax:3, background:'spring' },
 ];
 export const FOREST_MEAL_LEVELS = [
     { from:1, to:3, obstacleSkip:1, emptyHints:1, pathReduction:1, rareBonus:0 },

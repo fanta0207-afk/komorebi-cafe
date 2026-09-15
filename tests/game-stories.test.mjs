@@ -2041,7 +2041,7 @@ test('free zero-energy return has no basket limit, while deep forest keeps its e
  let locked=revealPath(forestReady(42,50));locked.forest.returns=0;locked.forest.expedition.layer.obstacleRemaining=0;
  assert.equal(reducer(locked,{type:'FOREST_MOVE',floor:50,now:1000}),locked);assert.equal(forestModel.canStartForest({...locked,forest:{...locked.forest,checkpoints:[50]}},51),false);
 });
-test('natural forest rare rates are 15 and 25 percent, meal bonus caps at 5, and empty outcomes remain',()=>{
+test('rare shares of successful natural finds are 15 and 25 percent, meal bonus caps at 5, and empty outcomes remain',()=>{
  for(const [floor,bonus,expected] of [[51,0,.15],[61,0,.25],[61,.05,.30]]){
   let rare=0,total=0,empty=0;
   for(let seed=0;seed<2500;seed++){
@@ -2049,7 +2049,7 @@ test('natural forest rare rates are 15 and 25 percent, meal bonus caps at 5, and
    const layer=forestModel.createForestLayer(s,floor,seed,meal);
    for(const p of layer.spots.filter(p=>p.kind!=='box')){total++;rare+=p.food.some(id=>['forestHoney','forestMoonBerry'].includes(id));empty+=!p.food.length;}
   }
-  assert.ok(Math.abs(rare/total-expected)<.018,`${floor}: ${rare/total}`);assert.ok(empty>0);
+  assert.ok(Math.abs(rare/total-forestData.FOREST_CONFIG.findChance*expected)<.009,`${floor}: ${rare/total}`);assert.ok(empty>0);
  }
  let s=forestReady();s.lifetimeStats.recipeSales.forestSecretMilk=160;assert.equal(forestModel.forestMeal('forestSecretMilk',s).rareBonus,.05);
  for(let seed=0;seed<100;seed++)assert.ok(forestReady(seed,21).forest.expedition.layer.spots.every(p=>!p.food.some(id=>['forestHoney','forestMoonBerry'].includes(id))));
@@ -2115,8 +2115,20 @@ test('ordinary forest ingredients are scarce even in early layers, while common 
    total++;forest+=spot.food.some(id=>id.startsWith('forest')&&!['forestHoney','forestMoonBerry'].includes(id));common+=spot.food.some(id=>!id.startsWith('forest'));empty+=!spot.food.length;
    if(spot.food.some(id=>id.startsWith('forest')))assert.equal(spot.food.length,1);
   }
-  assert.ok(Math.abs(forest/total-expected)<.015,`${floor}: ${forest/total}`);assert.ok(common>0&&empty>0);
+  assert.ok(Math.abs(forest/total-forestData.FOREST_CONFIG.findChance*expected)<.007,`${floor}: ${forest/total}`);assert.ok(common>0&&empty>0);
  }
+});
+test('seventy gathers average about fifteen food items and one to two supply tickets',()=>{
+ let food=0,tickets=0,gathers=0;
+ for(let run=0;run<1200;run++){
+  let remaining=70;
+  for(let floor=1;remaining>0;floor++){
+   const spots=forestModel.createForestLayer(forestReady(run),((floor-1)%70)+1,run*100+floor).spots.slice(0,remaining);
+   for(const spot of spots){food+=spot.food.length;tickets+=spot.tickets;gathers++;}
+   remaining-=spots.length;
+  }
+ }
+ assert.equal(gathers,84000);assert.ok(food/1200>14&&food/1200<16,`${food/1200} food`);assert.ok(tickets/1200>1&&tickets/1200<2,`${tickets/1200} tickets`);
 });
 test('ticket settles exactly one entire delivery, never double consumes or affects unrelated supplies',()=>{
  let s=forestReady();s.forest.tickets=2;s.deliveries=[{id:'one',ingredientId:'bread',packs:20,servingsPerPack:5,orderedAt:1000,arrivesAt:10000},{id:'two',ingredientId:'milk',packs:1,servingsPerPack:5,orderedAt:1000,arrivesAt:10000}];
@@ -2137,7 +2149,7 @@ test('sharing boxes stay rare, at most one per layer, and are the only source of
   assert.ok(spots.filter(p=>p.kind==='box').length<=1);
   for(const p of spots){total++;if(p.kind==='box'){boxes++;coins+=p.coins>0;tickets+=p.tickets;}else assert.equal(p.coins+p.tickets,0);}
  }
- assert.ok(boxes/total>.05&&boxes/total<.09);assert.ok(Math.abs(coins/boxes-.3)<.025);assert.ok(Math.abs(tickets/boxes-.1)<.02);
+ assert.ok(boxes/total>.05&&boxes/total<.09);assert.ok(Math.abs(coins/boxes-.3)<.025);assert.ok(Math.abs(tickets/boxes-.3)<.025);
  assert.equal(forestModel.forestCoinAmount(0),50);assert.equal(forestModel.forestCoinAmount(1-Number.EPSILON),2000);
 });
 

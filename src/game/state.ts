@@ -23,7 +23,8 @@ import { characterGiftResponse } from "./conversation";
 import { availableEvent, availableStaffStory, createCharacterProgress, growthRequirements, hiddenRecipeRewards, initialRecipeIds, giftAffectionAmount, giftReaction, relationshipRequirementTargets } from "./logic";
 
 export type Action = ForestAction
-
+  | {type:"FINISH_PROLOGUE"}
+  | {type:"FINISH_ONBOARDING"}
   | {type:"BUY_TABLE"; expectedCount:number}
   | {type:"MISSION_VIEW"; place:MissionPlace}
   | {type:"CLAIM_MISSION"; missionId:string}
@@ -69,6 +70,7 @@ const emptyLifetimeStats = () => ({recipeSales:{},ingredientPurchases:{},tagSale
 export function createInitialState(now=Date.now()):GameState {
   const condition=conditionForDay(1);
   return {
+    onboardingStage:"prologue",
     forest:emptyForest(),
     tableCount:1,
     missions:emptyMissions(),
@@ -147,6 +149,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       && !characterProgress[pending.characterId].viewedGiftReactions.includes(pending.reaction)?pending:undefined;
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
+      onboardingStage:savedVersion>=25&&(saved.onboardingStage==="prologue"||saved.onboardingStage==="mission"||saved.onboardingStage==="complete")?saved.onboardingStage:"complete",
       forest:recoverForest({...emptyForest(now),...saved.forest},now),
       tableCount:previousTables,
       missions:{...emptyMissions(),...saved.missions,
@@ -249,6 +252,8 @@ export function reducer(state:GameState, action:Action):GameState {
 
 function reduceAction(state:GameState, action:Action):GameState {
   switch(action.type) {
+    case "FINISH_PROLOGUE": return state.onboardingStage==="prologue"?{...state,onboardingStage:"mission"}:state;
+    case "FINISH_ONBOARDING": return state.onboardingStage!=="complete"?{...state,onboardingStage:"complete"}:state;
     case "CLAIM_MISSION": return claimMission(state,action.missionId);
     case "CLAIM_SIDE_MISSION": return claimSideMission(state,action.missionId);
     case "MISSION_VIEW": {

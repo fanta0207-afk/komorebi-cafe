@@ -6,7 +6,7 @@ import { GAME_CONFIG } from "./config";
 import { randomShopItems } from "./logic";
 import { createInitialState, loadState, reducer, type Action } from "./state";
 
-interface GameContextValue { state:GameState; dispatch:Dispatch<Action>; refreshGiftShop:(costAction?:boolean)=>void; resetGame:()=>void; }
+interface GameContextValue { state:GameState; hydrated:boolean; dispatch:Dispatch<Action>; refreshGiftShop:(costAction?:boolean)=>void; resetGame:()=>void; }
 const GameContext=createContext<GameContextValue|null>(null);
 
 export function GameProvider({children}:{children:ReactNode}) {
@@ -26,7 +26,7 @@ export function GameProvider({children}:{children:ReactNode}) {
   useEffect(()=>{
     if(!hydrated)return;
     try{window.localStorage.setItem(GAME_CONFIG.saveKey,JSON.stringify({...stateRef.current,notice:undefined,offlineOffer:0}));setSaveError(false);}catch{setSaveError(true);}
-  },[hydrated,state.forest,state.inventory,state.characterProgress,state.giftShopItems,state.giftShopSoldOut,state.giftShopAutoRefreshAt,state.giftShopRefreshDay,state.giftShopManualRefreshes]);
+  },[hydrated,state.onboardingStage,state.forest,state.inventory,state.characterProgress,state.giftShopItems,state.giftShopSoldOut,state.giftShopAutoRefreshAt,state.giftShopRefreshDay,state.giftShopManualRefreshes]);
   useEffect(()=>{
     if (!state.notice) return;
     const timer=window.setTimeout(()=>dispatch({type:"CLEAR_NOTICE"}),2200);
@@ -41,11 +41,11 @@ export function GameProvider({children}:{children:ReactNode}) {
   useEffect(()=>{
     if(!hydrated)return;
     let previous=performance.now();
-    const timer=window.setInterval(()=>{const now=performance.now();const deltaMs=now-previous;previous=now;if(document.visibilityState==="visible")dispatch({type:"TICK",deltaMs});},100);
+    const timer=window.setInterval(()=>{const now=performance.now();const deltaMs=now-previous;previous=now;if(document.visibilityState==="visible"&&stateRef.current.onboardingStage!=="prologue")dispatch({type:"TICK",deltaMs});},100);
     const reset=()=>{previous=performance.now();};document.addEventListener("visibilitychange",reset);
     return ()=>{window.clearInterval(timer);document.removeEventListener("visibilitychange",reset);};
   },[hydrated]);
-  const value=useMemo(()=>({ state,dispatch,refreshGiftShop:(costAction=true)=>dispatch({type:"REFRESH_SHOP",items:randomShopItems(),costAction}),resetGame }),[state,resetGame]);
+  const value=useMemo(()=>({ state,hydrated,dispatch,refreshGiftShop:(costAction=true)=>dispatch({type:"REFRESH_SHOP",items:randomShopItems(),costAction}),resetGame }),[state,hydrated,resetGame]);
   return <GameContext.Provider value={value}>{saveError&&<div className="save-warning" role="alert">端末に保存できません。保存領域をご確認ください。</div>}{children}</GameContext.Provider>;
 }
 

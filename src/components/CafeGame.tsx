@@ -25,6 +25,7 @@ import { MenuScreen } from "../screens/MenuScreen";
 import { StaffScreen } from "../screens/StaffScreen";
 import { useCafeManager } from "./cafe/useCafeManager";
 import { MissionGuide } from "./MissionGuide";
+import { Prologue } from "./Prologue";
 import type { MissionDestination } from "../game/missions";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
@@ -32,7 +33,7 @@ type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplie
 export default function CafeGame(_props:{publicBuild?:boolean}={}) { return <GameProvider><GameContent/></GameProvider>; }
 
 function GameContent() {
-  const {state,dispatch,refreshGiftShop,resetGame}=useGame();
+  const {state,hydrated,dispatch,refreshGiftShop,resetGame}=useGame();
   const cafeManager=useCafeManager(state,dispatch);
   const [screen,setScreen]=useState<Screen>("cafe");
   const [supplierId,setSupplierId]=useState<string>();
@@ -77,6 +78,7 @@ function GameContent() {
     if(screen==="character"&&characterId==="ren")dispatch({type:"MISSION_VIEW",place:"ren"});
   },[screen,characterId,dispatch]);
   const missionGo=(destination:MissionDestination)=>{
+    if(state.onboardingStage==="mission")dispatch({type:"FINISH_ONBOARDING"});
     if(destination==="orders"||destination==="inventory"){navigate("cafe");setCafePanel({page:destination,nonce:Date.now()});}
     else if(destination==="coffee"||destination==="bakery"||destination==="ranch"||destination==="patisserie"||destination==="chocolaterie")openSupplier(destination);
     else if(destination==="ren"){
@@ -86,14 +88,15 @@ function GameContent() {
     else navigate(destination);
   };
 
-  const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo}/>:undefined;
+  const missionTutorial=hydrated&&screen==="cafe"&&state.onboardingStage==="mission"&&!devOpen&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction;
+  const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo} tutorial={missionTutorial} onTutorialSkip={()=>dispatch({type:"FINISH_ONBOARDING"})}/>:undefined;
   const resetGameAndUi=()=>{
     resetGame();setScreen("cafe");setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);setMenuTab("equipment");
     setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setEventPage(0);setDevOpen(false);
   };
   // 画面を切り替えるたびに表示領域ごと入れ替え、前画面の画像が一瞬残るのを防ぐ。
   const screenKey=`${screen}:${supplierId||""}:${characterId||""}`;
-  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":screen==="forest"?"forest-shell":""}`}>
+  return <main className={`game-shell ${screen==="cafe"?"cafe-shell":screen==="forest"?"forest-shell":""}${missionTutorial?" is-mission-tutorial":""}`}>
     {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
     {(screen==="cafe"||screen==="forest")&&<button className="dev-trigger dev-trigger-floating" onClick={()=>setDevOpen(true)} aria-label="開発メニュー">⚙</button>}
     <div key={screenKey} className="screen-wrap">
@@ -121,6 +124,7 @@ function GameContent() {
       reaction={state.pendingGiftReaction}
       onClose={()=>{const reaction=state.pendingGiftReaction!;dispatch({type:"CLOSE_GIFT_REACTION",characterId:reaction.characterId,reaction:reaction.reaction});}}
     />}
+    {hydrated&&state.onboardingStage==="prologue"&&<Prologue onComplete={()=>dispatch({type:"FINISH_PROLOGUE"})}/>}
     {event&&<StoryModal
       key={event.id}
       event={event}

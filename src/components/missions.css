@@ -1,4 +1,23 @@
 .mission-launcher { position:relative; min-height:44px; padding:8px 12px; border:1px solid var(--mission-border); border-radius:5px; background:var(--mission-paper); color:var(--mission-green); font-size:14px; font-weight:700; white-space:nowrap; cursor:pointer; pointer-events:auto; }
+.mission-launcher-anchor,.mission-tutorial-anchor { position:relative; }
+.mission-tutorial-shade { position:fixed; z-index:1000; inset:0; background:#1b140fc7; }
+.game-shell.is-mission-tutorial .cafe-hud { z-index:1002; }
+.game-shell.is-mission-tutorial .cafe-hud .cafe-wallet,.game-shell.is-mission-tutorial .cafe-hud .scene-kitchen-entry,.game-shell.is-mission-tutorial .cafe-hud .cafe-hud-right { opacity:.28; pointer-events:none; }
+.mission-launcher.mission-tutorial-target { min-height:52px; padding:10px 15px; border:2px solid #ffe9ad; border-radius:12px; background:linear-gradient(145deg,#795532,#53351e); color:#fff7e5; box-shadow:0 0 0 5px #fff7d43d,0 0 26px #ffe4a2c9,0 5px 14px #22140f; font-size:16px; touch-action:manipulation; animation:mission-tutorial-pulse 2.2s ease-in-out infinite; }
+.mission-launcher.mission-tutorial-target:active { transform:scale(.97); }
+.mission-tutorial-tip { position:absolute; top:calc(100% + 20px); left:0; width:min(300px,calc(100vw - 32px)); padding:18px 18px 10px; border:1px solid #dbbc84; border-radius:16px; background:#fff8e9; color:#392c25; box-shadow:0 12px 30px #170e0d9e,inset 0 0 0 3px #fffefa; pointer-events:auto; }
+.mission-tutorial-tip::before { content:""; position:absolute; top:-9px; left:36px; width:16px; height:16px; transform:rotate(45deg); border-top:1px solid #dbbc84; border-left:1px solid #dbbc84; background:#fff8e9; }
+.mission-tutorial-tip>span { display:block; color:#7a582e; font-size:14px; font-weight:800; }
+.mission-tutorial-tip strong { display:block; margin:4px 0 0; color:#2c513c; font-size:22px; line-height:1.4; }
+.mission-tutorial-tip p { margin:5px 0 6px; font-size:15px; line-height:1.6; }
+.mission-tutorial-tip button { display:block; min-height:44px; margin-left:auto; padding:8px 0 8px 12px; border:0; background:transparent; color:#7a6248; font-size:14px; font-weight:700; cursor:pointer; }
+.mission-tutorial-note { margin:0 0 12px; padding:12px 14px; border:1px solid #b8d0ae; border-radius:11px; background:#e9f1df; color:#2e4f3d; }
+.mission-tutorial-note span { font-size:14px; font-weight:800; }
+.mission-tutorial-note p { margin:4px 0 0; font-size:15px; line-height:1.5; }
+.mission-notebook li.mission-tutorial-first { border:2px solid #507a5c; background:#fffef6; box-shadow:0 0 0 4px #dcead0; }
+.mission-tutorial-first .mission-go { border-color:#244e39; background:#315b43; color:white; box-shadow:0 3px 0 #203f2f; }
+.mission-tutorial-first .mission-go:active { transform:translateY(2px); box-shadow:0 1px 0 #203f2f; }
+@keyframes mission-tutorial-pulse { 0%,100% { box-shadow:0 0 0 5px #fff7d43d,0 0 20px #ffe4a2b0,0 5px 14px #22140f; } 50% { box-shadow:0 0 0 8px #fff7d450,0 0 34px #ffe4a2e0,0 5px 14px #22140f; } }
 .cafe-hud .mission-launcher { background:#51371deb; border-color:#dab47b; color:#fff0ce; box-shadow:0 2px 5px #33201344,inset 0 0 0 3px #bd99602e; }
 .mission-launcher-label { position:relative; z-index:1; }
 .mission-launcher.mission-ready { border-color:#f0cc7d; background:linear-gradient(145deg,#735025,#a97835 52%,#715024); color:#fff9e7; box-shadow:0 0 0 2px #fff0bf,0 0 15px #eebc66aa,0 4px 10px #442b1c55,inset 0 1px 0 #fff3c766; }
@@ -18,6 +37,7 @@
 @keyframes mission-ready-twinkle { 0%,100% { opacity:.25; transform:scale(.6) rotate(-20deg); } 48% { opacity:1; transform:scale(1.15) rotate(20deg); } }
 @keyframes mission-ready-badge { 0%,100% { transform:scale(1); } 50% { transform:scale(1.12); } }
 @media (prefers-reduced-motion:reduce) { .mission-launcher.mission-ready::after,.mission-ready-sparkles span,.mission-ready .mission-badge { animation:none; } .mission-launcher.mission-ready::after { opacity:.45; } .mission-ready-shine { display:none; } .mission-ready-sparkles span { opacity:1; } }
+@media (prefers-reduced-motion:reduce) { .mission-launcher.mission-tutorial-target { animation:none; } }
 .date-lockup.with-mission { flex-direction:column; align-items:flex-start; gap:3px; }
 .mission-total { font-size:14px; margin:0; }
 .mission-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 8px; }

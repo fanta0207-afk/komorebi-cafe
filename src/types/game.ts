@@ -59,6 +59,7 @@ export interface TownDailyEvent { id:string; name:string; icon:string; descripti
 export interface DailyCondition { weatherId:string; customerGroupId:string; dailyEventId:string; }
 
 export interface GameState {
+  onboardingStage:"prologue"|"mission"|"complete";
   forest:ForestState;
   pendingGiftReaction?:GiftReactionPopup;
   tableCount:number;

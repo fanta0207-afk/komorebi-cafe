@@ -37,6 +37,20 @@ const {missions,missionChapters,sideMissions,getMissions,sortedMissions,missionR
 const {salePrice,ingredientCost,pickIncomingOrder,availableGrowthEvent}=require(join(output,'game/logic.js'));
 const {menuMastery,menuCatalogProgress,recipesAtMasteryLevel}=require(join(output,'game/menuMastery.js'));
 
+test('a new cafe starts with the prologue, remembers tutorial progress, and does not interrupt older saves',()=>{
+  const fresh=createInitialState(1000);
+  assert.equal(fresh.onboardingStage,'prologue');
+  assert.equal(migrateSavedState(JSON.parse(JSON.stringify(fresh)),1000).onboardingStage,'prologue');
+  const inTutorial=reducer(fresh,{type:'FINISH_PROLOGUE'});
+  assert.equal(inTutorial.onboardingStage,'mission');
+  assert.equal(migrateSavedState(JSON.parse(JSON.stringify(inTutorial)),1000).onboardingStage,'mission');
+  const finished=reducer(inTutorial,{type:'FINISH_ONBOARDING'});
+  assert.equal(finished.onboardingStage,'complete');
+  assert.equal(reducer(finished,{type:'FINISH_PROLOGUE'}),finished);
+  const older={...fresh,saveVersion:24};delete older.onboardingStage;
+  assert.equal(migrateSavedState(older,1000).onboardingStage,'complete');
+});
+
 const {receiveSupplies,procurementRate,procurementQuote,supplyPackSize,requestStaffSupply,runAutoProcurement}=require(join(output,'game/procurement.js'));
 const {autoProcurementUnlocked}=require(join(output,'game/automation.js'));
 const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;
@@ -2133,7 +2147,7 @@ test('all forest dishes begin secret, unlock only at three fragments, and each b
 });
 test('v23 migration relocks forest dishes whose fragments are incomplete',()=>{
  let s=forestReady();s.saveVersion=23;s.forest.fragments={forestBerrySoda:2,forestPetalTea:3};s.unlockedRecipes=[...s.unlockedRecipes,'forestBerrySoda','forestPetalTea'];
- s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.ok(!s.unlockedRecipes.includes('forestBerrySoda'));assert.ok(s.unlockedRecipes.includes('forestPetalTea'));assert.equal(s.saveVersion,24);
+ s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.ok(!s.unlockedRecipes.includes('forestBerrySoda'));assert.ok(s.unlockedRecipes.includes('forestPetalTea'));assert.equal(s.saveVersion,GAME_CONFIG.saveVersion);
 });
 test('DEV forest recovery fills energy during and outside an expedition',()=>{
  let s=forestReady();s.forest.energy=0;s=reducer(s,{type:'DEV_FOREST_ENERGY'});assert.equal(s.forest.energy,70);assert.ok(s.forest.expedition);

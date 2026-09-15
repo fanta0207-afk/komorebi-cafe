@@ -7,12 +7,16 @@ import { activeMissionChapter, activeSideMissions, missionChapters, sortedMissio
 
 const destinations:Record<MissionDestination,string>={orders:"注文ノートへ",inventory:"在庫を開く",town:"街へ",forest:"森の入口へ",coffee:"蓮のお店へ",bakery:"太陽のお店へ",ranch:"牧のお店へ",patisserie:"アールのお店へ",chocolaterie:"カカオのお店へ",gifts:"ギフトのお店へ",ren:"蓮の人物ページへ",recipes:"料理一覧へ",equipment:"設備を見る",people:"人物一覧へ",staff:"スタッフへ"};
 
-export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void}) {
+export function MissionGuide({onGo,tutorial=false,onTutorialSkip}:{onGo:(destination:MissionDestination)=>void;tutorial?:boolean;onTutorialSkip?:()=>void}) {
   const {state}=useGame();
   const [open,setOpen]=useState(false);
+  const launcherRef=useRef<HTMLButtonElement>(null);
+  useEffect(()=>{if(tutorial&&!open)launcherRef.current?.focus();},[tutorial,open]);
   const done=sortedMissions(state).some(m=>missionRank(state,m)===0)||activeSideMissions(state).some(m=>m.value(state)>=m.target);
   return <>
-    <button type="button" className={`mission-launcher${done?" mission-ready":""}`} onClick={()=>setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={done?"ミッションを開く・受け取れる報酬があります":"ミッションを開く"}>
+    {tutorial&&!open&&createPortal(<div className="mission-tutorial-shade" aria-hidden="true"/>,document.body)}
+    <div className={tutorial&&!open?"mission-tutorial-anchor":"mission-launcher-anchor"}>
+    <button ref={launcherRef} type="button" className={`mission-launcher${done?" mission-ready":""}${tutorial&&!open?" mission-tutorial-target":""}`} onClick={()=>setOpen(true)} aria-haspopup="dialog" aria-expanded={open} aria-label={done?"ミッションを開く・受け取れる報酬があります":"ミッションを開く"}>
       <span className="mission-launcher-label"><span aria-hidden="true">☑</span> ミッション</span>
       {done&&<>
         <span className="mission-ready-shine" aria-hidden="true"/>
@@ -20,11 +24,13 @@ export function MissionGuide({onGo}:{onGo:(destination:MissionDestination)=>void
         <span className="mission-badge" aria-hidden="true">!</span>
       </>}
     </button>
-    {open&&createPortal(<MissionNotebook onClose={()=>setOpen(false)} onGo={destination=>{setOpen(false);onGo(destination);}}/>,document.body)}
+    {tutorial&&!open&&<div className="mission-tutorial-tip" role="status"><span>最初の一歩</span><strong>ミッションをタップ！</strong><p>次にやることを、ここで確認できます。</p><button type="button" onClick={onTutorialSkip}>案内を閉じる</button></div>}
+    </div>
+    {open&&createPortal(<MissionNotebook tutorial={tutorial} onClose={()=>setOpen(false)} onGo={destination=>{setOpen(false);onGo(destination);}}/>,document.body)}
   </>;
 }
 
-function MissionNotebook({onClose,onGo}:{onClose:()=>void;onGo:(destination:MissionDestination)=>void}) {
+function MissionNotebook({onClose,onGo,tutorial}:{onClose:()=>void;onGo:(destination:MissionDestination)=>void;tutorial:boolean}) {
   const {state,dispatch}=useGame();
   const ref=useRef<HTMLDialogElement>(null);
   const celebrationButtonRef=useRef<HTMLButtonElement>(null);
@@ -54,12 +60,13 @@ function MissionNotebook({onClose,onGo}:{onClose:()=>void;onGo:(destination:Miss
     </div>:<>
     <header><div><h2 id="mission-title">ミッション</h2>{chapter&&<span>ステップ {chapterIndex+1} / {missionChapters.length}</span>}</div><button onClick={onClose} aria-label="ミッションを閉じる">×</button></header>
     <div className="mission-scroll">
+    {tutorial&&<div className="mission-tutorial-note"><span>まずはこれから</span><p>「街へ行く」の<strong>街へ →</strong>を押してみよう。</p></div>}
     {chapter?<><p className="mission-total" aria-live="polite">この3つを達成すると次へ進みます · 受取可能 {ready}件</p>
     <ol>{list.map(mission=>{
       const claimed=state.missions.claimed.includes(mission.id),done=state.missions.completed.includes(mission.id);
       const value=done?mission.target:Math.max(0,Math.min(mission.target,mission.value(state)));
       const rank=missionRank(state,mission);
-      return <li key={mission.id} data-mission-id={mission.id} data-mission-status={rank} className={`${done&&!claimed?"mission-active":""} ${claimed?"mission-claimed":""}`}>
+      return <li key={mission.id} data-mission-id={mission.id} data-mission-status={rank} className={`${done&&!claimed?"mission-active":""} ${claimed?"mission-claimed":""} ${tutorial&&mission.id==="visit-town"?"mission-tutorial-first":""}`}>
         <article>
           <h3>{mission.title}</h3>
           {!done&&mission.hint&&<p className="mission-hint"><strong>達成条件</strong><span>{mission.hint}</span></p>}

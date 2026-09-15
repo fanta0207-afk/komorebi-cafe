@@ -1,0 +1,25 @@
+.prologue-dialog { position:fixed; inset:0; width:min(100%,430px); height:100dvh; max-width:none; max-height:none; margin:auto; padding:0; border:0; overflow:hidden; color:#fff7e5; background:#342419; isolation:isolate; }
+.prologue-dialog[open] { display:flex; flex-direction:column; justify-content:space-between; }
+.prologue-dialog::backdrop { background:#1e1715d9; }
+.prologue-room { position:absolute; z-index:-2; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
+.prologue-vignette { position:absolute; z-index:-1; inset:0; background:linear-gradient(180deg,#241a17d8 0%,#241a1755 30%,#241a1740 53%,#211812eb 100%); }
+.prologue-heading { position:relative; padding:calc(max(24px,env(safe-area-inset-top)) + 20px) 24px 0; }
+.prologue-heading>span { display:block; color:#f0d69a; font-size:14px; font-weight:700; letter-spacing:.08em; text-shadow:0 2px 8px #1d130f; }
+.prologue-heading h2 { margin:8px 0 0; font:800 clamp(29px,9vw,38px)/1.25 "Yu Mincho","Hiragino Mincho ProN",serif; letter-spacing:.1em; text-shadow:0 2px 12px #1d130f; }
+.prologue-skip { position:absolute; top:max(14px,env(safe-area-inset-top)); right:16px; min-height:44px; padding:8px 12px; border:1px solid #eed7ab8c; border-radius:999px; background:#2d211bd9; color:#fff4dc; font-size:14px; font-weight:700; cursor:pointer; }
+.prologue-panel { display:flex; flex-direction:column; max-height:calc(100dvh - 120px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); margin:0 14px calc(max(14px,env(safe-area-inset-bottom)) + 12px); padding:18px 18px 20px; border:1px solid #eed4a3; border-radius:18px; background:linear-gradient(150deg,#fffaf1,#f2e7d0); color:#392c25; box-shadow:0 16px 34px #1c120fb3,inset 0 0 0 3px #fffdf699; }
+.prologue-progress { display:flex; align-items:center; gap:7px; height:8px; margin-bottom:16px; }
+.prologue-progress span { width:8px; height:8px; border-radius:999px; background:#c9bb9e; transition:width .2s ease,background .2s ease; }
+.prologue-progress span.is-current { width:22px; background:#7b6641; }
+.prologue-progress span.is-done { background:#7b6641; }
+.prologue-line { min-height:min(158px,30dvh); overflow-y:auto; overscroll-behavior:contain; animation:prologue-line-in .22s ease-out; }
+.prologue-speaker { display:inline-block; min-width:62px; padding:5px 11px; border-radius:7px; background:#47624b; color:#fff9e8; font-size:14px; font-weight:800; }
+.prologue-speaker.is-grandmother { background:#8d614d; }
+.prologue-line p { margin:12px 0 18px; font-size:clamp(16px,4.2vw,18px); font-weight:600; line-height:1.85; }
+.prologue-next { flex:none; width:100%; min-height:54px; display:flex; align-items:center; justify-content:center; gap:14px; border:1px solid #254638; border-radius:13px; background:linear-gradient(#416a53,#294a3b); color:#fffdf1; box-shadow:0 4px 0 #1d382b; font-size:17px; font-weight:800; cursor:pointer; touch-action:manipulation; }
+.prologue-next span { font-size:21px; line-height:1; }
+.prologue-next:active { transform:translateY(3px); box-shadow:0 1px 0 #1d382b; }
+.prologue-next:focus-visible,.prologue-skip:focus-visible { outline:3px solid #f5c45f; outline-offset:3px; }
+@keyframes prologue-line-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@media (max-height:600px) { .prologue-heading { padding-top:calc(max(16px,env(safe-area-inset-top)) + 14px); } .prologue-heading h2 { font-size:26px; } .prologue-panel { padding:14px; } .prologue-line { min-height:120px; } .prologue-line p { margin-bottom:10px; line-height:1.65; } }
+@media (prefers-reduced-motion:reduce) { .prologue-line { animation:none; } .prologue-progress span { transition:none; } }

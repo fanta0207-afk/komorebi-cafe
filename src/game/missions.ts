@@ -1,6 +1,7 @@
 import { characters } from "../data/characters";
 import { growthEvents } from "../data/growthEvents";
 import { recipes } from "../data/recipes";
+import { forestRecipes } from "../data/forest";
 import { dateEvents } from "../data/dates";
 import { getEquipment } from "../data/equipment";
 import { getSupplier } from "../data/suppliers";
@@ -27,6 +28,10 @@ const hired=(s:GameState,id:string)=>yes(s.staff.some(person=>person.characterId
 const installed=(s:GameState,id:string)=>s.stations.filter(station=>station.equipmentId===id).length;
 const stationLevel=(s:GameState,id:string)=>Math.max(0,...s.stations.filter(station=>station.equipmentId===id).map(station=>station.level));
 const dated=(s:GameState,id:string)=>yes(s.viewedDateEvents.includes(id));
+const forestFragments=(s:GameState)=>Object.values(s.forest.fragments).reduce((sum,count)=>sum+count,0)+Object.keys(s.forest.expedition?.fragments||{}).length;
+const forestRecipesFound=(s:GameState)=>Object.values(s.forest.fragments).filter(count=>count>=3).length;
+const forestRecipesCooked=(s:GameState)=>new Set([...(s.forest.cookedRecipes||[]),...Object.keys(s.forest.dishes).filter(id=>s.forest.dishes[id]>0),...s.orders.filter(order=>order.forestReserved).map(order=>order.recipeId),...recipes.filter(recipe=>recipe.forest&&(s.lifetimeStats.recipeSales[recipe.id]||0)>0).map(recipe=>recipe.id)]).size;
+const forestRecipesServed=(s:GameState)=>forestRecipes.filter(recipe=>(s.lifetimeStats.recipeSales[recipe.id]||0)>0).length;
 const add=(id:string,title:string,hint:string,reward:number,destination:MissionDestination,value:Mission["value"],target=1):Mission=>({id,chapter:"",title,hint,reward,destination,value,target});
 const supplierName=(characterId:string)=>getSupplier(characters.find(item=>item.id===characterId)!.supplierId)!.name;
 const relationshipHint=()=>"ギフトをあげて、好感度をあげよう";
@@ -112,6 +117,37 @@ const coreEquipment:Mission[]=[
   add("install-second-coffee-counter","コーヒーカウンターを2台にする","",250,"equipment",s=>installed(s,"coffeeCounter"),2),
 ];
 
+const forestTrail1:Mission[]=[
+  add("forest-floor-10","森の10層へ到達","小道を見つけて奥へ",30,"forest",s=>s.forest.deepestFloor,10),
+  add("forest-fragment-1","秘密のレシピの切れ端を1枚見つける","探索場所を調べる",30,"forest",forestFragments),
+  add("forest-floor-20","森の20層へ到達","10層到達後は11層から出発可能",40,"forest",s=>s.forest.deepestFloor,20),
+];
+const forestTrail2:Mission[]=[
+  add("forest-recipe-1","秘密のレシピを1品完成する","同じレシピの切れ端を3枚集める",60,"forest",forestRecipesFound),
+  add("forest-cook-1","限定料理を1品作る","森の手帳 → 限定料理",40,"forest",forestRecipesCooked),
+  add("forest-serve-1","限定料理を1品提供する","作って所持するとお客さんが来店",80,"orders",forestRecipesServed),
+];
+const forestTrail3:Mission[]=[
+  add("forest-floor-30","森の30層へ到達","20層到達後は21層から出発可能",50,"forest",s=>s.forest.deepestFloor,30),
+  add("forest-floor-40","森の40層へ到達","足取りの料理で障害を減らせる",70,"forest",s=>s.forest.deepestFloor,40),
+  add("forest-recipes-2","秘密のレシピを2品完成する","層帯ごとに違う切れ端が見つかる",100,"forest",forestRecipesFound,2),
+];
+const forestTrail4:Mission[]=[
+  add("forest-cook-2","限定料理を2種類作る","森の手帳 → 限定料理",80,"forest",forestRecipesCooked,2),
+  add("forest-serve-2","限定料理を2種類提供する","完成料理を所持して来店を待つ",120,"orders",forestRecipesServed,2),
+  add("forest-floor-50","森の50層へ到達","40層到達後は41層から出発可能",100,"forest",s=>s.forest.deepestFloor,50),
+];
+const forestTrail5:Mission[]=[
+  add("forest-floor-60","森の60層へ到達","深い森は持ち帰り5回・料理提供20皿で解放",150,"forest",s=>s.forest.deepestFloor,60),
+  add("forest-recipes-4","秘密のレシピを4品完成する","各10層帯の切れ端を集める",180,"forest",forestRecipesFound,4),
+  add("forest-serve-4","限定料理を4種類提供する","完成した料理を1品ずつ提供",200,"orders",forestRecipesServed,4),
+];
+const forestFinale:Mission[]=[
+  add("forest-floor-70","森の70層へ到達","60層到達後は61層から出発可能",300,"forest",s=>s.forest.deepestFloor,70),
+  add("forest-recipes-all","秘密のレシピを全7品完成する","七つの層帯で切れ端を集める",400,"forest",forestRecipesFound,7),
+  add("forest-serve-all","限定料理を全7種類提供する","森で見つけた全レシピをカフェへ",500,"orders",forestRecipesServed,7),
+];
+
 const growTogether=characters.flatMap(character=>{
   const event=growthEvents.find(item=>item.eventId===`${character.id}-growth4`)!;
   const item=getEquipment(event.rewards.equipmentIds![0])!;
@@ -153,7 +189,15 @@ const endings:Mission[]=[
   add("all-bonds","全員の好感度を10にする","",100,"people",s=>characters.filter(c=>relationship(s,c.id)>=10).length,characters.length),
 ];
 
-const roadmap=[...introduction,...earlyRenStaff,...coreEquipment,...meetAndBond,...staffProgression,...dates,...automation,...endings];
+const roadmap=[
+  ...introduction,...earlyRenStaff,...forestTrail1,
+  ...coreEquipment,...meetAndBond.slice(0,2),...forestTrail2,
+  ...meetAndBond.slice(2),...staffProgression.slice(0,1),...forestTrail3,
+  ...staffProgression.slice(1),...dates.slice(0,1),...forestTrail4,
+  ...dates.slice(1),...automation.slice(0,1),...forestTrail5,
+  ...automation.slice(1),...endings.slice(0,1),...forestFinale,
+  ...endings.slice(1),
+];
 if(roadmap.length%3!==0)throw new Error("Mission roadmap must be divisible into groups of three");
 export const missionChapters:MissionChapter[]=Array.from({length:roadmap.length/3},(_,index)=>{
   const number=index+1,title=index===roadmap.length/3-1?"最終目標":`ステップ ${number}`;

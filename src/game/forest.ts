@@ -18,7 +18,7 @@ export type ForestAction =
     | { type:'FOREST_SELL'|'FOREST_WITHDRAW'; recipeId:string; count?:number }
     | { type:'USE_SUPPLY_TICKET'; deliveryId:string; now?:number };
 
-export const emptyForest = (now=Date.now()):ForestState => ({ energy:C.maxEnergy, recoveredAt:now, nextId:1, returns:0, fragments:{}, discovered:[], crafted:[], tickets:0, dishes:{}, serveForestNext:true, deepestFloor:0, checkpoints:[] });
+export const emptyForest = (now=Date.now()):ForestState => ({ energy:C.maxEnergy, recoveredAt:now, nextId:1, returns:0, fragments:{}, discovered:[], crafted:[], cookedRecipes:[], tickets:0, dishes:{}, serveForestNext:true, deepestFloor:0, checkpoints:[] });
 export function recoverForest(f:ForestState, now:number):ForestState {
     if (f.expedition || !Number.isFinite(now) || now<=f.recoveredAt || f.energy>=C.maxEnergy) return f;
     const gained=Math.floor((now-f.recoveredAt)/C.recoveryMs);
@@ -235,7 +235,7 @@ export function reduceForest(state:GameState,a:ForestAction):GameState {
             if(!r||!canCookForestDish(state,r.id,count))return state;
             const stock={...state.ingredients};
             for(const id of r.requiredIngredients)stock[id]-=count;
-            return {...state,ingredients:stock,forest:{...f,dishes:{...f.dishes,[r.id]:(f.dishes[r.id]||0)+count},serveForestNext:true}};
+            return {...state,ingredients:stock,forest:{...f,dishes:{...f.dishes,[r.id]:(f.dishes[r.id]||0)+count},cookedRecipes:[...new Set([...f.cookedRecipes,r.id])],serveForestNext:true}};
         }
         case 'FOREST_SELL':
         case 'FOREST_WITHDRAW': return state;

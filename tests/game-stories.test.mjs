@@ -674,8 +674,8 @@ test('supplies are free, starter coffee is cheap, and later recipes earn more',(
   assert.equal(upgradePrice(createInitialState().stations[0]),450);
   const state=createInitialState();
   assert.equal(reducer(state,{type:'UPGRADE_EQUIPMENT',stationId:state.stations[0].id}),state);
-  assert.equal(missions.length,41+characters.length*11);
-  assert.equal(new Set(missions.map(m=>m.id)).size,129);
+  assert.equal(missions.length,59+characters.length*11);
+  assert.equal(new Set(missions.map(m=>m.id)).size,147);
   assert.ok(missions.every(m=>m.reward>0&&m.title.length<=30&&m.hint.length<=60),'mission copy stays short and uses hints only for unclear conditions');
   assert.equal(missions.find(mission=>mission.id==='beans-arrive').hint,'');
   assert.equal(missions.find(mission=>mission.id==='ren-growth2').hint,'蓮の好感度2以上\nコーヒー豆を累計2パック発注で発生');
@@ -683,7 +683,7 @@ test('supplies are free, starter coffee is cheap, and later recipes earn more',(
 });
 
 test('missions are generated in locked groups of three and later progress stays hidden',()=>{
-  assert.equal(missions.length,41+characters.length*11);
+  assert.equal(missions.length,59+characters.length*11);
   assert.equal(new Set(missions.map(m=>m.id)).size,missions.length);
   assert.ok(missionChapters.every(chapter=>chapter.missions.length===3));
   assert.deepEqual(missionChapters[2].missions.map(mission=>mission.id),['first-order','first-cook','first-serve']);
@@ -703,8 +703,19 @@ test('missions are generated in locked groups of three and later progress stays 
   assert.deepEqual(missionChapters[10].missions.map(mission=>mission.id),['chocolate-arrive','serve-mocha','chocolate-three']);
   assert.deepEqual(missionChapters[11].missions.map(mission=>mission.id),['bond3-ren','bond4-ren','hire-ren']);
   assert.deepEqual(missionChapters[12].missions.map(mission=>mission.id),['assign-ren-procurement','ren-first-staff-supply','install-prep-table']);
-  assert.deepEqual(missionChapters[13].missions.map(mission=>mission.id),['upgrade-toast-grill','upgrade-prep-table','upgrade-coffee-counter']);
-  assert.equal(missionChapters[14].missions[0].id,'install-second-coffee-counter');
+  assert.deepEqual(missionChapters[13].missions.map(mission=>mission.id),['forest-floor-10','forest-fragment-1','forest-floor-20']);
+  assert.deepEqual(missionChapters[14].missions.map(mission=>mission.id),['upgrade-toast-grill','upgrade-prep-table','upgrade-coffee-counter']);
+  assert.equal(missionChapters[15].missions[0].id,'install-second-coffee-counter');
+  const forestChapters=missionChapters.filter(chapter=>chapter.missions.every(mission=>mission.id.startsWith('forest-')));
+  assert.deepEqual(forestChapters.map(chapter=>chapter.missions.map(mission=>mission.id)),[
+    ['forest-enter','forest-gather','forest-bring-home'],
+    ['forest-floor-10','forest-fragment-1','forest-floor-20'],
+    ['forest-recipe-1','forest-cook-1','forest-serve-1'],
+    ['forest-floor-30','forest-floor-40','forest-recipes-2'],
+    ['forest-cook-2','forest-serve-2','forest-floor-50'],
+    ['forest-floor-60','forest-recipes-4','forest-serve-4'],
+    ['forest-floor-70','forest-recipes-all','forest-serve-all'],
+  ]);
   assert.deepEqual(missions.filter(mission=>mission.id.startsWith('hire-')).map(mission=>mission.id),['hire-ren','hire-second','hire-third','hire-fourth']);
   let state=createInitialState();
   assert.deepEqual(getMissions(state).map(m=>m.id),['visit-town','meet-ren','ren-story1']);
@@ -2190,6 +2201,15 @@ test('new forest missions recognize saved exploration while preserving existing 
  assert.equal(s.currency,1234);assert.deepEqual(s.missions.claimed,previous);
  assert.ok(['forest-enter','forest-gather','forest-bring-home'].every(id=>s.missions.completed.includes(id)));
  const again=migrateSavedState(JSON.parse(JSON.stringify(s)),Date.now());assert.equal(again.currency,1234);assert.deepEqual(again.missions,s.missions);
+});
+test('forest main missions use reached floors, completed recipes, cooked types and served types',()=>{
+ const byId=id=>missions.find(mission=>mission.id===id);let s=createInitialState();
+ s.forest.deepestFloor=60;s.forest.fragments={forestBerrySoda:3,forestPetalTea:3,forestSecretTea:3,forestMushroomToast:3};
+ s.forest.cookedRecipes=['forestBerrySoda'];s.forest.dishes.forestPetalTea=1;
+ s.lifetimeStats.recipeSales={forestBerrySoda:2,forestPetalTea:1,forestSecretTea:1,coffee:99};
+ assert.equal(byId('forest-floor-60').value(s),60);assert.equal(byId('forest-recipes-4').value(s),4);
+ assert.equal(byId('forest-cook-2').value(s),2);assert.equal(byId('forest-serve-4').value(s),3);
+ assert.equal(byId('forest-floor-70').target,70);assert.equal(byId('forest-recipes-all').target,7);assert.equal(byId('forest-serve-all').target,7);
 });
 
 

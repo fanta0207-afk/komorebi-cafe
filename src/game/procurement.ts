@@ -37,7 +37,7 @@ export function orderSupplies(state: GameState, ingredientId: string, packs = 1,
   // Settle overdue orders before checking the lane, including after a hidden tab.
   state = receiveSupplies(state, now);
   const quote = procurementQuote(state, ingredientId, packs, now, staffId);
-  if (quote.blocking) return { ...state, notice: { id: now, type: "info", text: `${getIngredient(quote.blocking.ingredientId)?.name}の入荷待ちです。同じ食材も追加発注できません。すべて入荷してから次の数量を指定してください` } };
+  if (quote.blocking) return { ...state, notice: { id: now, type: "info", text: `入荷待ち：${getIngredient(quote.blocking.ingredientId)?.name}` } };
   const servingsPerPack=supplyPackSize(state,ingredientId);
   const delivery: IngredientDelivery = { id: `supply-${now}-${state.deliveries.length}-${ingredientId}`, ingredientId, packs, servingsPerPack, ...(automatic?{automatic:true}:{}), ...(staffId?{staffId}:{}), orderedAt: now, arrivesAt: quote.arrivesAt };
   const staffName=staffId&&getCharacter(staffId)?.shortName;
@@ -46,7 +46,7 @@ export function orderSupplies(state: GameState, ingredientId: string, packs = 1,
       !automatic&&!staffId&&characters.find(person => person.id === id)?.supplierId === item.supplierId && progress.met ? { ...progress, affection: progress.affection + GAME_CONFIG.procurementAffection } : progress])),
     lifetimeStats: { ...state.lifetimeStats, staffProcurementOrders:state.lifetimeStats.staffProcurementOrders+(staffId?1:0), ingredientPurchases: { ...state.lifetimeStats.ingredientPurchases,
       [item.id]: (state.lifetimeStats.ingredientPurchases[item.id] || 0) + packs } },
-    notice: { id: now, type: "info", text: staffName?`${staffName}が「${item.name}」を仕入れに行きました`:`${item.name}を無料で${packs}パック発注。あと${deliveryCountdown(quote.arrivesAt, now)}で${packs * servingsPerPack}食分がまとめて届きます` } };
+    notice: { id: now, type: "info", text: staffName?`${staffName}が${item.name}${packs * servingsPerPack}食分を仕入れ中`:`${item.name}${packs * servingsPerPack}食分注文` } };
 }
 
 export function requestStaffSupply(state:GameState,orderId:string,ingredientId:string,staffId:string,now=Date.now(),automatic=false):GameState {
@@ -88,12 +88,13 @@ export function receiveSupplies(state: GameState, now: number): GameState {
   for (const delivery of arrived) stock[delivery.ingredientId] = (stock[delivery.ingredientId] || 0) + delivery.packs * delivery.servingsPerPack;
   const automaticPacks=arrived.filter(delivery=>delivery.automatic).reduce((sum,delivery)=>sum+delivery.packs,0);
   const newRecipes = findNewRecipes(stock, state.unlockedRecipes);
-  const names = [...new Set(arrived.map(item => getIngredient(item.ingredientId)?.name))].join("・");
+  const names = [...new Set(arrived.map(item => getIngredient(item.ingredientId)?.name).filter((name):name is string=>!!name))];
+  const arrivalText=names.length>2?`食材${names.length}種入荷`:`${names.join("・")}入荷`;
   return { ...state, missions:{...state.missions,receivedPacks},ingredients: stock, deliveries: state.deliveries.filter(item => item.arrivesAt > now),
     lifetimeStats:{...state.lifetimeStats,automaticPacks:state.lifetimeStats.automaticPacks+automaticPacks},
     unlockedRecipes: [...state.unlockedRecipes, ...newRecipes],
     dayNews: [...state.dayNews, ...newRecipes.map(id => `${getRecipe(id)?.name}を解放しました`)],
-    notice: { id: now, type: newRecipes.length ? "unlock" : "info", text: `${names}が入荷しました${newRecipes.length ? `！ ${newRecipes.map(id => getRecipe(id)?.name).join("・")}を解放` : ""}` } };
+    notice: { id: now, type: newRecipes.length ? "unlock" : "info", text: `${arrivalText}${newRecipes.length ? `・新料理${newRecipes.length}品解放` : ""}` } };
 }
 
 export function deliveryCountdown(arrivesAt: number, now: number) {

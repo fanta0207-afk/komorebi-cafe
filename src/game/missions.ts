@@ -236,14 +236,14 @@ export function claimMission(state:GameState,id:string):GameState {
   const mission=getMissions(state).find(m=>m.id===id);
   if(!mission||state.missions.claimed.includes(id)||!state.missions.completed.includes(id))return state;
   return {...state,currency:state.currency+mission.reward,missions:{...state.missions,claimed:[...state.missions.claimed,id]},
-    notice:{id:Date.now()+Math.random(),type:"coin",text:`ミッション達成！ +${mission.reward} コイン`}};
+    notice:{id:Date.now()+Math.random(),type:"coin",text:`ミッション報酬 +${mission.reward}コイン`}};
 }
 
 export function claimSideMission(state:GameState,id:string):GameState {
   const mission=activeSideMissions(state).find(item=>item.id===id);
   if(!mission||mission.value(state)<mission.target)return state;
   return {...state,currency:state.currency+mission.reward,missions:{...state.missions,sideClaimed:[...state.missions.sideClaimed,id]},
-    notice:{id:Date.now()+Math.random(),type:"coin",text:`サブミッション達成！ +${mission.reward} コイン`}};
+    notice:{id:Date.now()+Math.random(),type:"coin",text:`サブミッション報酬 +${mission.reward}コイン`}};
 }
 
 // Kept only to migrate old recurring mission save fields safely.

@@ -164,11 +164,13 @@ test('side missions continue through long-running order, revenue and gift milest
   assert.ok(next.slice(0,3).every(mission=>mission.reward>260));
 });
 
-test('menu mastery raises only that recipe price and catalog progress hides undiscovered secret recipes',()=>{
+test('menu mastery raises only that recipe price and catalog total includes undiscovered secret recipes',()=>{
   const initial=createInitialState();
   const initialCatalog=menuCatalogProgress(initial);
   assert.equal(initialCatalog.unlocked,initial.unlockedRecipes.length);
-  assert.equal(initialCatalog.total,recipes.filter(recipe=>!recipe.hidden).length);
+  assert.equal(initialCatalog.total,allRecipes.length);
+  assert.equal(initialCatalog.total,74);
+  assert.equal(allRecipes.filter(recipe=>recipe.hidden).length,9);
   assert.equal(menuMastery('coffee',initial).current.level,1);
   assert.equal(salePrice('coffee',initial),25);
 
@@ -181,7 +183,10 @@ test('menu mastery raises only that recipe price and catalog progress hides undi
 
   const hidden=recipes.find(recipe=>recipe.hidden);
   const discovered={...initial,unlockedRecipes:[...initial.unlockedRecipes,hidden.id]};
-  assert.deepEqual(menuCatalogProgress(discovered),{unlocked:initialCatalog.unlocked+1,total:initialCatalog.total+1,percent:Math.floor((initialCatalog.unlocked+1)/(initialCatalog.total+1)*100)});
+  assert.deepEqual(menuCatalogProgress(discovered),{unlocked:initialCatalog.unlocked+1,total:initialCatalog.total,percent:Math.floor((initialCatalog.unlocked+1)/initialCatalog.total*100)});
+  const devCatalog=menuCatalogProgress(reducer(initial,{type:'DEV_UNLOCK_ALL'}));
+  assert.equal(devCatalog.unlocked,recipes.length);
+  assert.equal(devCatalog.total,initialCatalog.total);
 });
 
 test('late relationship levels need increasingly more gifts while procurement grants only one affection per order',()=>{
@@ -978,14 +983,18 @@ test('legacy weather and trend fields no longer affect orders, prices or rotate 
 });
 
 test('bulk procurement scales with quantity and rejects further purchases until the complete batch arrives', () => {
+  const flour = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'flour', packs: 1, now: 1000 });
+  assert.equal(flour.notice.text, '小麦粉4食分注文');
   let state = reducer(isolated(), { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 3, now: 1000 });
+  assert.equal(state.notice.text, 'コーヒー豆12食分注文');
+  assert.doesNotMatch(state.notice.text, /パック|無料|あと|届きます/);
   assert.equal(state.currency, 3000);
   assert.equal(state.ingredients.coffeeBeans, 10);
   assert.equal(state.deliveries[0].arrivesAt, 181000);
   for (const now of [1000, 31000, 180999]) {
     const rejected = reducer(state, { type: 'BUY_INGREDIENT', ingredientId: 'coffeeBeans', packs: 2, now });
     for (const key of ['currency', 'ingredients', 'deliveries', 'characterProgress', 'lifetimeStats']) assert.deepEqual(rejected[key], state[key]);
-    assert.match(rejected.notice.text, /追加発注できません/);
+    assert.equal(rejected.notice.text, '入荷待ち：コーヒー豆');
   }
   state = migrateSavedState(JSON.parse(JSON.stringify(state)), 31000);
   assert.equal(procurementQuote(state, 'coffeeBeans', 2, 31000).blocking.id, state.deliveries[0].id);
@@ -1174,7 +1183,7 @@ test('procurement staff can be asked from an order and automate only missing ord
   assert.equal(state.deliveries[0].automatic,true);
   assert.equal(state.deliveries[0].servingsPerPack,5);
   assert.equal(state.deliveries[0].staffId,'ren');
-  assert.match(state.notice.text,/蓮が「コーヒー豆」を仕入れに行きました/);
+  assert.match(state.notice.text,/蓮がコーヒー豆\d+食分を仕入れ中/);
   const affection=state.characterProgress.ren.affection;
   state=receiveAll(state);
   assert.equal(state.lifetimeStats.automaticPacks,1);
@@ -1185,7 +1194,7 @@ test('procurement staff can be asked from an order and automate only missing ord
   const manualBase={...state,orders:[order('manual-supply','coffee')],ingredients:{coffeeBeans:0},deliveries:[],characterProgress:{...state.characterProgress,ren:{...state.characterProgress.ren,relationshipStage:8}}};
   const manual=requestStaffSupply(manualBase,'manual-supply','coffeeBeans','ren',2000,false);
   assert.equal(manual.deliveries[0].automatic,undefined);
-  assert.match(manual.notice.text,/蓮が「コーヒー豆」を仕入れに行きました/);
+  assert.match(manual.notice.text,/蓮がコーヒー豆\d+食分を仕入れ中/);
 });
 
 test('the owner and three procurement workers can fetch four supplies in parallel',()=>{

@@ -20,7 +20,6 @@ export function recipesAtMasteryLevel(state:GameState,level:number) {
 }
 
 export function menuCatalogProgress(state:GameState) {
-  const catalog=recipes.filter(recipe=>!recipe.hidden||state.unlockedRecipes.includes(recipe.id));
-  const unlocked=catalog.filter(recipe=>state.unlockedRecipes.includes(recipe.id)).length;
-  return {unlocked,total:catalog.length,percent:catalog.length?Math.floor(unlocked/catalog.length*100):0};
+  const unlocked=recipes.filter(recipe=>state.unlockedRecipes.includes(recipe.id)).length;
+  return {unlocked,total:recipes.length,percent:recipes.length?Math.floor(unlocked/recipes.length*100):0};
 }

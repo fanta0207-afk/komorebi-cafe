@@ -227,7 +227,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(equipment, /設備と料理/);
     assert.match(equipment, /強化 ●/);
     assert.doesNotMatch(equipment, /CAFE GROWTH|STORY LOCKED/);
-    assert.match(recipes, /食材代/);
+    assert.doesNotMatch(recipes, /食材代/);
     assert.match(recipes, /利益/);
     assert.doesNotMatch(recipes, /SECRET RECIPE|STORY RECIPE|1品につき各1食分|必要な設備を購入すると販売できます/);
     assert.match(staff, /好感度4で雇用できます/);
@@ -783,7 +783,7 @@ test('supplier ticket opens an in-game confirmation, cancels freely and settles 
   let control=ticketControl(state.deliveries[0],local);assert.equal(control.props.children[0].props.disabled,false);
   control.props.children[0].props.onClick();assert.equal(actions.length,0);assert.equal(local.confirming,true);
   control=ticketControl(state.deliveries[0],local);let popup=control.props.children[1];
-  const confirmation=renderToStaticMarkup(popup);assert.match(confirmation,/<dialog[^>]*aria-label="調達券を使いますか？"/);assert.match(confirmation,/20パック（100食分）/);assert.match(confirmation,/調達券1枚を使用/);assert.match(confirmation,/やめる/);
+  const confirmation=renderToStaticMarkup(popup);assert.match(confirmation,/<dialog[^>]*aria-label="調達券を使いますか？"/);assert.match(confirmation,/100食分をすぐ受け取れます/);assert.match(confirmation,/使用 1枚 · 所持 2枚/);assert.doesNotMatch(confirmation,/20パック|あと0:/);assert.match(confirmation,/やめる/);
   popup.props.onCancel();assert.equal(actions.length,0);assert.equal(state.forest.tickets,2);assert.equal(local.confirming,false);
   ticketControl(state.deliveries[0],local).props.children[0].props.onClick();
   ticketControl(state.deliveries[0],local).props.children[1].props.onConfirm();
@@ -860,6 +860,8 @@ test('gift shop shows daily updates and Japanese automatic refresh time, disabli
   const render=()=>renderToStaticMarkup(React.createElement(require(join(output,'screens/GiftShopScreen.js')).GiftShopScreen));
   try {
     const available=render();
+    assert.match(available,/>雑貨屋<\/h1>/);
+    assert.doesNotMatch(available,/ミモザ雑貨店/);
     assert.match(available,/手動更新 あと<b>3<\/b>\/3回/);
     assert.match(available,/次の自動更新 <b>09:00<\/b>/);
     assert.match(available,/3時間ごと・日本時間/);

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getIngredient } from "../data/ingredients";
 import { useGame } from "../game/GameContext";
-import { deliveryCountdown } from "../game/procurement";
 import { ForestIcon } from "./ForestArt";
 import type { IngredientDelivery } from "../types/game";
 import "./supply-ticket.css";
@@ -30,12 +29,12 @@ export function SupplyTicketButton({ delivery }: { delivery: IngredientDelivery 
       🎟 調達券で即完了 · 1枚
     </button>
     {confirming && current && !disabled && <TicketConfirmation delivery={current} tickets={state.forest.tickets}
-      now={state.lastPlayedAt} onCancel={() => setConfirming(false)} onConfirm={useTicket}/>}
+      onCancel={() => setConfirming(false)} onConfirm={useTicket}/>}
   </>;
 }
 
-function TicketConfirmation({ delivery, tickets, now, onCancel, onConfirm }: {
-  delivery: IngredientDelivery; tickets: number; now: number; onCancel: () => void; onConfirm: () => void;
+function TicketConfirmation({ delivery, tickets, onCancel, onConfirm }: {
+  delivery: IngredientDelivery; tickets: number; onCancel: () => void; onConfirm: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -50,9 +49,8 @@ function TicketConfirmation({ delivery, tickets, now, onCancel, onConfirm }: {
     <div className="supply-ticket-confirm-icon"><ForestIcon name="ticket"/></div>
     <h2>調達券を使いますか？</h2>
     <p className="supply-ticket-confirm-food"><strong>{getIngredient(delivery.ingredientId)?.name}</strong><br/>
-      {delivery.packs}パック（{delivery.packs * delivery.servingsPerPack}食分）</p>
-    <p>あと{deliveryCountdown(delivery.arrivesAt, now)}の調達を<br/>今すぐ完了します。</p>
-    <p className="supply-ticket-confirm-cost">調達券1枚を使用 · 所持 {tickets}枚</p>
+      {delivery.packs * delivery.servingsPerPack}食分をすぐ受け取れます</p>
+    <p className="supply-ticket-confirm-cost">使用 1枚 · 所持 {tickets}枚</p>
     <div className="supply-ticket-confirm-actions">
       <button ref={cancelRef} className="secondary-button" type="button" onClick={onCancel}>やめる</button>
       <button className="primary-button" type="button" onClick={onConfirm}>1枚使って受け取る</button>

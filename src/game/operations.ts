@@ -73,7 +73,7 @@ export function serveOrder(state:GameState,orderId:string):GameState {
     staff:state.staff.map(person=>person.servingOrderId===orderId?{...person,servingOrderId:undefined,returningFromSlot:order.customerSlot,remainingMs:serveDuration(state,person.characterId)}:person),
     dailyStats:{sales:state.dailyStats.sales+price,orders:state.dailyStats.orders+1,recipeSales:{...state.dailyStats.recipeSales,[recipe.id]:(state.dailyStats.recipeSales[recipe.id]||0)+1}},
     lifetimeStats:{...state.lifetimeStats,totalOrders:state.lifetimeStats.totalOrders+1,totalRevenue:state.lifetimeStats.totalRevenue+price,automatedOrders:state.lifetimeStats.automatedOrders+(fullyAutomated?1:0),recipeSales:{...state.lifetimeStats.recipeSales,[recipe.id]:(state.lifetimeStats.recipeSales[recipe.id]||0)+1},tagSales},
-    notice:{id:Date.now()+Math.random(),type:nextLevel>previousLevel?"unlock":"coin",text:nextLevel>previousLevel?`${recipe.name}がLv.${nextLevel}に成長！ 次から売上アップ`:`${recipe.name}を提供 +${price} コイン`}};
+    notice:{id:Date.now()+Math.random(),type:nextLevel>previousLevel?"unlock":"coin",text:nextLevel>previousLevel?`${recipe.name} Lv.${nextLevel}・売上アップ`:`${recipe.name} +${price}コイン`}};
 }
 export function equipmentPrice(state:GameState,equipmentId:string) {
   const count=state.stations.filter(item=>item.equipmentId===equipmentId).length;

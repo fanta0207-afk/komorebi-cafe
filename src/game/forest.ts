@@ -113,8 +113,7 @@ export function createForestLayer(s:GameState,floor:number,seed:number,meal?:For
         }
         return {id,cell,x:Math.round((random()-.5)*10),y:Math.round((random()-.5)*8),kind,food,coins,tickets,fragment:undefined as string|undefined,emptyHint:false};
     });
-    let secret=area.secret;
-    if(secret==='spring')secret=['forestSecretMilk','forestSecretPancake'].filter(id=>!collected[id]&&(s.forest.fragments[id]||0)<3).sort((a,b)=>(s.forest.fragments[a]||0)-(s.forest.fragments[b]||0))[0];
+    const secret=area.secret;
     if(secret&&!collected[secret]&&(s.forest.fragments[secret]||0)<3&&random()<C.fragmentChance)spots[Math.floor(random()*count)].fragment=secret;
     if(tutorial&&floor===1)spots[0].food=['forestBerry'];
     // A leaves spot may be a path clue; never label a path or reward as empty.
@@ -133,7 +132,7 @@ export function forestCoinAmount(roll: number): number {
     return C.coinMax;
 }
 export function syncForestRecipes(s: GameState): GameState { if (s.lifetimeStats.totalOrders < 1)
-    return s; const ids = forestRecipes.filter(r => !r.hidden || (s.forest.fragments[r.id] || 0) >= 3).map(r => r.id); if (ids.every(id => s.unlockedRecipes.includes(id)))
+    return s; const ids = forestRecipes.filter(r => (s.forest.fragments[r.id] || 0) >= 3).map(r => r.id); if (ids.every(id => s.unlockedRecipes.includes(id)))
     return s; return { ...s, unlockedRecipes: [...new Set([...s.unlockedRecipes, ...ids])] }; }
 export function handmadeAmount(gift: Gift, reaction: GiftReaction, p: CharacterProgress) { let base = { love: 8, like: 5, normal: 2, dislike: -4 }[reaction]; if (base > 0 && p.lastGiftId === gift.id && (p.giftStreak || 0) >= 2)
     base = Math.ceil(base / 2); if ((reaction === 'love' || reaction === 'like') && !(p.handmadeFirst || []).includes(gift.id))
@@ -152,6 +151,10 @@ function settleForest(s:GameState,loot:ForestLoot,now:number):GameState {
             discovered:[...new Set([...s.forest.discovered,...loot.food])],lastReturn:loot,expedition:undefined,recoveredAt:Math.max(s.forest.recoveredAt,now)}});
 }
 export function migrateForest(s:GameState,version:number,now:number):GameState {
+    if(version<24) {
+        const forestIds=new Set(forestRecipes.map(r=>r.id));
+        s={...s,unlockedRecipes:s.unlockedRecipes.filter(id=>!forestIds.has(id)||(s.forest.fragments[id]||0)>=3)};
+    }
     if(version<23) {
         const {sales,...forest}=s.forest as ForestState & {sales?:Record<string,number>};
         s={...s,forest:{...forest,dishes:{...(sales||{}),...forest.dishes}}};

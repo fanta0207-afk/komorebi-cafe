@@ -34,8 +34,8 @@ test('Vercel builds only the static client, with an asset-safe SPA fallback', ()
     assert.ok(existsSync(new URL(match[1].slice(1), output)), match[1]);
   }
   assert.match(read('src/main.tsx'), /<CafeGame publicBuild/);
-  assert.match(read('src/components/CafeGame.tsx'), /onDev=\{publicBuild\?undefined:/);
-  assert.match(read('src/components/CafeGame.tsx'), /!publicBuild&&devOpen/);
+  assert.match(read('src/components/CafeGame.tsx'), /dev-trigger-floating/);
+  assert.match(read('src/components/CafeGame.tsx'), /devOpen&&<DevMenu/);
 });
 
 test('all supplied public media are copied; documentation and development files are not published', () => {

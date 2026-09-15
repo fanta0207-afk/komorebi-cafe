@@ -30,7 +30,7 @@ export function ForestBook({ onBack }: { onBack: () => void }) {
       <p className="forest-book-summary">切れ端 3枚で解放</p>
       {forestRecipes.filter(r => r.hidden).map(r => <article className="forest-card" key={r.id}>
         <h3>{r.icon} {r.name}<small>{f.fragments[r.id] || 0}/3</small></h3>
-        <small>{r.id === 'forestSecretTea' ? '小さな池' : r.id === 'forestSecretCookie' ? '大樹の根元' : '月しずくの泉'}</small>
+        <small>{forestAreas.find(area => area.secret === r.id)?.name}</small>
         <progress aria-label={`${r.name}の切れ端`} value={f.fragments[r.id] || 0} max={3}/>
       </article>)}
       <details className="forest-book-help"><summary>深い森の解放条件</summary><dl className="forest-book-conditions"><dt>持ち帰り</dt><dd>{Math.min(5, f.returns)}/5回</dd><dt>料理提供</dt><dd>{Math.min(20, state.lifetimeStats.totalOrders)}/20皿</dd></dl></details>
@@ -42,6 +42,11 @@ export function ForestBook({ onBack }: { onBack: () => void }) {
         const unlocked = state.unlockedRecipes.includes(r.id), reserved = f.dishes[r.id] || 0;
         const inFlight = state.orders.filter(o => o.forestReserved && o.recipeId === r.id).length;
         const can = canCookForestDish(state,r.id,amount);
+        if (!unlocked) return <article className="forest-card forest-card-locked" key={r.id}>
+          <h3>❔ ？？？</h3>
+          <p>レシピ未完成</p>
+          <button className="primary-button" disabled>未解放</button>
+        </article>;
         return <article className="forest-card" key={r.id}>
           <h3>{r.icon} {r.name}</h3>
           <p>● {salePrice(r.id, state)} コイン</p>

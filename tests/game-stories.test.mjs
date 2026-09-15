@@ -167,7 +167,7 @@ test('menu mastery raises only that recipe price and catalog progress hides undi
   const initial=createInitialState();
   const initialCatalog=menuCatalogProgress(initial);
   assert.equal(initialCatalog.unlocked,initial.unlockedRecipes.length);
-  assert.equal(initialCatalog.total,recipes.filter(recipe=>!recipe.hidden).length+3);
+  assert.equal(initialCatalog.total,recipes.filter(recipe=>!recipe.hidden).length);
   assert.equal(menuMastery('coffee',initial).current.level,1);
   assert.equal(salePrice('coffee',initial),25);
 
@@ -2085,8 +2085,23 @@ test('v21 pending rewards settle exactly once, preserving coins, food, tickets, 
  const migrated=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.equal(migrated.currency,2499);assert.equal(migrated.ingredients.bread,1);assert.equal(migrated.ingredients.forestBerry,1);assert.equal(migrated.forest.tickets,1);assert.equal(migrated.forest.fragments.forestSecretTea,3);assert.equal(migrated.forest.expedition,undefined);assert.equal(migrated.forest.legacyBasketLevel,12);
  const again=migrateSavedState(JSON.parse(JSON.stringify(migrated)),1000);assert.equal(again.currency,migrated.currency);assert.deepEqual(again.ingredients,migrated.ingredients);assert.deepEqual(again.forest,JSON.parse(JSON.stringify(migrated.forest)));
 });
+test('all forest dishes begin secret, unlock only at three fragments, and each band has one recipe',()=>{
+ let s=forestReady();s.forest.expedition=undefined;s.unlockedRecipes=s.unlockedRecipes.filter(id=>!forestData.forestRecipes.some(r=>r.id===id));
+ assert.equal(forestData.forestRecipes.length,7);assert.ok(forestData.forestRecipes.every(r=>r.hidden));assert.equal(new Set(forestData.forestAreas.map(a=>a.secret)).size,7);
+ s.ingredients={forestBerry:9,forestMint:9,sugar:9};s=forestModel.syncForestRecipes(s);assert.ok(!s.unlockedRecipes.includes('forestBerrySoda'));
+ s.forest.fragments.forestBerrySoda=2;s=forestModel.syncForestRecipes(s);assert.ok(!s.unlockedRecipes.includes('forestBerrySoda'));
+ s.forest.fragments.forestBerrySoda=3;s=forestModel.syncForestRecipes(s);assert.ok(s.unlockedRecipes.includes('forestBerrySoda'));
+});
+test('v23 migration relocks forest dishes whose fragments are incomplete',()=>{
+ let s=forestReady();s.saveVersion=23;s.forest.fragments={forestBerrySoda:2,forestPetalTea:3};s.unlockedRecipes=[...s.unlockedRecipes,'forestBerrySoda','forestPetalTea'];
+ s=migrateSavedState(JSON.parse(JSON.stringify(s)),1000);assert.ok(!s.unlockedRecipes.includes('forestBerrySoda'));assert.ok(s.unlockedRecipes.includes('forestPetalTea'));assert.equal(s.saveVersion,24);
+});
+test('DEV forest recovery fills energy during and outside an expedition',()=>{
+ let s=forestReady();s.forest.energy=0;s=reducer(s,{type:'DEV_FOREST_ENERGY'});assert.equal(s.forest.energy,70);assert.ok(s.forest.expedition);
+ s.forest.expedition=undefined;s.forest.energy=9;s=reducer(s,{type:'DEV_FOREST_ENERGY'});assert.equal(s.forest.energy,70);
+});
 test('limited dishes are crafted into saved stock and customers receive ready plates without cooking twice',()=>{
- let s=forestReady();s.forest.expedition=undefined;s.ingredients={forestBerry:10,forestMint:10,sugar:10,forestPetal:10,forestHerb:10,teaLeaves:10,forestMushroom:10,bread:10};s=forestModel.syncForestRecipes(s);
+ let s=forestReady();s.forest.expedition=undefined;s.forest.fragments={forestBerrySoda:3,forestPetalTea:3};s.ingredients={forestBerry:10,forestMint:10,sugar:10,forestPetal:10,forestHerb:10,teaLeaves:10,forestMushroom:10,bread:10};s=forestModel.syncForestRecipes(s);
  s=reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count:3});assert.equal(s.ingredients.forestBerry,7);assert.equal(s.forest.dishes.forestBerrySoda,3);assert.equal(s.lifetimeStats.recipeSales.forestBerrySoda,undefined);
  assert.equal(reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count:1}),s);
  s=reducer(s,{type:'FOREST_COOK',recipeId:'forestPetalTea',count:1});assert.equal(s.forest.dishes.forestPetalTea,1);
@@ -2098,7 +2113,7 @@ test('limited dishes are crafted into saved stock and customers receive ready pl
  assert.equal(reducer(s,{type:'FOREST_WITHDRAW',recipeId:'forestBerrySoda'}),s);
 });
 test('limited crafting rejects unavailable equipment, insufficient or promised materials and invalid quantities',()=>{
- let s=forestReady();s.forest.expedition=undefined;s.ingredients={forestBerry:1,forestMint:1,sugar:1};s=forestModel.syncForestRecipes(s);
+ let s=forestReady();s.forest.expedition=undefined;s.forest.fragments={forestBerrySoda:3};s.ingredients={forestBerry:1,forestMint:1,sugar:1};s=forestModel.syncForestRecipes(s);
  for(const count of [0,4,1.5,NaN])assert.equal(reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count}),s);
  s.orders=[{id:'promised',recipeId:'strawberryCake',status:'queued',customerSlot:0}];assert.equal(forestModel.canCookForestDish(s,'forestBerrySoda',1),false);
  s.orders=[];s.stations=[];assert.equal(reducer(s,{type:'FOREST_COOK',recipeId:'forestBerrySoda',count:1}),s);

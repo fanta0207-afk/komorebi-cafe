@@ -57,6 +57,7 @@ export type Action = ForestAction
   | {type:"DEV_UNLOCK_ALL"}
   | {type:"DEV_COMPLETE_DELIVERIES"}
   | {type:"DEV_COMPLETE_COOKING"}
+  | {type:"DEV_FOREST_ENERGY"}
   | {type:"DEV_ACTIONS"}
   | {type:"RESET"};
 
@@ -407,6 +408,7 @@ function reduceAction(state:GameState, action:Action):GameState {
       if(!state.orders.some(order=>order.status==="cooking"))return state;
       return {...state,orders:state.orders.map(order=>order.status==="cooking"?{...order,status:"ready",remainingMs:0}:order),notice:notice("info","調理中の料理をすべて完成しました")};
     }
+    case "DEV_FOREST_ENERGY": return {...state,forest:{...state.forest,energy:70,recoveredAt:Date.now()},notice:notice("info","こもれびの体力を全回復しました")};
     case "RESET": return createInitialState();
     default:return state;
   }

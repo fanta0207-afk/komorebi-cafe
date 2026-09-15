@@ -882,10 +882,12 @@ test('first cafe frame loads current manager and table art without mounting old 
 
 test('forest notebook crafts held plates with no sale or withdrawal controls',()=>{
  const context=require(join(output,'game/GameContext.js')),original=context.useGame,originalUseState=React.useState;
- let state=createInitialState(1000);state.unlockedRecipes.push('forestBerrySoda');state.ingredients={forestBerry:3,forestMint:3,sugar:3};state.forest.dishes.forestBerrySoda=1;
+ let state=createInitialState(1000);state.ingredients={forestBerry:3,forestMint:3,sugar:3};
  context.useGame=()=>({state,dispatch(){}});React.useState=initial=>[initial==='food'?'recipes':initial,()=>{}];
  try{
-  const {ForestBook}=require(join(output,'screens/ForestBook.js'));const html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));
-  assert.match(html,/作って所持/);assert.match(html,/お客さんが来店/);assert.match(html,/1皿作る/);assert.match(html,/所持 1\/3皿/);assert.doesNotMatch(html,/皿を販売|取り下げ|販売待ち/);
+  const {ForestBook}=require(join(output,'screens/ForestBook.js'));let html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));
+  assert.match(html,/作って所持/);assert.match(html,/お客さんが来店/);assert.match(html,/レシピ未完成/);assert.doesNotMatch(html,/野いちごソーダ|野いちご ×|1,100/);
+  state.unlockedRecipes.push('forestBerrySoda');state.forest.fragments.forestBerrySoda=3;state.forest.dishes.forestBerrySoda=1;html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){}}));
+  assert.match(html,/1皿作る/);assert.match(html,/所持 1\/3皿/);assert.match(html,/野いちご ×1/);assert.doesNotMatch(html,/皿を販売|取り下げ|販売待ち/);
  }finally{context.useGame=original;React.useState=originalUseState;}
 });

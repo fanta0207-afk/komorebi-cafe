@@ -29,9 +29,9 @@ import type { MissionDestination } from "../game/missions";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
-export default function CafeGame({publicBuild=false}:{publicBuild?:boolean}={}) { return <GameProvider><GameContent publicBuild={publicBuild}/></GameProvider>; }
+export default function CafeGame(_props:{publicBuild?:boolean}={}) { return <GameProvider><GameContent/></GameProvider>; }
 
-function GameContent({publicBuild}:{publicBuild:boolean}) {
+function GameContent() {
   const {state,dispatch,refreshGiftShop,resetGame}=useGame();
   const cafeManager=useCafeManager(state,dispatch);
   const [screen,setScreen]=useState<Screen>("cafe");
@@ -94,7 +94,8 @@ function GameContent({publicBuild}:{publicBuild:boolean}) {
   // 画面を切り替えるたびに表示領域ごと入れ替え、前画面の画像が一瞬残るのを防ぐ。
   const screenKey=`${screen}:${supplierId||""}:${characterId||""}`;
   return <main className={`game-shell ${screen==="cafe"?"cafe-shell":screen==="forest"?"forest-shell":""}`}>
-    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={publicBuild?undefined:()=>setDevOpen(true)} missionControl={missionControl}/>}
+    {screen!=="cafe"&&screen!=="forest"&&<StatusBar state={state} onDev={()=>setDevOpen(true)} missionControl={missionControl}/>}
+    {(screen==="cafe"||screen==="forest")&&<button className="dev-trigger dev-trigger-floating" onClick={()=>setDevOpen(true)} aria-label="開発メニュー">⚙</button>}
     <div key={screenKey} className="screen-wrap">
       {screen==="cafe"&&<CafeScreen
         missionControl={missionControl} storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
@@ -133,7 +134,7 @@ function GameContent({publicBuild}:{publicBuild:boolean}) {
       onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
     />}
     {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
-    {!publicBuild&&devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
+    {devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
   </main>;
 }
 
@@ -182,5 +183,5 @@ function DevMenu({selected,onSelect,onClose,onSpawn,onRefresh,onReset}:{selected
   const [confirmingReset,setConfirmingReset]=useState(false);
   const hasDeliveries=state.deliveries.length>0;
   const hasCooking=state.orders.some(order=>order.status==="cooking");
-  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button><button disabled={!hasDeliveries} onClick={()=>dispatch({type:"DEV_COMPLETE_DELIVERIES"})}>即仕入れ完了</button><button disabled={!hasCooking} onClick={()=>dispatch({type:"DEV_COMPLETE_COOKING"})}>即調理完了</button></div><label>好感度を上げる人物<select value={selected} onChange={e=>onSelect(e.target.value)}>{characters.map(c=><option value={c.id} key={c.id}>{c.name}（{c.occupation}）</option>)}</select></label><button className="dev-affection" onClick={()=>dispatch({type:"DEV_AFFECTION",characterId:selected})}>好感度 +1,000・物語条件を解放</button>{confirmingReset?<div className="dev-reset-confirm" role="alert"><p>セーブデータを初期化して、最初からやり直しますか？</p><div><button type="button" onClick={()=>setConfirmingReset(false)}>キャンセル</button><button type="button" className="danger-button" onClick={onReset}>初期化する</button></div></div>:<button className="danger-button" onClick={()=>setConfirmingReset(true)}>セーブデータ初期化</button>}</div></div>;
+  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button><button onClick={()=>dispatch({type:"DEV_FOREST_ENERGY"})}>こもれび体力 全回復</button><button disabled={!hasDeliveries} onClick={()=>dispatch({type:"DEV_COMPLETE_DELIVERIES"})}>即仕入れ完了</button><button disabled={!hasCooking} onClick={()=>dispatch({type:"DEV_COMPLETE_COOKING"})}>即調理完了</button></div><label>好感度を上げる人物<select value={selected} onChange={e=>onSelect(e.target.value)}>{characters.map(c=><option value={c.id} key={c.id}>{c.name}（{c.occupation}）</option>)}</select></label><button className="dev-affection" onClick={()=>dispatch({type:"DEV_AFFECTION",characterId:selected})}>好感度 +1,000・物語条件を解放</button>{confirmingReset?<div className="dev-reset-confirm" role="alert"><p>セーブデータを初期化して、最初からやり直しますか？</p><div><button type="button" onClick={()=>setConfirmingReset(false)}>キャンセル</button><button type="button" className="danger-button" onClick={onReset}>初期化する</button></div></div>:<button className="danger-button" onClick={()=>setConfirmingReset(true)}>セーブデータ初期化</button>}</div></div>;
 }

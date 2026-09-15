@@ -16,6 +16,7 @@ button { font:inherit; color:inherit; }
 .date-lockup { display:flex; align-items:baseline; gap:10px; }
 .status-actions { display:flex; align-items:center; gap:7px; }
 .dev-trigger { border:0; background:transparent; opacity:.48; width:30px; height:36px; cursor:pointer; }
+.dev-trigger-floating { position:fixed; top:max(8px,env(safe-area-inset-top)); right:8px; z-index:82; border-radius:999px; background:rgba(255,255,255,.82); box-shadow:0 2px 10px rgba(40,29,18,.18); }
 .eyebrow,.tiny-label { font:700 9px/1.2 Georgia,serif; letter-spacing:.17em; color:var(--rose); }
 .topbar strong { font:700 18px/1.2 Georgia,"Yu Mincho",serif; }
 .coin-pill { border:1px solid #cda76c; border-radius:999px; padding:8px 13px; background:#fff8df; font-weight:800; font-size:14px; box-shadow:0 3px 0 #ead6ad; }

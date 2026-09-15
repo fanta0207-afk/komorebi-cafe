@@ -13,7 +13,7 @@ import type { Character, Gift, GiftReaction, GameState, GrowthEvent, GrowthStatR
 export const initialRecipeIds = recipes.filter(item => item.initiallyUnlocked).map(item => item.id);
 
 export function findNewRecipes(owned:Record<string,number>, unlocked:string[]) {
-  return recipes.filter(recipe => !recipe.unlockEventId && !unlocked.includes(recipe.id) && recipe.requiredIngredients.every(id => (owned[id] || 0) > 0)).map(recipe => recipe.id);
+  return recipes.filter(recipe => !recipe.forest && !recipe.unlockEventId && !unlocked.includes(recipe.id) && recipe.requiredIngredients.every(id => (owned[id] || 0) > 0)).map(recipe => recipe.id);
 }
 
 export function randomShopItems(count=GAME_CONFIG.giftShopSize,random=Math.random) {

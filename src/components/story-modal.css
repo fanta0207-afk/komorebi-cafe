@@ -170,6 +170,6 @@
   overflow-y:auto;
   overscroll-behavior:contain;
 }
-.growth-story-dialogue .story-content>p { color:#594338; text-shadow:none; }
+.growth-story-dialogue .story-content>p { color:#fff8eb; text-shadow:0 1px #120b09; }
 .growth-story-dialogue .story-footer { flex:none; }
-.growth-story-dialogue .story-footer>span { color:#79634f; }
+.growth-story-dialogue .story-footer>span { color:#e8d8bd; }

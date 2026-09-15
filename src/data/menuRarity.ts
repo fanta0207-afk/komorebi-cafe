@@ -1,10 +1,10 @@
 import type { MenuRarity, Recipe } from '../types/game';
 
-export const menuRarityInfo: Record<MenuRarity, { code: string; label: string }> = {
-  normal: { code: 'N', label: 'ノーマル' },
-  rare: { code: 'R', label: 'レア' },
-  superRare: { code: 'SR', label: '特別' },
-  secret: { code: 'SSR', label: '秘伝' },
+export const menuRarityInfo: Record<MenuRarity, { label: string }> = {
+  normal: { label: 'ノーマル' },
+  rare: { label: 'レア' },
+  superRare: { label: '特別' },
+  secret: { label: '秘伝' },
 };
 
 type RaritySource = Pick<Recipe, 'price' | 'initiallyUnlocked' | 'hidden' | 'forest' | 'unlockEventId'>;

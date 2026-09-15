@@ -366,9 +366,4 @@ body { background:#241c16; }
 .menu-rarity-secret{--menu-rarity:#c68720;--menu-rarity-soft:#fff0ca}
 .recipe-card[class*="menu-rarity-"]{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--menu-rarity) 42%,#d9c5ab);border-left:6px solid var(--menu-rarity);background:linear-gradient(100deg,var(--menu-rarity-soft),#fffdf8 46%)}
 .recipe-card[class*="menu-rarity-"] .recipe-icon{background:color-mix(in srgb,var(--menu-rarity-soft) 82%,#fff)}
-.recipe-title-meta{display:flex;flex:0 0 auto;align-items:center;gap:5px}
-.menu-rarity-badge{display:inline-flex;align-items:center;min-height:22px;padding:2px 7px;border:1px solid color-mix(in srgb,var(--menu-rarity) 42%,transparent);border-radius:999px;background:var(--menu-rarity-soft);color:var(--menu-rarity);font-size:10px;font-weight:900;line-height:1.2;white-space:nowrap}
 .forest-card[class*="menu-rarity-"]{border-color:color-mix(in srgb,var(--menu-rarity) 42%,#d9c5ab);border-left:6px solid var(--menu-rarity);background:linear-gradient(100deg,var(--menu-rarity-soft),#fffdf8 52%)}
-.forest-card[class*="menu-rarity-"] h3{display:flex;align-items:center;gap:6px}
-.forest-card[class*="menu-rarity-"] h3 .menu-rarity-badge{margin-left:auto}
-@media(max-width:380px){.recipe-title-row{align-items:flex-start}.recipe-title-meta{flex-direction:column;align-items:flex-end}.menu-rarity-badge{font-size:9px;padding-inline:6px}}

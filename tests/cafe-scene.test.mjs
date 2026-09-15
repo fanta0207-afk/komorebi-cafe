@@ -414,9 +414,11 @@ test('a fully developed cafe renders all equipment, staff and 4 usable order bub
   assert.match(html, /src="\/assets\/cafe\/backgrounds\/room\.png\?v=d9fba6fd"/);
   assert.equal((html.match(/src="\/assets\/cafe\/furniture\/table-set\.png"/g) || []).length, 4);
   assert.match(html, /あと5秒/);
-  assert.ok((html.match(/あと\d+秒/g)||[]).length<=2,'the cafe contains no more than two countdown references');
+  assert.ok((html.match(/あと\d+秒/g)||[]).length<=3,'the cafe shows the countdown only on its order and active machine');
   assert.match(html,/\+25コイン/);
-  assert.match(html, /提供する/);
+  assert.match(html, /bubble-label">提供/);
+  assert.match(html, /menu-rarity-normal/);
+  assert.doesNotMatch(html, /bubble-rarity|menu-rarity-badge/);
   assert.equal(JSON.stringify(state), before);
 });
 
@@ -615,7 +617,7 @@ test('equipment and scene track idle, countdown, ready and served from the same 
   assert.match(render(), /data-equipment="coffeeCounter" data-equipment-status="cooking"/);
   assert.match(render(), /あと10秒/);
   assert.match(render(), /equipment-state-label">あと10秒/);
-  assert.match(render(), /bubble-label">調理中/);
+  assert.match(render(), /bubble-label">あと10秒/);
   for (let i = 0; i < 10; i++) state = reducer(state, { type: 'TICK', deltaMs: 1000 });
   assert.equal(stationActivity(state, station.id).status, 'ready');
   assert.match(render(), /data-equipment="coffeeCounter" data-equipment-status="ready"/);

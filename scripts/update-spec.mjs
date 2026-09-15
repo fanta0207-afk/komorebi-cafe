@@ -130,7 +130,7 @@ const recipeGroups = [
   ["隠しレシピ", recipes.filter((recipe) => recipe.hidden)],
 ];
 const recipeSections = recipeGroups.map(([label, items]) => `- ${label}（${items.length}種）：${list(items.map((recipe) => recipe.name))}`).join("\n");
-const menuRarityRows = Object.entries(menuRarityInfo).map(([id, info]) => `| ${info.code} | ${info.label} | ${allRecipes.filter(recipe => recipe.rarity === id).length}種 |`).join("\n");
+const menuRarityRows = Object.entries(menuRarityInfo).map(([id, info]) => `| ${info.label} | ${allRecipes.filter(recipe => recipe.rarity === id).length}種 |`).join("\n");
 
 const spec = `# こもれびカフェ ゲーム仕様書
 
@@ -252,10 +252,10 @@ ${supplierRows}
 
 ${recipeSections}
 
-料理カードと注文では、記号を使わず、色と文字で4段階を表示する。未発見の隠し料理はレアリティも伏せる。
+料理カードと注文では、記号や文字ラベルを置かず、カードの色で4段階を表示する。未発見の隠し料理はレアリティの色も伏せる。
 
-| 表示 | 区分 | 料理数 |
-|---|---|---:|
+| 区分 | 料理数 |
+|---|---:|
 ${menuRarityRows}
 
 - 未解放、食材不足、必要設備の未設置、他の料理を調理中の場合は調理を開始できない。

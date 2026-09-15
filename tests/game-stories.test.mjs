@@ -544,10 +544,9 @@ test('all recipes have real ingredients, a valid station, intended cooking time 
   }
 });
 
-test('menu rarity follows progression and uses text labels without decorative symbols',()=>{
+test('menu rarity follows progression without visible codes or decorative symbols',()=>{
   assert.deepEqual(Object.keys(menuRarityInfo),['normal','rare','superRare','secret']);
-  assert.deepEqual(Object.values(menuRarityInfo).map(info=>info.code),['N','R','SR','SSR']);
-  assert.ok(Object.values(menuRarityInfo).every(info=>!/[◆✦★●]/u.test(`${info.code}${info.label}`)));
+  assert.ok(Object.values(menuRarityInfo).every(info=>!('code' in info)&&!/[◆✦★●]/u.test(info.label)));
   assert.equal(allRecipes.find(recipe=>recipe.id==='coffee').rarity,'normal');
   assert.equal(allRecipes.find(recipe=>recipe.id==='strawberryCake').rarity,'rare');
   assert.equal(allRecipes.find(recipe=>recipe.id==='craftLatte').rarity,'superRare');

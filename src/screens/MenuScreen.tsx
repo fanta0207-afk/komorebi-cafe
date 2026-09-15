@@ -5,7 +5,6 @@ import { getCharacter } from "../data/characters";
 import { equipment, getEquipment } from "../data/equipment";
 import { getIngredient } from "../data/ingredients";
 import { allRecipes as recipes } from "../data/recipes";
-import { menuRarityInfo } from "../data/menuRarity";
 import { useGame } from "../game/GameContext";
 import { ScreenTitle } from "../components/GameUI";
 import { GAME_CONFIG } from "../game/config";
@@ -36,10 +35,10 @@ function RecipeCatalog() {
   </section><div className="recipe-list">{recipes.map(recipe=>{
     const unlocked=state.unlockedRecipes.includes(recipe.id),usable=isRecipeUsable(recipe.id,state),stock=hasIngredients(state,recipe),prep=preparation(recipe),mastery=menuMastery(recipe.id,state);
     const price=salePrice(recipe.id,state),cost=ingredientCost(recipe.id);
-    const rarity=menuRarityInfo[recipe.rarity],showRarity=unlocked||!recipe.hidden;
+    const showRarity=unlocked||!recipe.hidden;
     return <article key={recipe.id} className={`recipe-card ${!unlocked?"locked":""} ${recipe.limited?"limited-recipe":""} ${showRarity?`menu-rarity-${recipe.rarity}`:""}`}>
       <span className="recipe-icon">{unlocked?recipe.icon:recipe.hidden?"✦":"?"}</span><div className="recipe-info">
-        <div className="recipe-title-row"><h3>{recipe.hidden&&!unlocked?"？？？ 隠し料理":recipe.name}</h3><span className="recipe-title-meta">{showRarity&&<span className="menu-rarity-badge">{rarity.code} {rarity.label}</span>}{unlocked&&<span className="recipe-level">Lv.{mastery.current.level}</span>}</span></div>
+        <div className="recipe-title-row"><h3>{recipe.hidden&&!unlocked?"？？？ 隠し料理":recipe.name}</h3>{unlocked&&<span className="recipe-level">Lv.{mastery.current.level}</span>}</div>
         {unlocked?<><p>● {price} · {prep.seconds}秒 · {getEquipment(prep.equipmentId)?.name}</p><p>食材代 {cost} · 利益 {price-cost} · {recipe.requiredIngredients.map(id=>`${getIngredient(id)?.name} ${state.ingredients[id]||0}`).join(" / ")}</p>
           <div className="recipe-mastery"><div><span>累計 {mastery.sales.toLocaleString()}品提供</span><b>熟練売上 +{Math.round(mastery.current.bonus*100)}%</b></div>{mastery.next?<><progress max={mastery.next.sales} value={mastery.sales}/><small>次のLv.まで {Math.min(mastery.sales,mastery.next.sales)} / {mastery.next.sales}</small></>:<strong>MASTER</strong>}</div>
         </>:<p>{recipe.unlockHint}</p>}</div><em>{usable?stock?"受付中":"食材待ち":unlocked?"設備待ち":"未解放"}</em>

@@ -46,8 +46,7 @@
 .mission-go { border:1px solid var(--mission-green); background:#fffdf7; color:var(--mission-green); }
 .mission-claim { border:1px solid #244334; background:var(--mission-green); color:white; }
 .mission-notebook { position:fixed; inset:0; margin:auto; box-sizing:border-box; width:calc(min(100vw,430px) - 24px); max-width:calc(100vw - 24px); max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border:1px solid var(--mission-border); border-radius:16px; padding:0; color:var(--ink); background:var(--mission-paper); overflow:hidden; pointer-events:auto; white-space:normal; overflow-wrap:anywhere; font-size:16px; line-height:1.6; }
-.mission-notebook[open] { display:flex; flex-direction:column; }
-.mission-notebook::backdrop { inset:0 max(0px,calc((100vw - 430px)/2)); background:#211b18a6; }
+.mission-notebook { display:flex; flex-direction:column; }
 .mission-notebook>header { display:flex; flex:none; align-items:flex-start; justify-content:space-between; gap:12px; padding:16px; border-bottom:1px solid var(--mission-border); }
 .mission-notebook>header>div { min-width:0; }
 .mission-scroll { min-height:0; min-width:0; padding:12px; overflow-y:auto; overscroll-behavior:contain; }

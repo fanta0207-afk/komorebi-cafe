@@ -1,6 +1,6 @@
 .prologue-dialog { position:fixed; inset:0; width:min(100%,430px); height:100dvh; max-width:none; max-height:none; margin:auto; padding:0; border:0; overflow:hidden; color:#fff7e5; background:#342419; isolation:isolate; }
-.prologue-dialog[open] { display:flex; flex-direction:column; justify-content:space-between; }
-.prologue-dialog::backdrop { background:#1e1715d9; }
+.prologue-dialog { display:flex; flex-direction:column; justify-content:space-between; }
+.prologue-modal-layer { background:#1e1715d9; }
 .prologue-room { position:absolute; z-index:-2; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
 .prologue-vignette { position:absolute; z-index:-1; inset:0; background:linear-gradient(180deg,#241a17d8 0%,#241a1755 30%,#241a1740 53%,#211812eb 100%); }
 .prologue-heading { position:relative; padding:calc(max(24px,env(safe-area-inset-top)) + 20px) 24px 0; }

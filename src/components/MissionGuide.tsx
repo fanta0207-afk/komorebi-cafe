@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { GameModal } from "./GameModal";
 import { useGame } from "../game/GameContext";
 import { activeMissionChapter, activeSideMissions, missionChapters, sortedMissions, missionRank, type MissionDestination } from "../game/missions";
 
@@ -32,7 +33,6 @@ export function MissionGuide({onGo,tutorial=false,onTutorialSkip}:{onGo:(destina
 
 function MissionNotebook({onClose,onGo,tutorial}:{onClose:()=>void;onGo:(destination:MissionDestination)=>void;tutorial:boolean}) {
   const {state,dispatch}=useGame();
-  const ref=useRef<HTMLDialogElement>(null);
   const celebrationButtonRef=useRef<HTMLButtonElement>(null);
   const [celebration,setCelebration]=useState<{step:number;isFinal:boolean}|null>(null);
   const list=sortedMissions(state);
@@ -40,14 +40,13 @@ function MissionNotebook({onClose,onGo,tutorial}:{onClose:()=>void;onGo:(destina
   const chapterIndex=chapter?missionChapters.findIndex(item=>item.id===chapter.id):-1;
   const ready=list.filter(m=>missionRank(state,m)===0).length;
   const side=activeSideMissions(state);
-  useEffect(()=>{const dialog=ref.current;dialog?.showModal();return ()=>dialog?.close();},[]);
   useEffect(()=>{if(celebration)celebrationButtonRef.current?.focus();},[celebration]);
   const claim=(missionId:string)=>{
     const finishesChapter=!!chapter&&chapter.missions.every(mission=>mission.id===missionId||state.missions.claimed.includes(mission.id));
     if(finishesChapter)setCelebration({step:chapterIndex+1,isFinal:chapterIndex===missionChapters.length-1});
     dispatch({type:"CLAIM_MISSION",missionId});
   };
-  return <dialog ref={ref} tabIndex={-1} className="mission-notebook" onClose={onClose} aria-labelledby="mission-title">
+  return <GameModal className="mission-notebook" labelledBy="mission-title" onCancel={onClose} layerClassName="mission-modal-layer">
     {celebration?<div className="mission-celebration" role="status" aria-live="polite">
       <div className="mission-sparkles" aria-hidden="true">
         <span>✦</span><span>✧</span><span>✦</span><span>✧</span><span>✦</span><span>✧</span>
@@ -81,5 +80,5 @@ function MissionNotebook({onClose,onGo,tutorial}:{onClose:()=>void;onGo:(destina
     {side.length>0&&<section className="side-missions" aria-labelledby="side-mission-title"><header><div><small>ストーリー進行には影響しません</small><h3 id="side-mission-title">サブミッション</h3></div></header><ul>{side.map(mission=>{const value=Math.min(mission.target,mission.value(state)),done=value>=mission.target;return <li key={mission.id} className={done?"side-mission-ready":""}><div><b>{mission.title}</b><span>{value.toLocaleString()} / {mission.target.toLocaleString()}</span></div><progress max={mission.target} value={value}/><footer><strong>+{mission.reward} コイン</strong>{done&&<button className="mission-claim" onClick={()=>dispatch({type:"CLAIM_SIDE_MISSION",missionId:mission.id})}>受け取る</button>}</footer></li>})}</ul></section>}
     </div>
     </>}
-  </dialog>;
+  </GameModal>;
 }

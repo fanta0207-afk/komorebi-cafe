@@ -11,7 +11,6 @@
   color:#fff7e8;
   isolation:isolate;
 }
-.story-modal.story-player[open] { display:block; }
 .story-player .story-player-heading {
   position:absolute;
   z-index:3;

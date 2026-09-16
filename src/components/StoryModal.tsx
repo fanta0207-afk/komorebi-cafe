@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { GameModal } from "./GameModal";
 import { getCharacter } from "../data/characters";
 import type { CharacterProgress, RelationshipEvent, RelationshipRoute } from "../types/game";
 import "./story-modal.css";
@@ -10,13 +11,11 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
   onComplete?:(choiceId?:string,route?:Exclude<RelationshipRoute,"undecided">)=>void;
   onClose?:()=>void;
 }) {
-  const dialog=useRef<HTMLDialogElement>(null);
   const [page,setPage]=useState(0);
   const [artFailed,setArtFailed]=useState(false);
   const dialoguePanel=useRef<HTMLDivElement>(null);
   const [route,setRoute]=useState<RelationshipRoute>(progress.route);
   const [choiceId,setChoiceId]=useState<string|undefined>(readOnly?progress.eventChoices[event.id]:undefined);
-  useEffect(()=>{const element=dialog.current;element?.showModal();return()=>element?.close();},[]);
   const character=getCharacter(event.characterId)!;
   const storyImage=character.storyImage||character.image;
   const choosingRoute=event.toStage===9 && route==="undecided";
@@ -35,7 +34,7 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
     else onComplete?.(choiceId,route==="undecided"?undefined:route);
   };
 
-  return <dialog ref={dialog} className="story-modal story-player" aria-labelledby="story-title" onCancel={e=>{if(readOnly)onClose?.();else e.preventDefault();}}>
+  return <GameModal className="story-modal story-player" labelledBy="story-title" onCancel={readOnly ? onClose : undefined} layerClassName="story-modal-layer">
     {readOnly&&<button className="story-close-button" aria-label="思い出を閉じる" onClick={onClose}>×</button>}
     <header className="story-player-heading">
       <div className="story-header"><span>{readOnly?"思い出を読み返す":"ふたりの物語"} · {event.kind==="staff"?"カフェを手伝う日":`好感度 ${event.toStage}/10`}</span></div>
@@ -61,5 +60,5 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
       {!choosingResponse&&<div className="story-footer"><span>{page+1} / {lines.length}</span><button className="primary-button" onClick={next}>{finalPage?(readOnly?"閉じる":"完了"):"次へ →"}</button></div>}
     </>}
     </div>
-  </dialog>;
+  </GameModal>;
 }

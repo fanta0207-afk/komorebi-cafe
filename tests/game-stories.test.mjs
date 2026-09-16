@@ -778,6 +778,7 @@ test('mission UI renders only the current three goals and advances its step',()=
   new Function('require','exports',compiled)(name=>{
     if(name==='../game/GameContext')return {useGame:()=>({state,dispatch(){}})};
     if(name==='../game/missions')return {sortedMissions,missionRank,activeMissionChapter,activeSideMissions,missionChapters};
+    if(name==='./GameModal')return {GameModal:({children})=>children};
     return require(name);
   },ui);
   const {createElement}=require('react');
@@ -1371,7 +1372,9 @@ test('Ren staff memories render with their own heading and the friendship replay
   assert.match(detail,/カフェを手伝う物語/);
   assert.match(detail,/頼れる持ち場を読み返す/);
   assert.doesNotMatch(detail,/好感度4・雇用後/);
-  const story=load('../src/components/StoryModal.tsx',{});
+  const story=load('../src/components/StoryModal.tsx',{
+    './GameModal':{GameModal:({children})=>children},
+  });
   const html=renderToStaticMarkup(createElement(story.StoryModal,{event:getStaffStoryEvent('ren-help-cafe'),progress:state.characterProgress.ren,readOnly:true,onClose(){}}));
   assert.match(html,/カフェを手伝う日/);
   assert.match(html,/頼れる持ち場/);

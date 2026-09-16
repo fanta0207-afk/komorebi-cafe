@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { GameModal } from "./GameModal";
 import { getIngredient } from "../data/ingredients";
 import { useGame } from "../game/GameContext";
 import { ForestIcon } from "./ForestArt";
@@ -36,16 +37,11 @@ export function SupplyTicketButton({ delivery }: { delivery: IngredientDelivery 
 function TicketConfirmation({ delivery, tickets, onCancel, onConfirm }: {
   delivery: IngredientDelivery; tickets: number; onCancel: () => void; onConfirm: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const dialog = ref.current;
-    dialog?.showModal();
     cancelRef.current?.focus({ preventScroll: true });
-    return () => dialog?.close();
   }, []);
-  return <dialog ref={ref} className="supply-ticket-confirm" aria-label="調達券を使いますか？"
-    onCancel={event => { event.preventDefault(); onCancel(); }}>
+  return <GameModal className="supply-ticket-confirm" label="調達券を使いますか？" onCancel={onCancel} layerClassName="supply-ticket-modal-layer">
     <div className="supply-ticket-confirm-icon"><ForestIcon name="ticket"/></div>
     <h2>調達券を使いますか？</h2>
     <p className="supply-ticket-confirm-food"><strong>{getIngredient(delivery.ingredientId)?.name}</strong><br/>
@@ -55,5 +51,5 @@ function TicketConfirmation({ delivery, tickets, onCancel, onConfirm }: {
       <button ref={cancelRef} className="secondary-button" type="button" onClick={onCancel}>やめる</button>
       <button className="primary-button" type="button" onClick={onConfirm}>1枚使って受け取る</button>
     </div>
-  </dialog>;
+  </GameModal>;
 }

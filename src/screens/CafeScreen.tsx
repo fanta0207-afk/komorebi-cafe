@@ -14,6 +14,7 @@ import { staffBusy } from "../game/operations";
 import { isRecipeUsable, orderSalePrice } from "../game/logic";
 import type { GameState } from "../types/game";
 import { InventoryModal } from "../components/cafe/InventoryModal";
+import { GameModal } from "../components/GameModal";
 import { CafeScene } from "../components/cafe/CafeScene";
 import { CafeAsset } from "../components/cafe/CafeAsset";
 import { cafeAsset } from "../components/cafe/sceneModel";
@@ -90,17 +91,13 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
   state: GameState; manager: ManagerModel; notebook: Notebook; onClose: () => void; onStart: (id: string) => void;
   onDecline: (id: string) => void; onCollect: (id: string) => void; stocked: boolean; onTown: () => void; onEquipment: () => void; onSupplier: (ingredientId: string) => void; onRequestSupply:(orderId:string,ingredientId:string,staffId:string)=>void;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const selectedRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    const dialog = dialogRef.current;
-    dialog?.showModal();
     selectedRef.current?.scrollIntoView({ block: "nearest" });
-    return () => dialog?.close();
   }, []);
   const procurementStaff=state.staff.filter(person=>person.role==="procurement");
   const availableProcurers=procurementStaff.filter(person=>!staffBusy(state,person.characterId));
-  return <dialog ref={dialogRef} className="cafe-notebook" aria-labelledby="notebook-title" onClose={onClose}>
+  return <GameModal className="cafe-notebook" labelledBy="notebook-title" onCancel={onClose} layerClassName="cafe-modal-layer">
     <div className="notebook-handle"/>
     <header className="notebook-header"><h2 id="notebook-title">注文とキッチン</h2><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
       {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "来店待ち" : "食材がありません"}</p></div>}
@@ -137,5 +134,5 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
     })}
     {equipmentLayout(state).filter(entry => entry.status === "uninstalled").map(({ item }) => <div key={item.id}><span>{item.icon} {item.name}</span><b>解放済み・未設置</b></div>)}
     <button className="notebook-equipment-link" type="button" onClick={onEquipment}>設備の設置・強化へ →</button></section>
-  </dialog>;
+  </GameModal>;
 }

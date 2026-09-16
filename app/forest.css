@@ -94,7 +94,7 @@
 .forest-entry-note{display:block;text-align:center;font-size:9px;margin-top:10px;color:#989274}
 .forest-history-button{display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:#fff9e5cc;color:#72805a;border-radius:14px;min-height:42px;font-size:11px;cursor:pointer}.forest-history-button .forest-icon{width:18px;height:18px}
 .forest-sheet{position:fixed;top:auto;bottom:0;left:0;right:0;margin:0 auto;width:min(100%,430px);max-width:430px;max-height:82dvh;box-sizing:border-box;border:1px solid #d0bc90;border-bottom:0;border-radius:25px 25px 0 0;background:#fff9e9;color:#4c4932;padding:0 18px max(20px,env(safe-area-inset-bottom));box-shadow:0 -8px 40px #273c3433;overflow:auto;animation:forest-sheet-enter .25s ease-out}
-.forest-sheet::backdrop{background:#243c3250;backdrop-filter:blur(2px)}
+.forest-modal-layer{background:#243c3250;backdrop-filter:blur(2px)}
 .forest-sheet header{position:sticky;top:0;background:#fff9e9;z-index:2;padding:20px 40px 12px;text-align:center}
 .forest-sheet header h2{font:700 20px/1.4 "Yu Mincho",serif;margin:8px 0}
 .forest-sheet-handle{position:absolute;top:9px;left:50%;transform:translateX(-50%);height:4px;width:32px;border-radius:5px;background:#d9cbab}

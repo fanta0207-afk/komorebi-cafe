@@ -18,7 +18,7 @@
   box-shadow:0 8px 30px #3f312a40;
   animation:supply-ticket-appear .18s ease-out;
 }
-.supply-ticket-confirm::backdrop { background:#302d2680; backdrop-filter:blur(2px); }
+.supply-ticket-modal-layer { background:#302d2680; backdrop-filter:blur(2px); }
 .supply-ticket-confirm-icon { display:grid; place-items:center; margin:auto; width:48px; height:48px; border-radius:50%; background:#efe3c8; color:#907347; }
 .supply-ticket-confirm-icon .forest-icon { width:28px; height:28px; }
 .supply-ticket-confirm h2 { font:700 22px/1.4 "Yu Mincho",serif; margin:14px 0; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { GameModal } from "./GameModal";
 import "./prologue.css";
 
 const pages=[
@@ -12,12 +13,11 @@ const pages=[
 
 export function Prologue({onComplete}:{onComplete:()=>void}) {
   const [page,setPage]=useState(0);
-  const dialogRef=useRef<HTMLDialogElement>(null);
   const nextRef=useRef<HTMLButtonElement>(null);
-  useEffect(()=>{const dialog=dialogRef.current;dialog?.showModal();nextRef.current?.focus();return()=>dialog?.close();},[]);
+  useEffect(()=>{nextRef.current?.focus();},[]);
   useEffect(()=>{nextRef.current?.focus();},[page]);
   const next=()=>page<pages.length-1?setPage(value=>value+1):onComplete();
-  return <dialog ref={dialogRef} className="prologue-dialog" aria-labelledby="prologue-title" onCancel={event=>event.preventDefault()}>
+  return <GameModal className="prologue-dialog" labelledBy="prologue-title" layerClassName="prologue-modal-layer">
     <img className="prologue-room" src="/assets/cafe/backgrounds/room.png" alt=""/>
     <div className="prologue-vignette" aria-hidden="true"/>
     <header className="prologue-heading">
@@ -35,5 +35,5 @@ export function Prologue({onComplete}:{onComplete:()=>void}) {
       </div>
       <button ref={nextRef} type="button" className="prologue-next" onClick={next}>{page===pages.length-1?"店を開ける":"つづける"}<span aria-hidden="true">→</span></button>
     </div>
-  </dialog>;
+  </GameModal>;
 }

@@ -27,6 +27,7 @@ import { useCafeManager } from "./cafe/useCafeManager";
 import { MissionGuide } from "./MissionGuide";
 import { Prologue } from "./Prologue";
 import { SettingsMenu } from "./SettingsMenu";
+import { GameModal } from "./GameModal";
 import type { MissionDestination } from "../game/missions";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
@@ -150,12 +151,11 @@ function GameContent() {
 }
 
 function DateEventModal({event,completed,onClose,onComplete}:{event:DateEvent;completed:boolean;onClose:()=>void;onComplete:()=>void}) {
-  const character=getCharacter(event.characterId)!;const [page,setPage]=useState(0);const [artFailed,setArtFailed]=useState(false);const dialog=useRef<HTMLDialogElement>(null);
+  const character=getCharacter(event.characterId)!;const [page,setPage]=useState(0);const [artFailed,setArtFailed]=useState(false);
   const storyImage=character.storyImage||character.image;
   const finalPage=page===event.dialogue.length-1;
-  useEffect(()=>{const element=dialog.current;element?.showModal();return()=>element?.close();},[]);
   const next=()=>{if(!finalPage)setPage(value=>value+1);else if(completed)onClose();else onComplete();};
-  return <dialog ref={dialog} className="story-modal story-player date-story-player" aria-labelledby="date-story-title" onCancel={event=>{event.preventDefault();onClose();}}>
+  return <GameModal className="story-modal story-player date-story-player" labelledBy="date-story-title" onCancel={onClose} layerClassName="story-modal-layer">
     <button className="story-close-button" aria-label="デートを閉じる" onClick={onClose}>×</button>
     <header className="story-player-heading"><div className="story-header"><span>{completed?"デートの思い出":"DATE"} · {event.icon} {event.title}</span></div><h2 id="date-story-title">{character.shortName}と{event.title}</h2></header>
     <div className={`story-stage is-speaking date-location-${event.locationId}`} data-character={character.id}>
@@ -164,19 +164,17 @@ function DateEventModal({event,completed,onClose,onComplete}:{event:DateEvent;co
     <div className="story-dialogue-panel"><div key={page} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&!completed&&<div className="story-reward date-reward"><strong>好感度 +{GAME_CONFIG.dateAffection}</strong><p>初めての{event.title}の思い出が増えます。</p></div>}</div>
       <div className="story-footer"><span>{page+1} / {event.dialogue.length}</span><button className="primary-button" onClick={next}>{finalPage?(completed?"閉じる":"デートを終える"):"次へ →"}</button></div>
     </div>
-  </dialog>;
+  </GameModal>;
 }
 
 function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onNext:()=>void}) {
   const character=getCharacter(event.characterId)!;const finalPage=page===event.dialogue.length-1;
-  const dialog=useRef<HTMLDialogElement>(null);
   const dialogueContent=useRef<HTMLDivElement>(null);
-  useEffect(()=>{const element=dialog.current;element?.showModal();return()=>element?.close();},[]);
   useEffect(()=>{dialogueContent.current?.scrollTo({top:0});},[page]);
   const storyImage=character.storyImage||character.image;
   const [artFailed,setArtFailed]=useState(false);
   const rewardNames=[...(event.routeStage===1?["仕入れ効率アップ"]:[]),...(event.rewards.ingredientIds || []).map(id=>getIngredient(id)?.name),...(event.rewards.recipeIds || []).map(id=>getRecipe(id)?.name),...(event.rewards.equipmentIds || []).map(id=>getEquipment(id)?.name)].filter(Boolean);
-  return <dialog ref={dialog} className="story-modal story-player growth-event-overlay" aria-label={`${event.title}のイベント`} onCancel={event=>event.preventDefault()}><div className="event-scene story-player growth-story-scene">
+  return <GameModal className="story-modal story-player growth-event-overlay" label={`${event.title}のイベント`} layerClassName="story-modal-layer"><div className="event-scene story-player growth-story-scene">
     <div className="story-stage is-speaking" data-character={character.id}>
       {storyImage&&!artFailed
         ?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
@@ -186,7 +184,7 @@ function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onN
       <div ref={dialogueContent} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="story-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}</div>
       <div className="story-footer"><span>{page+1} / {event.dialogue.length}</span><button type="button" className="primary-button" onClick={onNext}>{finalPage?"完了":"次へ →"}</button></div>
     </div>
-  </div></dialog>;
+  </div></GameModal>;
 }
 
 function DevMenu({selected,onSelect,onClose,onSpawn,onRefresh,onReset}:{selected:string;onSelect:(id:string)=>void;onClose:()=>void;onSpawn:()=>void;onRefresh:()=>void;onReset:()=>void}) {

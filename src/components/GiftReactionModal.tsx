@@ -1,24 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { GameModal } from "./GameModal";
 import { getCharacter } from "../data/characters";
 import { getGift, giftReactionLabels } from "../data/gifts";
 import type { GiftReactionPopup } from "../types/game";
 import "./story-modal.css";
 
 export function GiftReactionModal({reaction,onClose}:{reaction:GiftReactionPopup;onClose:()=>void}) {
-  const dialog=useRef<HTMLDialogElement>(null);
   const [artFailed,setArtFailed]=useState(false);
   const character=getCharacter(reaction.characterId)!;
   const gift=getGift(reaction.giftId)!;
   const standingArt=character.storyImage||character.image;
-  useEffect(()=>{
-    const element=dialog.current;
-    element?.showModal();
-    return()=>element?.close();
-  },[]);
-
-  return <dialog ref={dialog} className="story-modal story-player gift-reaction-popup" aria-labelledby="gift-reaction-title" onCancel={event=>{event.preventDefault();onClose();}}>
+  return <GameModal className="story-modal story-player gift-reaction-popup" labelledBy="gift-reaction-title" onCancel={onClose} layerClassName="story-modal-layer">
     <button type="button" className="story-close-button" aria-label="プレゼントのリアクションを閉じる" onClick={onClose}>×</button>
     <header className="story-player-heading">
       <div className="story-header"><span>{gift.icon} {gift.name}をプレゼント</span></div>
@@ -33,5 +27,5 @@ export function GiftReactionModal({reaction,onClose}:{reaction:GiftReactionPopup
       <div className="story-content speaker-character"><span className="story-speaker">{character.name}</span><p>「{reaction.response}」</p></div>
       <div className="story-footer"><button type="button" className="primary-button" onClick={onClose}>閉じる</button></div>
     </div>
-  </dialog>;
+  </GameModal>;
 }

@@ -1,6 +1,6 @@
 .settings-menu { position:fixed; inset:0; width:min(400px,calc(100vw - 24px)); max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); margin:auto; padding:0; border:1px solid #b89b71; border-radius:18px; background:#fff9eb; color:#3f3128; box-shadow:0 20px 44px #1d130f9e,inset 0 0 0 3px #fffdfa; overflow:hidden; }
-.settings-menu[open] { display:flex; flex-direction:column; }
-.settings-menu::backdrop { background:#1c1713b8; backdrop-filter:blur(3px); }
+.settings-menu { display:flex; flex-direction:column; }
+.settings-modal-layer { background:#1c1713b8; backdrop-filter:blur(3px); }
 .settings-menu>header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; border-bottom:1px solid #dfcda9; background:#f1e5ca; }
 .settings-menu h2 { margin:0; font:800 24px/1.3 "Yu Mincho","Hiragino Mincho ProN",serif; }
 .settings-menu>header button { flex:none; width:44px; height:44px; border:1px solid #cdbb9b; border-radius:50%; background:#fffaf0; font-size:26px; line-height:1; cursor:pointer; }

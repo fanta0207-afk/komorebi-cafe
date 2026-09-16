@@ -42,7 +42,10 @@ export function GameProvider({children}:{children:ReactNode}) {
     if(!hydrated)return;
     let previous=performance.now();
     const timer=window.setInterval(()=>{const now=performance.now();const deltaMs=now-previous;previous=now;if(document.visibilityState==="visible"&&stateRef.current.onboardingStage!=="prologue")dispatch({type:"TICK",deltaMs});},100);
-    const reset=()=>{previous=performance.now();};document.addEventListener("visibilitychange",reset);
+    const reset=()=>{
+      previous=performance.now();
+      if(document.visibilityState==="visible")dispatch({type:"CATCH_UP",now:Date.now()});
+    };document.addEventListener("visibilitychange",reset);
     return ()=>{window.clearInterval(timer);document.removeEventListener("visibilitychange",reset);};
   },[hydrated]);
   const value=useMemo(()=>({ state,hydrated,dispatch,refreshGiftShop:(costAction=true)=>dispatch({type:"REFRESH_SHOP",items:randomShopItems(),costAction}),resetGame }),[state,hydrated,resetGame]);

@@ -13,7 +13,7 @@ import { conditionForDay } from "../data/dailyConditions";
 import type { CharacterProgress, EventReward, GameState, GiftReaction, MissionPlace, Order, RelationshipRoute, StaffRole } from "../types/game";
 import { claimMission, claimSideMission, emptyMissions, missions, milestoneMissions, restoreOngoing, updateMissions } from "./missions";
 import { startCooking, serveOrder, equipmentPrice, upgradePrice, normalizeCookingTimes } from "./operations";
-import { advanceGame } from "./simulation";
+import { advanceGame, advanceOfflineProgress } from "./simulation";
 import { nextTableUpgrade, tableCapacity, tableUpgradeUnlocked } from "./seating";
 import { orderSupplies, receiveSupplies, requestStaffSupply, runAutoProcurement } from "./procurement";
 import { autoProcurementUnlocked, staffHirePrice, staffHireStage, staffRoleAvailable } from "./automation";
@@ -40,6 +40,7 @@ export type Action = ForestAction
   | {type:"COLLECT_ORDER"; orderId:string}
   | {type:"START_COOKING"; orderId:string}
   | {type:"TICK"; deltaMs:number; now?:number}
+  | {type:"CATCH_UP"; now?:number}
   | {type:"REFRESH_SHOP"; items:string[]; costAction:boolean; now?:number}
   | {type:"COMPLETE_EVENT"; eventId:string; route?:Exclude<RelationshipRoute,"undecided">; choiceId?:string}
   | {type:"COMPLETE_STAFF_STORY"; eventId:string}
@@ -147,6 +148,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       && pending.reaction===giftReaction(getCharacter(pending.characterId)!,getGift(pending.giftId)!)
       && typeof pending.response==="string"&&pending.response.length>0
       && !characterProgress[pending.characterId].viewedGiftReactions.includes(pending.reaction)?pending:undefined;
+    const savedLastPlayedAt=Number.isFinite(saved.lastPlayedAt)&&saved.lastPlayedAt!<=now?saved.lastPlayedAt!:now;
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
       onboardingStage:savedVersion>=25&&(saved.onboardingStage==="prologue"||saved.onboardingStage==="mission"||saved.onboardingStage==="complete")?saved.onboardingStage:"complete",
@@ -192,7 +194,7 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
         if(person.servingOrderId)return {...base,role,remainingMs:Number.isFinite(person.remainingMs)?Math.max(0,person.remainingMs):0};
         return returningFromSlot!==undefined?{...base,role,servingOrderId:undefined,returningFromSlot,remainingMs:Number.isFinite(person.remainingMs)?Math.max(0,person.remainingMs):0}:{...base,role,remainingMs:0};
       }),
-      lastPlayedAt:now,
+      lastPlayedAt:savedLastPlayedAt,
       autoProcurementEnabled:!!saved.autoProcurementEnabled,
       offlineOffer:0, notice:undefined,
     };
@@ -223,7 +225,10 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       migrated.missions.receivedPacks=Object.fromEntries(Object.entries(migrated.lifetimeStats.ingredientPurchases).map(([id,packs])=>[id,Math.max(0,packs-migrated.deliveries.filter(d=>d.ingredientId===id).reduce((sum,d)=>sum+d.packs,0))]));
     }
     migrated=migrateForest(migrated,savedVersion,now);
-    return updateMissions(syncForestRecipes(updateGiftShopClock(receiveSupplies(normalizeCookingTimes(migrated), now),now)));
+    migrated=normalizeCookingTimes(migrated);
+    migrated=advanceOfflineProgress(migrated,now);
+    migrated={...migrated,lastPlayedAt:now};
+    return updateMissions(syncForestRecipes(updateGiftShopClock(receiveSupplies(migrated, now),now)));
 }
 
 const notice = (type:NonNullable<GameState["notice"]>["type"], text:string) => ({ id:Date.now()+Math.random(), type, text });
@@ -319,6 +324,13 @@ function reduceAction(state:GameState, action:Action):GameState {
       const now=action.now ?? Date.now();
       const next=advanceGame(runAutoProcurement(receiveSupplies(updateGiftShopClock({...state,forest:recoverForest(state.forest,now)},now),now),now),action.deltaMs);
       return next===state?state:{...next,lastPlayedAt:now};
+    }
+    case "CATCH_UP": {
+      const now=action.now ?? Date.now();
+      if(!Number.isFinite(now))return state;
+      const progressed=advanceOfflineProgress(state,now);
+      const next=runAutoProcurement(receiveSupplies(updateGiftShopClock({...progressed,forest:recoverForest(progressed.forest,now)},now),now),now);
+      return {...next,lastPlayedAt:now};
     }
     case "COLLECT_ORDER": return serveOrder(state,action.orderId);
     case "REFRESH_SHOP": {

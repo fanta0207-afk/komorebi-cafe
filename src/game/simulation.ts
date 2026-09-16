@@ -5,7 +5,7 @@ import { normalizeCookingTimes, serveDuration, serveOrder, startCooking } from "
 import type { GameState } from "../types/game";
 import { tableCapacity, tableSlots } from "./seating";
 
-// Only foreground elapsed time is supplied. Long gaps (sleep / suspended tabs) are ignored.
+// Foreground play advances the full cafe simulation, including new customer arrivals.
 export function advanceGame(state:GameState,deltaMs:number):GameState {
   if(!Number.isFinite(deltaMs)||deltaMs<=0||deltaMs>1000)return state;
   let next=normalizeCookingTimes(state),remaining=deltaMs;
@@ -28,6 +28,24 @@ export function advanceGame(state:GameState,deltaMs:number):GameState {
     }
   }
   return next;
+}
+
+/** Finish only work already in progress while the app was hidden.
+ * Customer arrivals and automatic serving remain foreground-only, so reopening
+ * the game never produces surprise sales or consumes additional ingredients. */
+export function advanceOfflineProgress(state:GameState, now:number):GameState {
+  if (!Number.isFinite(now) || !Number.isFinite(state.lastPlayedAt) || now <= state.lastPlayedAt) return state;
+  const elapsed=now-state.lastPlayedAt;
+  let changed=false;
+  const orders=state.orders.map(order=>{
+    if(order.status!=="cooking")return order;
+    const remaining=Number.isFinite(order.remainingMs)?Math.max(0,order.remainingMs):0;
+    const nextRemaining=Math.max(0,remaining-elapsed);
+    if(nextRemaining===remaining)return order;
+    changed=true;
+    return {...order,remainingMs:nextRemaining,status:nextRemaining===0?"ready":"cooking" as const};
+  });
+  return changed?{...state,orders}:state;
 }
 
 function assignWork(state:GameState):GameState {

@@ -77,7 +77,7 @@ export function runAutoProcurement(state:GameState,now=Date.now()):GameState {
   return state;
 }
 
-/** Real-time deliveries can finish while away; cooking and sales still require foreground play. */
+/** Real-time deliveries can finish while away; sales still require foreground play. */
 export function receiveSupplies(state: GameState, now: number): GameState {
   if (!Number.isFinite(now)) return state;
   const arrived = state.deliveries.filter(item => item.arrivesAt <= now);

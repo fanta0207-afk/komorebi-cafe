@@ -666,10 +666,10 @@ test('publication preserves the save key and v5 possessions, customer and recipe
   assert.deepEqual(migrateSavedState(JSON.parse(JSON.stringify(loaded))).orders,legacy.orders);
 });
 
-test('reload and suspended time never yield offline coins or progress; v4 migration is idempotent',()=>{
+test('reload and suspended time complete cooking and deliveries but never create offline sales; v4 migration is idempotent',()=>{
   let state=tick(start(addOrder(isolated())),3000);const saved=JSON.parse(JSON.stringify(state));
   for(const deltaMs of [0,-1,1001,86400000,Infinity,NaN])assert.equal(reducer(state,{type:'TICK',deltaMs}),state);
-  const resumed=migrateSavedState(saved,Date.now()+86400000);assert.equal(resumed.currency,state.currency);assert.equal(resumed.orders[0].remainingMs,7000);assert.equal(resumed.offlineOffer,0);assert.equal(collect(resumed),resumed);
+  const resumed=migrateSavedState(saved,Date.now()+86400000);assert.equal(resumed.currency,state.currency);assert.equal(resumed.orders[0].remainingMs,0);assert.equal(resumed.orders[0].status,'ready');assert.equal(resumed.offlineOffer,0);assert.ok(collect(resumed)!==resumed,'the player still serves the completed dish manually');
   const old={...saved,saveVersion:4,ingredients:{coffeeBeans:3},ownedEquipment:['espressoMachine'],unlockedEquipment:['espressoMachine'],orders:[{id:'old',recipeId:'coffee',customerSlot:0}],offlineOffer:480};
   const migrated=migrateSavedState(old);assert.equal(migrated.ingredients.coffeeBeans,25);assert.equal(migrated.stations.length,4);assert.equal(migrated.orders[0].status,'queued');assert.equal(migrated.currency,old.currency);assert.equal(migrated.offlineOffer,0);
   assert.deepEqual(migrateSavedState(migrated).ingredients,migrated.ingredients);

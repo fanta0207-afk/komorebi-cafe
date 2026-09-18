@@ -97,7 +97,7 @@ function CafeNotebook({ state, manager, notebook, onClose, onStart, onCollect, o
   }, []);
   const procurementStaff=state.staff.filter(person=>person.role==="procurement");
   const availableProcurers=procurementStaff.filter(person=>!staffBusy(state,person.characterId));
-  return <GameModal className="cafe-notebook" labelledBy="notebook-title" onCancel={onClose} layerClassName="cafe-modal-layer">
+  return <GameModal className="cafe-notebook cafe-orders-notebook" labelledBy="notebook-title" onCancel={onClose} layerClassName="cafe-modal-layer cafe-orders-layer">
     <div className="notebook-handle"/>
     <header className="notebook-header"><h2 id="notebook-title">注文とキッチン</h2><button type="button" onClick={onClose} aria-label="店内に戻る">×</button></header>
       {!state.orders.length && <div className="notebook-empty"><span>☕</span><p>{stocked ? "来店待ち" : "食材がありません"}</p></div>}

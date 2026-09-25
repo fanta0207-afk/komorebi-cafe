@@ -33,7 +33,7 @@ export function Prologue({onComplete}:{onComplete:()=>void}) {
         <span className={`prologue-speaker ${pages[page].speaker==="おばあちゃん"?"is-grandmother":""}`}>{pages[page].speaker}</span>
         <p>{pages[page].text}</p>
       </div>
-      <button ref={nextRef} type="button" className="prologue-next" onClick={next}>{page===pages.length-1?"店を開ける":"つづける"}<span aria-hidden="true">→</span></button>
+      <div className="prologue-actions"><button type="button" className="prologue-back" disabled={page===0} onClick={()=>setPage(value=>Math.max(0,value-1))}>← 戻る</button><button ref={nextRef} type="button" className="prologue-next" onClick={next}>{page===pages.length-1?"店を開ける":"つづける"}<span aria-hidden="true">→</span></button></div>
     </div>
   </GameModal>;
 }

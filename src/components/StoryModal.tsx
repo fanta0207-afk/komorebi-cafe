@@ -33,6 +33,14 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
     else if (readOnly) onClose?.();
     else onComplete?.(choiceId,route==="undecided"?undefined:route);
   };
+  const back=()=>{
+    if (!readOnly && choice && page===baseLines.length) {
+      setChoiceId(undefined);
+      setPage(Math.max(0,baseLines.length-1));
+      return;
+    }
+    setPage(value=>Math.max(0,value-1));
+  };
 
   return <GameModal className="story-modal story-player" labelledBy="story-title" onCancel={readOnly ? onClose : undefined} layerClassName="story-modal-layer">
     {readOnly&&<button className="story-close-button" aria-label="思い出を閉じる" onClick={onClose}>×</button>}
@@ -57,7 +65,7 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
         {choosingResponse&&<div className="story-choices" aria-label="返事を選ぶ">{event.choices!.map(item=><button key={item.id} onClick={()=>{setChoiceId(item.id);setPage(baseLines.length);}}>{item.label}</button>)}</div>}
         {finalPage&&!choosingResponse&&event.reward&&<div className="story-reward"><strong>解放</strong><p>{event.reward.note}</p></div>}
       </div>
-      {!choosingResponse&&<div className="story-footer"><span>{page+1} / {lines.length}</span><button className="primary-button" onClick={next}>{finalPage?(readOnly?"閉じる":"完了"):"次へ →"}</button></div>}
+      <div className="story-footer"><button type="button" className="story-back-button" disabled={page===0} onClick={back}>← 戻る</button><span>{page+1} / {lines.length}</span>{!choosingResponse&&<button className="primary-button" onClick={next}>{finalPage?(readOnly?"閉じる":"完了"):"次へ →"}</button>}</div>
     </>}
     </div>
   </GameModal>;

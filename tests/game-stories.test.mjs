@@ -51,6 +51,17 @@ test('a new cafe starts with the prologue, remembers tutorial progress, and does
   assert.equal(migrateSavedState(older,1000).onboardingStage,'complete');
 });
 
+test('every multi-page story player can return to the previous page',()=>{
+  const story=readFileSync(new URL('../src/components/StoryModal.tsx',import.meta.url),'utf8');
+  const game=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+  const prologue=readFileSync(new URL('../src/components/Prologue.tsx',import.meta.url),'utf8');
+  assert.match(story,/className="story-back-button" disabled=\{page===0\} onClick=\{back\}>← 戻る/);
+  assert.match(story,/setPage\(value=>Math\.max\(0,value-1\)\)/);
+  assert.match(game,/onBack=\{\(\)=>setEventPage\(value=>Math\.max\(0,value-1\)\)\}/);
+  assert.equal((game.match(/className="story-back-button"/g)||[]).length,2);
+  assert.match(prologue,/className="prologue-back" disabled=\{page===0\}/);
+});
+
 const {receiveSupplies,procurementRate,procurementQuote,supplyPackSize,requestStaffSupply,runAutoProcurement}=require(join(output,'game/procurement.js'));
 const {autoProcurementUnlocked}=require(join(output,'game/automation.js'));
 const receiveAll=state=>state.deliveries.length?receiveSupplies(state,Math.max(...state.deliveries.map(item=>item.arrivesAt))):state;

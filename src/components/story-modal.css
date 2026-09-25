@@ -129,6 +129,8 @@
 .story-player .story-content>.story-note { color:#d9c7ae; font-size:12px; margin-bottom:0; }
 .story-player .story-footer { margin-top:14px; justify-content:space-between; }
 .story-player .story-footer>span { color:#d7c3a7; font-size:12px; font-variant-numeric:tabular-nums; }
+.story-player .story-back-button { flex:none; min-height:44px; padding:9px 13px; border:1px solid #b99d78; border-radius:8px; background:#3a2d26cc; color:#fff3df; font-size:13px; font-weight:700; cursor:pointer; }
+.story-player .story-back-button:disabled { opacity:.35; cursor:default; }
 .story-player .story-footer .primary-button { flex:0 1 auto; min-height:44px; padding:10px 18px; border:1px solid #e2c68e; background:linear-gradient(#8c6a3f,#6c4d2d); color:#fff9eb; box-shadow:0 3px 0 #392416; font-size:14px; }
 .story-player .story-reward { margin-top:14px; padding:10px 12px; border-color:#85966f; background:#344235; color:#eef4e5; }
 .story-player .story-reward strong { color:#dbe8c7; }

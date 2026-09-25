@@ -142,6 +142,7 @@ function GameContent() {
     {growthEvent&&<GrowthEventModal
       event={growthEvent}
       page={eventPage}
+      onBack={()=>setEventPage(value=>Math.max(0,value-1))}
       onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
     />}
     {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
@@ -162,12 +163,12 @@ function DateEventModal({event,completed,onClose,onComplete}:{event:DateEvent;co
       {storyImage&&!artFailed?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>:<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
     </div>
     <div className="story-dialogue-panel"><div key={page} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&!completed&&<div className="story-reward date-reward"><strong>好感度 +{GAME_CONFIG.dateAffection}</strong><p>初めての{event.title}の思い出が増えます。</p></div>}</div>
-      <div className="story-footer"><span>{page+1} / {event.dialogue.length}</span><button className="primary-button" onClick={next}>{finalPage?(completed?"閉じる":"デートを終える"):"次へ →"}</button></div>
+      <div className="story-footer"><button type="button" className="story-back-button" disabled={page===0} onClick={()=>setPage(value=>Math.max(0,value-1))}>← 戻る</button><span>{page+1} / {event.dialogue.length}</span><button className="primary-button" onClick={next}>{finalPage?(completed?"閉じる":"デートを終える"):"次へ →"}</button></div>
     </div>
   </GameModal>;
 }
 
-function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onNext:()=>void}) {
+function GrowthEventModal({event,page,onBack,onNext}:{event:GrowthEvent;page:number;onBack:()=>void;onNext:()=>void}) {
   const character=getCharacter(event.characterId)!;const finalPage=page===event.dialogue.length-1;
   const dialogueContent=useRef<HTMLDivElement>(null);
   useEffect(()=>{dialogueContent.current?.scrollTo({top:0});},[page]);
@@ -182,7 +183,7 @@ function GrowthEventModal({event,page,onNext}:{event:GrowthEvent;page:number;onN
     </div>
     <div className="story-dialogue-panel growth-story-dialogue">
       <div ref={dialogueContent} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="story-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}</div>
-      <div className="story-footer"><span>{page+1} / {event.dialogue.length}</span><button type="button" className="primary-button" onClick={onNext}>{finalPage?"完了":"次へ →"}</button></div>
+      <div className="story-footer"><button type="button" className="story-back-button" disabled={page===0} onClick={onBack}>← 戻る</button><span>{page+1} / {event.dialogue.length}</span><button type="button" className="primary-button" onClick={onNext}>{finalPage?"完了":"次へ →"}</button></div>
     </div>
   </div></GameModal>;
 }

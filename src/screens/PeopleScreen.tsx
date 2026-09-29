@@ -4,6 +4,7 @@ import { handmadeAmount } from '../game/forest';
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { getCharacter } from "../data/characters";
+import { getDramaEvent } from "../data/dramaEvents";
 import { suppliers } from "../data/suppliers";
 import { relationshipEvents, staffStoryEvents } from "../data/events";
 import { compareGiftIds, getGift, allGifts as gifts } from "../data/gifts";
@@ -11,7 +12,7 @@ import { useGame } from "../game/GameContext";
 import { giftReaction, relationshipRequirements } from "../game/logic";
 import { characterGiftResponse } from "../game/conversation";
 import { relationshipLabel } from "../game/config";
-import type { GiftReaction, RelationshipEvent } from "../types/game";
+import type { DramaEvent, GiftReaction, RelationshipEvent } from "../types/game";
 import { EmptyState, Hearts, Portrait, ScreenTitle } from "../components/GameUI";
 
 const reactionGroups:{id:GiftReaction;label:string;mark:string}[]=[
@@ -19,10 +20,16 @@ const reactionGroups:{id:GiftReaction;label:string;mark:string}[]=[
   {id:"normal",label:"ふつう",mark:"○"},{id:"dislike",label:"苦手",mark:"△"},
 ];
 
-export function PeopleScreen({onOpen}:{onOpen:(id:string)=>void}) {
+export function PeopleScreen({onOpen,onReplayDrama}:{onOpen:(id:string)=>void;onReplayDrama:(event:DramaEvent)=>void}) {
   const {state}=useGame();
-  return <section className="screen fade-in"><ScreenTitle title="出会った人々"/>
-    <div className="people-list">{suppliers.map(supplier=>{
+  const [tab,setTab]=useState<"people"|"memories">("people");
+  const memories=state.viewedDramaEvents.map(getDramaEvent).filter((event):event is DramaEvent=>Boolean(event));
+  return <section className="screen fade-in"><ScreenTitle title={tab==="people"?"出会った人々":"思い出帳"}/>
+    <div className="people-tabs" role="tablist" aria-label="人物画面の表示切り替え">
+      <button type="button" role="tab" aria-selected={tab==="people"} className={tab==="people"?"active":""} onClick={()=>setTab("people")}>登場人物</button>
+      <button type="button" role="tab" aria-selected={tab==="memories"} className={tab==="memories"?"active":""} onClick={()=>setTab("memories")}>思い出帳 <span>{memories.length}</span></button>
+    </div>
+    {tab==="people"?<div className="people-list">{suppliers.map(supplier=>{
       const character=getCharacter(supplier.characterId)!;
       const p=state.characterProgress[character.id];
       return <button key={character.id} className={`person-row ${!p.met?"locked":""}`} disabled={!p.met} onClick={()=>onOpen(character.id)}>
@@ -30,7 +37,14 @@ export function PeopleScreen({onOpen}:{onOpen:(id:string)=>void}) {
         <div><span>{p.met?relationshipLabel(p.relationshipStage,p.route):"未遭遇"}</span><strong>{p.met?character.name:"？？？"}</strong>{p.met&&<Hearts stage={p.relationshipStage} route={p.route}/>}</div>
         <em>{p.met?relationshipLabel(p.relationshipStage,p.route):"街で会う"}</em><b>›</b>
       </button>;
-    })}</div>
+    })}</div>:memories.length?<div className="drama-memory-list">{memories.map(memory=>{
+      const participants=memory.participantIds.map(getCharacter).filter(Boolean);
+      return <button type="button" className="drama-memory-card" key={memory.id} onClick={()=>onReplayDrama(memory)} aria-label={`${memory.title}を読み返す`}>
+        <span className="drama-memory-mark" aria-hidden="true">✎</span>
+        <span className="drama-memory-copy"><small>{memory.subtitle}</small><strong>{memory.title}</strong><em>{participants.map(character=>character!.shortName).join("・")}</em></span>
+        <span className="drama-memory-action">読み返す <b>›</b></span>
+      </button>;
+    })}</div>:<EmptyState icon="✎" title="まだ思い出はありません" text="カフェで特別な出来事が起き、最後まで読むとここに追加されます。"/>}
   </section>;
 }
 

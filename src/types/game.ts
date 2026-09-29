@@ -7,6 +7,10 @@ export type RelationshipRoute = "undecided" | "romance" | "friendship";
 export type DateLocationId = "amusement" | "walk" | "home";
 export interface StoryLine { speaker:"narrator"|"character"|"player"; text:string; }
 export interface StoryChoice { id:string; label:string; response:StoryLine[]; }
+export interface DramaStoryLine { speaker:"narrator"|"player"|string; text:string; }
+export interface DramaEvent {
+  id:string; title:string; subtitle:string; participantIds:string[]; dialogue:DramaStoryLine[];
+}
 
 export interface Ingredient { id:string; name:string; icon:string; price:number; supplierId:string; limited?:boolean; unlockEventId?:string; }
 export interface Recipe { forest?:boolean; cookingSeconds?:number; id:string; name:string; icon:string; price:number; requiredIngredients:string[]; requiredEquipmentIds?:string[]; unlockHint:string; initiallyUnlocked?:boolean; tags:string[]; rarity:MenuRarity; limited?:boolean; hidden?:boolean; unlockEventId?:string; }
@@ -77,6 +81,7 @@ export interface GameState {
   dailyWeatherId:string; dailyCustomerGroupId:string; dailyEventId:string;
   lifetimeStats:LifetimeStats; viewedGrowthEvents:string[];
   viewedDateEvents:string[];
+  viewedDramaEvents:string[];
   unlockedEquipment:string[]; ownedEquipment:string[]; unlockedDecorations:string[];
   autoProcurementEnabled:boolean;
 }

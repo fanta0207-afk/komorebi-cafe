@@ -24,6 +24,7 @@ export const characters: Character[] = [
     "supplierId": "coffee",
     "profile": "亡き父の小さな焙煎店を継いだ職人。接客は不器用だが、買い手の器具や営業形態まで覚えて豆を選ぶ。愛情表現は、荷物を持つ、焙煎日をメモする、閉店まで待つなどの行動が先に出る。豆の説明になると少しだけ口数が増える。",
     "image": "/assets/characters/ren.png",
+    "storyImage": "/assets/characters/ren-story-cutout.png",
     "silhouette": "蓮",
     "favoriteGiftTags": [
       "coffee",
@@ -51,6 +52,7 @@ export const characters: Character[] = [
     "supplierId": "ranch",
     "profile": "家族経営の牧場で働き、乳製品の販売を担当する。動物の小さな変化に気づき、人の話も最後まで聞く。天然さは、牛の誕生日は全頭覚えているのに自分の誕生日を忘れるような生活の偏り。飼育の判断には責任感がある。",
     "image": "/assets/characters/shirakawa-maki.png",
+    "storyImage": "/assets/characters/sota-story-cutout.png",
     "silhouette": "牧",
     "favoriteGiftTags": [
       "animal",
@@ -78,6 +80,7 @@ export const characters: Character[] = [
     "supplierId": "farm",
     "profile": "祖父母の農園で栽培と直売を担当する。新しい品種や売り方を試すのが好き。勝負を持ちかけたり、大きな野菜を宝物のように差し出したりして、人を笑わせる。距離は近いが、嫌がられたことは繰り返さない。",
     "image": "/assets/characters/aki.png",
+    "storyImage": "/assets/characters/aki-story-cutout.png",
     "silhouette": "葵",
     "favoriteGiftTags": [
       "nature",
@@ -105,6 +108,7 @@ export const characters: Character[] = [
     "supplierId": "patisserie",
     "profile": "英国帰りで、日本と英国にルーツを持つハーフのパティシエ。町の洋菓子店を営む、爽やかな王子様のような青年。上品で物腰が柔らかく、扉を押さえ、椅子を引くレディファーストが自然に身についている。実は少し策士で、好きな相手と会う口実や隣の席をさりげなく用意する。計画を見抜かれると照れた素顔が出る。",
     "image": "/assets/characters/earl-grey.png",
+    "storyImage": "/assets/characters/itsuki-story-cutout.png",
     "silhouette": "ア",
     "favoriteGiftTags": [
       "sweet",
@@ -132,6 +136,7 @@ export const characters: Character[] = [
     "supplierId": "bakery",
     "profile": "パン屋で製造と配達を担う。人懐っこく、困りごとを放っておけない兄貴肌。見えないところで練習を重ねる努力家で、接客中に失敗談を笑って話しても、本当に悩んでいることは言わない。主人公の店に朝いちばんで顔を出すことが多い。",
     "image": "/assets/characters/mugino-taiyo.png",
+    "storyImage": "/assets/characters/haru-story-cutout.png",
     "silhouette": "太",
     "favoriteGiftTags": [
       "sweet",
@@ -159,6 +164,7 @@ export const characters: Character[] = [
     "supplierId": "herb",
     "profile": "古い温室のある花・ハーブ店を営む。香りや光に敏感で、「雨の前は葉が少し急いでいる」など独特の表現をする。静かな観察力と、ふいに出る率直な一言が魅力。神秘的に見える場面も、植物や暮らしへの細やかな注意で説明でき、超常現象の有無は確定させない。",
     "image": "/assets/characters/shizuka.png",
+    "storyImage": "/assets/characters/nagisa-story-cutout.png",
     "silhouette": "静",
     "favoriteGiftTags": [
       "flower",
@@ -186,6 +192,7 @@ export const characters: Character[] = [
     "supplierId": "freezer",
     "profile": "アイスや冷凍果実を保管する冷凍倉庫の管理者。常に厚着で、マフラーとフードに隠れて表情が見えにくい。人と関わるのを避け、必要なことしか話さないが、温度管理と品質への妥協はない。主人公の温かさに触れ、凍った距離が少しずつ溶けていく。",
     "image": "/assets/characters/toudou-sae.png",
+    "storyImage": "/assets/characters/sae-story-cutout.png",
     "silhouette": "冴",
     "favoriteGiftTags": [
       "practical",
@@ -214,7 +221,7 @@ export const characters: Character[] = [
     "supplierId": "chocolaterie",
     "profile": "若くして数々の賞を取った天才ショコラティエ。自信家で挑発的だが、味覚と仕事への妥協は一切ない。主人公を試すような言葉を投げながら、真剣な感想には誰より早く応える。好意が深まるほど独占欲を隠せなくなるが、相手の意思を無視することはしない。",
     "image": "/assets/characters/cacao.png",
-    "storyImage": "/assets/characters/cacao-story.png",
+    "storyImage": "/assets/characters/cacao-story-cutout.png",
     "silhouette": "カ",
     "favoriteGiftTags": ["sweet", "craft", "elegant"],
     "dislikedGiftTags": ["rough"],

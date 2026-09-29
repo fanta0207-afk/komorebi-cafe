@@ -41,6 +41,7 @@ const { equipment } = missionRequire(join(missionRuntimeRoot, "data", "equipment
 const { relationshipEvents, staffStoryEvents } = missionRequire(join(missionRuntimeRoot, "data", "events.js"));
 const { growthEvents } = missionRequire(join(missionRuntimeRoot, "data", "growthEvents.js"));
 const { dateEvents, dateLocations } = missionRequire(join(missionRuntimeRoot, "data", "dates.js"));
+const { dramaEvents } = missionRequire(join(missionRuntimeRoot, "data", "dramaEvents.js"));
 const { giftRarityInfo, gifts } = missionRequire(join(missionRuntimeRoot, "data", "gifts.js"));
 const { ingredients } = missionRequire(join(missionRuntimeRoot, "data", "ingredients.js"));
 const { recipes, allRecipes } = missionRequire(join(missionRuntimeRoot, "data", "recipes.js"));
@@ -155,6 +156,7 @@ const spec = `# こもれびカフェ ゲーム仕様書
 | カフェを手伝う追加ストーリー | ${staffStoryEvents.length}件 |
 | 店づくりの物語 | ${growthEvents.length}件 |
 | デート | ${dateEvents.length}件 |
+| カフェ内の修羅場イベント | ${dramaEvents.length}件 |
 | 仕入れ先 | ${suppliers.length}か所 |
 | 食材 | ${ingredients.length}種 |
 | 料理 | ${recipes.length}種 |
@@ -171,6 +173,7 @@ const spec = `# こもれびカフェ ゲーム仕様書
 6. 蓮は好感度4、ほかの人物は好感度7から雇用できる。店内の調理・提供は合わせて最大${GAME_CONFIG.maxFloorStaff}人、仕入れ担当は最大${GAME_CONFIG.maxProcurementStaff}人。好感度8で得意料理の調理・提供時間が20%短縮される。
 7. 好感度${GAME_CONFIG.dateUnlockStage}で街の各人物の店からデートに誘える。初回は1か所につき交流ポイント+${GAME_CONFIG.dateAffection}。
 8. 好感度9で恋愛／友情を選択し、10でそれぞれの後日談へ進む。ゲーム報酬は両ルートで同一。
+9. 条件を満たすと、店にいる時だけ複数人物の修羅場イベントが発生する。修羅場は演出専用で、好感度、恋愛／友情ルート、報酬、スタッフ性能には影響しない。最後まで読んだイベントは人物画面の「思い出帳」に追加され、進行や報酬に影響させず読み返せる。収録イベントは${list(dramaEvents.map(event=>`「${event.title}」`))}。
 
 ## 4. 主要パラメーター
 
@@ -316,6 +319,7 @@ ${equipmentRows}
 - 下部ナビは高さ66pxの角丸の浮かぶメニュー。画面下からホーム操作用の安全領域（最低8px）を空け、左右の安全領域も避ける。カフェの背景はメニューの下まで画面全体に表示し、安全領域をクリーム色の帯にしない。街・人物・ギフト・スタッフのスクロール画面はメニューの高さと上下の余白を予約し、末尾の操作が隠れないようにする。iPhoneのホーム画面用のアプリ名・単独表示・黒いステータスバーの設定を公開版と開発版に共通で指定する。
 - デートは好感度${GAME_CONFIG.dateUnlockStage}で解放。各キャラクターに${list(dateLocations.map(location=>location.title))}の3本がある。お家デートは穏やかな会話のみで、性的表現は扱わない。
 - 恋愛ルートと友情ルートで、料理や設備の報酬に差はつけない。
+- 人物画面は「登場人物」と「思い出帳」を切り替えられる。思い出帳には最後まで読んだ修羅場イベントだけを発生順で表示し、読み返しではセーブ、好感度、報酬、発生条件を変更しない。
 - 人物一覧は街と同じ仕入れ先の順序を使用する。表示順は${list(suppliers.map(supplier=>characters.find(character=>character.id===supplier.characterId)?.name))}。未遭遇の人物も同じ位置を保つ。
 - 人物ページは名前、好感度、好感度ストーリー、ギフトの好みを表示する。デートは街の各人物の店から開始する。
 - 街と人物一覧の選択カードは、画像があるキャラクターを顔中心の丸いアイコンで表示する。人物詳細と物語では従来の立ち絵表示を使う。

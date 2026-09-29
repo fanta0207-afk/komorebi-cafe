@@ -1,19 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { characters, getCharacter } from "../data/characters";
+import { getCharacter } from "../data/characters";
 import { relationshipEvents } from "../data/events";
 import { getEquipment } from "../data/equipment";
 import { getIngredient } from "../data/ingredients";
 import { getRecipe } from "../data/recipes";
+import { dramaEvents, getDramaEvent } from "../data/dramaEvents";
 import { getSupplier } from "../data/suppliers";
 import { GAME_CONFIG } from "../game/config";
 import { tableCapacity, tableSlots } from "../game/seating";
 import { GameProvider, useGame } from "../game/GameContext";
 import { availableEvent, availableStaffStory, availableGrowthEvent, pickWeightedRecipe } from "../game/logic";
-import type { DateEvent, GrowthEvent, RelationshipEvent } from "../types/game";
+import type { DateEvent, DramaEvent, GrowthEvent, RelationshipEvent } from "../types/game";
 import { BottomNav, Portrait, StatusBar } from "./GameUI";
 import { StoryModal } from "./StoryModal";
+import { DramaStoryModal } from "./DramaStoryModal";
 import { GiftReactionModal } from "./GiftReactionModal";
 import { CafeScreen } from "../screens/CafeScreen";
 import { ForestScreen, ForestBook } from "../screens/ForestScreen";
@@ -29,6 +31,7 @@ import { Prologue } from "./Prologue";
 import { SettingsMenu } from "./SettingsMenu";
 import { GameModal } from "./GameModal";
 import type { MissionDestination } from "../game/missions";
+import { availableDramaEvent } from "../game/drama";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
@@ -46,11 +49,12 @@ function GameContent() {
   const [menuTab,setMenuTab]=useState<"equipment"|"recipes">("equipment");
   const [devOpen,setDevOpen]=useState(false);
   const [settingsOpen,setSettingsOpen]=useState(false);
-  const [devCharacter,setDevCharacter]=useState(characters[0].id);
   const [event,setEvent]=useState<RelationshipEvent>();
   const [replay,setReplay]=useState<RelationshipEvent>();
   const [growthEvent,setGrowthEvent]=useState<GrowthEvent>();
   const [dateEvent,setDateEvent]=useState<DateEvent>();
+  const [dramaEvent,setDramaEvent]=useState<DramaEvent>();
+  const [dramaReplay,setDramaReplay]=useState<DramaEvent>();
   const [eventPage,setEventPage]=useState(0);
   const stateRef=useRef(state); stateRef.current=state;
 
@@ -66,12 +70,16 @@ function GameContent() {
   },[dispatch]);
 
   useEffect(()=>{
-    if(state.forest.expedition||event||growthEvent||dateEvent||replay||devOpen||settingsOpen||state.pendingGiftReaction)return;
+    if(state.forest.expedition||event||growthEvent||dateEvent||dramaEvent||dramaReplay||replay||devOpen||settingsOpen||state.pendingGiftReaction)return;
+    if(screen==="cafe"){
+      const drama=availableDramaEvent(state);
+      if(drama){setDramaEvent(drama);setEventPage(0);return;}
+    }
     const next=availableStaffStory(state)||availableEvent(state,relationshipEvents);
     if(next){setEvent(next);setEventPage(0);return;}
     const growth=availableGrowthEvent(state);
     if(growth){setGrowthEvent(growth);setEventPage(0);}
-  },[state,event,growthEvent,dateEvent,replay,devOpen,settingsOpen]);
+  },[state,screen,event,growthEvent,dateEvent,dramaEvent,dramaReplay,replay,devOpen,settingsOpen]);
 
   useEffect(()=>{if(state.forest.expedition)setScreen(current=>current==="forestBook"?current:"forest");},[state.forest.expedition?.id]);
   const navigate=(id:string)=>{if(state.forest.expedition){dispatch({type:"FOREST_RETURN"});setScreen("forest");return;}setScreen(id as Screen);setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
@@ -92,11 +100,11 @@ function GameContent() {
     else navigate(destination);
   };
 
-  const missionTutorial=hydrated&&screen==="cafe"&&state.onboardingStage==="mission"&&!devOpen&&!settingsOpen&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction;
-  const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo} tutorial={missionTutorial} onTutorialSkip={()=>dispatch({type:"FINISH_ONBOARDING"})}/>:undefined;
+  const missionTutorial=hydrated&&screen==="cafe"&&state.onboardingStage==="mission"&&!devOpen&&!settingsOpen&&!event&&!growthEvent&&!dateEvent&&!dramaEvent&&!dramaReplay&&!replay&&!state.pendingGiftReaction;
+  const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!dramaEvent&&!dramaReplay&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo} tutorial={missionTutorial} onTutorialSkip={()=>dispatch({type:"FINISH_ONBOARDING"})}/>:undefined;
   const resetGameAndUi=()=>{
     resetGame();setScreen("cafe");setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);setMenuTab("equipment");
-    setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setEventPage(0);setDevOpen(false);setSettingsOpen(false);
+    setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setDramaEvent(undefined);setDramaReplay(undefined);setEventPage(0);setDevOpen(false);setSettingsOpen(false);
   };
   const openGameMenu=()=>showDev?setDevOpen(true):setSettingsOpen(true);
   const gameMenuLabel=showDev?"開発メニュー":"設定";
@@ -108,7 +116,7 @@ function GameContent() {
     <div key={screenKey} className="screen-wrap">
       {screen==="cafe"&&<CafeScreen
         missionControl={missionControl} onMenu={openGameMenu} menuLabel={gameMenuLabel} menuCaption={showDev?"DEV":"設定"}
-        storyOpen={!!(event||growthEvent||dateEvent||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
+        storyOpen={!!(event||growthEvent||dateEvent||dramaEvent||dramaReplay||replay||state.pendingGiftReaction)} panelRequest={cafePanel}
         onInventory={()=>dispatch({type:"MISSION_VIEW",place:"inventory"})} state={state} manager={cafeManager.manager} managerFrame={cafeManager.frame}
         onStart={id=>cafeManager.request("start",id)} onCollect={id=>cafeManager.request("serve",id)} onDecline={id=>dispatch({type:"DECLINE_ORDER",orderId:id})}
         onCharacter={id=>{setCharacterId(id);setScreen("character");}} onTown={()=>navigate("town")} onEquipment={()=>{setMenuTab("equipment");navigate("menu");}}
@@ -117,7 +125,7 @@ function GameContent() {
       {screen==="town"&&<TownScreen onOpen={openSupplier} onForest={()=>setScreen("forest")}/>}
       {screen==="supplier"&&supplierId&&<SupplierScreen supplierId={supplierId} highlightIngredientId={highlightIngredientId} onBack={()=>{setHighlightIngredientId(undefined);setScreen("town");}} onDate={setDateEvent}/>}
       {screen==="gifts"&&<GiftShopScreen/>}
-      {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}}/>}
+      {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}} onReplayDrama={setDramaReplay}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
       {screen==="menu"&&<MenuScreen tab={menuTab} onTabChange={setMenuTab}/>}
       {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("cafe")}/>}
@@ -146,7 +154,9 @@ function GameContent() {
       onNext={()=>{if(eventPage<growthEvent.dialogue.length-1){setEventPage(eventPage+1);}else{dispatch({type:"COMPLETE_GROWTH_EVENT",eventId:growthEvent.eventId});setGrowthEvent(undefined);}}}
     />}
     {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
-    {showDev&&devOpen&&<DevMenu selected={devCharacter} onSelect={setDevCharacter} onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi}/>}
+    {dramaEvent&&<DramaStoryModal key={dramaEvent.id} event={dramaEvent} onComplete={()=>{dispatch({type:"COMPLETE_DRAMA_EVENT",eventId:dramaEvent.id});setDramaEvent(undefined);}}/>}
+    {dramaReplay&&<DramaStoryModal key={`replay-${dramaReplay.id}`} event={dramaReplay} readOnly onComplete={()=>setDramaReplay(undefined)}/>}
+    {showDev&&devOpen&&<DevMenu onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi} onPreviewDrama={id=>{const preview=getDramaEvent(id);if(preview){setDramaEvent(preview);setDevOpen(false);}}}/>}
     {!showDev&&settingsOpen&&<SettingsMenu onClose={()=>setSettingsOpen(false)} onReset={resetGameAndUi}/>}
   </main>;
 }
@@ -188,10 +198,11 @@ function GrowthEventModal({event,page,onBack,onNext}:{event:GrowthEvent;page:num
   </div></GameModal>;
 }
 
-function DevMenu({selected,onSelect,onClose,onSpawn,onRefresh,onReset}:{selected:string;onSelect:(id:string)=>void;onClose:()=>void;onSpawn:()=>void;onRefresh:()=>void;onReset:()=>void}) {
+function DevMenu({onClose,onSpawn,onRefresh,onReset,onPreviewDrama}:{onClose:()=>void;onSpawn:()=>void;onRefresh:()=>void;onReset:()=>void;onPreviewDrama:(id:string)=>void}) {
   const {state,dispatch}=useGame();
   const [confirmingReset,setConfirmingReset]=useState(false);
+  const [previewDramaId,setPreviewDramaId]=useState("drama-spare-key");
   const hasDeliveries=state.deliveries.length>0;
   const hasCooking=state.orders.some(order=>order.status==="cooking");
-  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button><button onClick={()=>dispatch({type:"DEV_FOREST_ENERGY"})}>こもれび体力 全回復</button><button disabled={!hasDeliveries} onClick={()=>dispatch({type:"DEV_COMPLETE_DELIVERIES"})}>即仕入れ完了</button><button disabled={!hasCooking} onClick={()=>dispatch({type:"DEV_COMPLETE_COOKING"})}>即調理完了</button></div><label>好感度を上げる人物<select value={selected} onChange={e=>onSelect(e.target.value)}>{characters.map(c=><option value={c.id} key={c.id}>{c.name}（{c.occupation}）</option>)}</select></label><button className="dev-affection" onClick={()=>dispatch({type:"DEV_AFFECTION",characterId:selected})}>好感度 +1,000・物語条件を解放</button>{confirmingReset?<div className="dev-reset-confirm" role="alert"><p>セーブデータを初期化して、最初からやり直しますか？</p><div><button type="button" onClick={()=>setConfirmingReset(false)}>キャンセル</button><button type="button" className="danger-button" onClick={onReset}>初期化する</button></div></div>:<button className="danger-button" onClick={()=>setConfirmingReset(true)}>セーブデータ初期化</button>}</div></div>;
+  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button><button onClick={()=>dispatch({type:"DEV_FOREST_ENERGY"})}>こもれび体力 全回復</button><button disabled={!hasDeliveries} onClick={()=>dispatch({type:"DEV_COMPLETE_DELIVERIES"})}>即仕入れ完了</button><button disabled={!hasCooking} onClick={()=>dispatch({type:"DEV_COMPLETE_COOKING"})}>即調理完了</button></div><button className="dev-affection" onClick={()=>dispatch({type:"DEV_MAX_AFFECTION"})}>全員の好感度MAX・物語読了</button><label>修羅場イベントのプレビュー<select value={previewDramaId} onChange={event=>setPreviewDramaId(event.target.value)}>{dramaEvents.map(event=><option key={event.id} value={event.id}>{event.subtitle}</option>)}</select></label><button className="dev-affection" onClick={()=>onPreviewDrama(previewDramaId)}>選んだ修羅場を再生</button>{confirmingReset?<div className="dev-reset-confirm" role="alert"><p>セーブデータを初期化して、最初からやり直しますか？</p><div><button type="button" onClick={()=>setConfirmingReset(false)}>キャンセル</button><button type="button" className="danger-button" onClick={onReset}>初期化する</button></div></div>:<button className="danger-button" onClick={()=>setConfirmingReset(true)}>セーブデータ初期化</button>}</div></div>;
 }

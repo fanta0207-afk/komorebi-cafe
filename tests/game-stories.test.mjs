@@ -23,6 +23,7 @@ const {characters}=require(join(output,'data/characters.js'));
 const {relationshipEvents}=require(join(output,'data/events.js'));
 const {growthEvents}=require(join(output,'data/growthEvents.js'));
 const {dateEvents,dateLocations}=require(join(output,'data/dates.js'));
+const {dramaEvents}=require(join(output,'data/dramaEvents.js'));
 const {recipes,allRecipes}=require(join(output,'data/recipes.js'));
 const {menuRarityInfo}=require(join(output,'data/menuRarity.js'));
 const {gifts,giftRarityInfo}=require(join(output,'data/gifts.js'));
@@ -36,6 +37,7 @@ const {tableUpgrades,tableSlots}=require(join(output,'game/seating.js'));
 const {missions,missionChapters,sideMissions,getMissions,sortedMissions,missionRank,currentMission,activeMissionChapter,activeSideMissions,updateMissions}=require(join(output,'game/missions.js'));
 const {salePrice,ingredientCost,pickIncomingOrder,availableGrowthEvent}=require(join(output,'game/logic.js'));
 const {menuMastery,menuCatalogProgress,recipesAtMasteryLevel}=require(join(output,'game/menuMastery.js'));
+const {availableDramaEvent,dramaRequirementsMet}=require(join(output,'game/drama.js'));
 
 test('a new cafe starts with the prologue, remembers tutorial progress, and does not interrupt older saves',()=>{
   const fresh=createInitialState(1000);
@@ -60,6 +62,97 @@ test('every multi-page story player can return to the previous page',()=>{
   assert.match(game,/onBack=\{\(\)=>setEventPage\(value=>Math\.max\(0,value-1\)\)\}/);
   assert.equal((game.match(/className="story-back-button"/g)||[]).length,2);
   assert.match(prologue,/className="prologue-back" disabled=\{page===0\}/);
+});
+
+test('six cafe drama stories have valid fixed casts, deterministic triggers, and no gameplay consequence',()=>{
+  const gameSource=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+  assert.match(gameSource,/if\(screen==="cafe"\)\{[\s\S]*?availableDramaEvent\(state\)/);
+  assert.equal(dramaEvents.length,6);
+  assert.equal(new Set(dramaEvents.map(event=>event.id)).size,6);
+  for(const event of dramaEvents){
+    assert.ok(event.dialogue.length>=10,event.id);
+    assert.ok(event.participantIds.length>=2,event.id);
+    assert.ok(event.participantIds.every(id=>characters.some(character=>character.id===id)),event.id);
+    assert.ok(event.dialogue.every(line=>line.text&&(line.speaker==='narrator'||line.speaker==='player'||event.participantIds.includes(line.speaker))),event.id);
+  }
+  const setProgress=(state,id,relationshipStage,route='undecided')=>({...state,characterProgress:{...state.characterProgress,[id]:{...state.characterProgress[id],met:true,relationshipStage,route}}});
+
+  let names=createInitialState();
+  names=setProgress(names,'aki',7);names=setProgress(names,'itsuki',7);
+  names={...names,staff:[{characterId:'aki',role:'rest',remainingMs:0},{characterId:'itsuki',role:'rest',remainingMs:0}]};
+  assert.ok(dramaRequirementsMet(dramaEvents[0],names));
+
+  let key=createInitialState();
+  key=setProgress(key,'ren',9,'romance');key=setProgress(key,'cacao',8);
+  assert.ok(dramaRequirementsMet(dramaEvents[1],key));
+  assert.equal(availableDramaEvent(key)?.id,'drama-spare-key');
+
+  let collapse=createInitialState();
+  collapse=setProgress(collapse,'sota',8);collapse=setProgress(collapse,'haru',8);
+  collapse={...collapse,lifetimeStats:{...collapse.lifetimeStats,totalOrders:100}};
+  assert.ok(dramaRequirementsMet(dramaEvents[2],collapse));
+
+  let rumor=createInitialState();
+  rumor=setProgress(rumor,'nagisa',9,'romance');rumor=setProgress(rumor,'sae',8);
+  rumor={...rumor,viewedGrowthEvents:['ren-growth5','sota-growth5']};
+  assert.ok(dramaRequirementsMet(dramaEvents[3],rumor));
+
+  let birthday=createInitialState();
+  for(const id of ['ren','sota','aki','itsuki'])birthday=setProgress(birthday,id,7);
+  assert.ok(dramaRequirementsMet(dramaEvents[4],birthday));
+
+  let finale=createInitialState();
+  finale=setProgress(finale,'ren',9,'romance');finale=setProgress(finale,'cacao',9,'romance');
+  finale={...finale,viewedDramaEvents:dramaEvents.slice(0,5).map(event=>event.id)};
+  assert.ok(dramaRequirementsMet(dramaEvents[5],finale));
+
+  const before=structuredClone(key);
+  const completed=reducer(key,{type:'COMPLETE_DRAMA_EVENT',eventId:'drama-spare-key'});
+  assert.deepEqual(completed.viewedDramaEvents,['drama-spare-key']);
+  assert.equal(completed.notice.text,'思い出帳に追加されました');
+  assert.equal(completed.currency,before.currency);
+  assert.deepEqual(completed.characterProgress,before.characterProgress);
+  assert.deepEqual(completed.staff,before.staff);
+  assert.deepEqual(completed.unlockedRecipes,before.unlockedRecipes);
+  assert.deepEqual(completed.unlockedIngredients,before.unlockedIngredients);
+  assert.deepEqual(completed.unlockedEquipment,before.unlockedEquipment);
+  const legacy=structuredClone(key);legacy.saveVersion=25;delete legacy.viewedDramaEvents;
+  assert.deepEqual(migrateSavedState(legacy).viewedDramaEvents,[]);
+});
+
+test('completed cafe drama stories are listed in the people screen and replay without completion dispatch',()=>{
+  const people=readFileSync(new URL('../src/screens/PeopleScreen.tsx',import.meta.url),'utf8');
+  const game=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
+  const modal=readFileSync(new URL('../src/components/DramaStoryModal.tsx',import.meta.url),'utf8');
+  const styles=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
+
+  assert.match(people,/state\.viewedDramaEvents\.map\(getDramaEvent\)/);
+  assert.match(people,/>\u601d\u3044\u51fa\u5e33 <span>\{memories\.length\}<\/span>/);
+  assert.match(people,/onClick=\{\(\)=>onReplayDrama\(memory\)\}/);
+  assert.match(game,/onReplayDrama=\{setDramaReplay\}/);
+  assert.match(game,/dramaReplay&&<DramaStoryModal[\s\S]*?readOnly onComplete=\{\(\)=>setDramaReplay\(undefined\)\}/);
+  assert.doesNotMatch(game,/dramaReplay[\s\S]{0,220}COMPLETE_DRAMA_EVENT/);
+  assert.match(modal,/readOnly\?"\u601d\u3044\u51fa帳から読み返す"/);
+  assert.match(modal,/readOnly\?"\u601dい出帳へ戻る":"物語を終える"/);
+  assert.match(styles,/\.drama-memory-card\{/);
+  assert.match(styles,/@media\(max-width:360px\)[\s\S]*?\.drama-memory-card\{grid-template-columns:40px minmax\(0,1fr\)/);
+});
+
+test('drama dialogue stages present standing characters face to face on compact screens',()=>{
+  const modal=readFileSync(new URL('../src/components/DramaStoryModal.tsx',import.meta.url),'utf8');
+  const styles=readFileSync(new URL('../src/components/story-modal.css',import.meta.url),'utf8');
+
+  assert.match(modal,/index===0\?"is-left":"is-right"/);
+  assert.match(modal,/activeCharacterId===character!\.id\?"is-active":""/);
+  assert.match(modal,/className="story-speaker">\{speaker\}<\/span>/);
+  assert.doesNotMatch(modal,/drama-cast-name|character!\.shortName/);
+  assert.ok(characters.every(character=>character.storyImage?.endsWith('-story-cutout.png')));
+  assert.match(styles,/\.drama-count-2 \.drama-cast-member\.is-left \{ left:-4%;--drama-facing:-1; \}/);
+  assert.match(styles,/\.drama-count-2 \.drama-cast-member\.is-right \{ right:-4%;--drama-facing:1; \}/);
+  assert.match(styles,/bottom:0;[\s\S]*?align-items:flex-end;/);
+  assert.match(styles,/mix-blend-mode:normal;[\s\S]*?opacity:\.5;/);
+  assert.match(styles,/\.drama-cast-member\.is-active \.drama-standing-art \{ opacity:1;/);
+  assert.match(styles,/@media \(max-height:680px\) \{[\s\S]*?\.drama-cast \{ inset:94px 0 156px; \}/);
 });
 
 const {receiveSupplies,procurementRate,procurementQuote,supplyPackSize,requestStaffSupply,runAutoProcurement}=require(join(output,'game/procurement.js'));
@@ -223,20 +316,25 @@ test('late relationship levels need increasingly more gifts while procurement gr
   assert.equal(GAME_CONFIG.procurementAffection,1);
 });
 
-test('developer affection unlocks every requirement through relationship stage 10',()=>{
-  let state=createInitialState();
+test('developer max affection finishes every character story without opening them in sequence',()=>{
+  const initial=createInitialState();
+  const state=reducer(initial,{type:'DEV_MAX_AFFECTION'});
   const coins=state.currency;
-  state=reducer(state,{type:'DEV_AFFECTION',characterId:'aki'});
   const finalTargets=relationshipRequirementTargets(10);
-  assert.ok(state.characterProgress.aki.giftsGiven>=finalTargets.giftTarget);
-  assert.ok(state.lifetimeStats.totalOrders>=finalTargets.orderTarget);
-  for(const event of routeEvents('aki')){
-    assert.equal(availableEvent(state,relationshipEvents)?.id,event.id);
-    state=complete(state,event,'friendship');
+  for(const character of characters){
+    const progress=state.characterProgress[character.id];
+    assert.ok(progress.giftsGiven>=finalTargets.giftTarget);
+    assert.ok(progress.affection>=affectionThresholds[10]);
+    assert.equal(progress.relationshipStage,10);
+    assert.equal(progress.route,'romance');
+    assert.ok(routeEvents(character.id).every(event=>progress.viewedEvents.includes(event.id)));
   }
-  assert.equal(state.characterProgress.aki.relationshipStage,10);
-  assert.equal(state.characterProgress.aki.route,'friendship');
-  assert.equal(state.currency,coins);
+  assert.equal(state.viewedGrowthEvents.length,growthEvents.length);
+  assert.ok(relationshipEvents.flatMap(event=>event.reward?.decorationIds || []).every(id=>state.unlockedDecorations.includes(id)));
+  assert.equal(availableEvent(state,relationshipEvents),undefined);
+  assert.equal(availableGrowthEvent(state),undefined);
+  assert.equal(state.currency,initial.currency);
+  assert.equal(coins,initial.currency);
 });
 
 test('developer controls immediately finish active deliveries and cooking',()=>{

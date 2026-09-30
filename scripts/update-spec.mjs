@@ -336,6 +336,8 @@ ${equipmentRows}
 - アール・グレイの立ち絵：\`/assets/characters/earl-grey.png\`
 - 白川 牧の立ち絵：\`/assets/characters/shirakawa-maki.png\`
 - 白川 牧の物語用立ち絵は通常表情の\`/assets/characters/sota-story-cutout.png\`に加え、笑顔・照れ・心配／悲しみ・驚き・真剣の5種類の透過PNGを使う。表情は本編、お手伝い話、選択肢の返答、修羅場、デート、店づくり、プレゼント反応の会話データで明示し、差分の未登録・読込失敗時は通常表情へ戻る。
+- 三ツ葉 葵の立ち絵：\`/assets/characters/aki.png\`
+- 三ツ葉 葵の物語用立ち絵は通常表情の\`/assets/characters/aki-story-cutout.png\`に加え、笑顔・照れ・心配／悲しみ・驚き・真剣の5種類の透過PNGを使う。表情は本編、お手伝い話、選択肢の返答、修羅場、デート、店づくり、プレゼント反応の会話データで明示し、差分の未登録・読込失敗時は通常表情へ戻る。
 - 麦野 太陽の立ち絵：\`/assets/characters/mugino-taiyo.png\`
 - 麦野 太陽の物語用立ち絵は通常表情の\`/assets/characters/haru-story-cutout.png\`に加え、笑顔・照れ・心配／悲しみ・驚き・真剣の5種類の透過PNGを使う。表情は本編、お手伝い話、選択肢の返答、修羅場、デート、店づくり、プレゼント反応の会話データで明示し、差分の未登録・読込失敗時は通常表情へ戻る。
 - 凍堂 冴の立ち絵：\`/assets/characters/toudou-sae.png\`

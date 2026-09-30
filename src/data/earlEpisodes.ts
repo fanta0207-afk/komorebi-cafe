@@ -1,4 +1,6 @@
-import type { RelationshipEvent, StaffStoryEvent } from "../types/game";
+import type { CharacterExpression, RelationshipEvent, SimpleDialogueLine, StaffStoryEvent } from "../types/game";
+
+const d=(text:string,expression:CharacterExpression):SimpleDialogueLine=>({text,expression});
 
 // New prince-like Earl persona; internal IDs, thresholds and rewards remain compatible.
 export const earlRelationshipEvents:RelationshipEvent[] = [
@@ -16,7 +18,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こもれびの店長さんですね。ようこそ。お荷物はこちらへ置けますよ。"
+        "text": "こもれびの店長さんですね。ようこそ。お荷物はこちらへ置けますよ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -28,7 +31,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "アール・グレイです。どうぞ、アールとお呼びください。まずは、どんなカフェなのか聞かせていただけますか。"
+        "text": "アール・グレイです。どうぞ、アールとお呼びください。まずは、どんなカフェなのか聞かせていただけますか。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -36,7 +40,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらなら、コーヒーにもミルクにも合います。お客様がゆっくり召し上がれるものから、始めましょう。"
+        "text": "こちらなら、コーヒーにもミルクにも合います。お客様がゆっくり召し上がれるものから、始めましょう。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -44,7 +49,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "紅茶も好きですが、お菓子は誰と何を飲むかで変わりますから。……英国で過ごした時も、そうでした。"
+        "text": "紅茶も好きですが、お菓子は誰と何を飲むかで変わりますから。……英国で過ごした時も、そうでした。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -52,7 +58,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。日本と英国、どちらにも家族のルーツがあって。向こうで菓子作りを学んでから、帰ってきました。"
+        "text": "ええ。日本と英国、どちらにも家族のルーツがあって。向こうで菓子作りを学んでから、帰ってきました。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -64,7 +71,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "では、保管と盛りつけのメモもお渡しします。お客様が食べる時まで、おいしいままでいてほしいので。"
+        "text": "では、保管と盛りつけのメモもお渡しします。お客様が食べる時まで、おいしいままでいてほしいので。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -72,7 +80,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "最初から全部覚えなくて大丈夫ですよ。分からないことは、また聞きにいらしてください。"
+        "text": "最初から全部覚えなくて大丈夫ですよ。分からないことは、また聞きにいらしてください。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -80,7 +89,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "楽しみにしています。あなた自身が、どんな味がお好きだったかも。"
+        "text": "楽しみにしています。あなた自身が、どんな味がお好きだったかも。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -108,7 +118,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "小さいお子さんには、こちらが人気だったのですね。半分に分けやすい形にしておきましょうか。"
+        "text": "小さいお子さんには、こちらが人気だったのですね。半分に分けやすい形にしておきましょうか。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -116,7 +127,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "もちろん。あなたのお店で食べる方に、合っていてほしいですから。"
+        "text": "もちろん。あなたのお店で食べる方に、合っていてほしいですから。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -124,7 +136,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "これは、店長さんの味見の分です。納品のものと混ざらない目印に。"
+        "text": "これは、店長さんの味見の分です。納品のものと混ざらない目印に。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -132,7 +145,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お聞きしたことは、覚えていますよ。あなたは、飲み物を用意してから、少し冷まして食べるのがお好きでしたね。"
+        "text": "お聞きしたことは、覚えていますよ。あなたは、飲み物を用意してから、少し冷まして食べるのがお好きでしたね。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -140,7 +154,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "でしたら、紅茶も先に淹れましょう。味見の時間、少し取れますか。"
+        "text": "でしたら、紅茶も先に淹れましょう。味見の時間、少し取れますか。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -152,7 +167,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "仕事柄、覚える方ではあります。……でも、全部が同じように気になるわけではありませんね。"
+        "text": "仕事柄、覚える方ではあります。……でも、全部が同じように気になるわけではありませんね。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -164,7 +180,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "では、焼き菓子のプレートをこの形で。次に出した時の感想も聞かせてください。"
+        "text": "では、焼き菓子のプレートをこの形で。次に出した時の感想も聞かせてください。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -172,7 +189,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お疲れの日は、味見を明日にしても大丈夫ですよ。ご自分の休憩まで、急がないでくださいね。"
+        "text": "お疲れの日は、味見を明日にしても大丈夫ですよ。ご自分の休憩まで、急がないでくださいね。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -200,7 +218,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "空いている時間に、置き方を確認しましょう。カウンターへ入っても構いませんか。"
+        "text": "空いている時間に、置き方を確認しましょう。カウンターへ入っても構いませんか。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -216,7 +235,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "おや。今日は、違いました？"
+        "text": "おや。今日は、違いました？",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -228,7 +248,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そう見ていただける方が、うれしいですね。僕が一番長くしていることですから。"
+        "text": "そう見ていただける方が、うれしいですね。僕が一番長くしていることですから。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -236,7 +257,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "このお店なら、プチガトーもご相談できそうです。置き場所と使える量から決めましょう。"
+        "text": "このお店なら、プチガトーもご相談できそうです。置き場所と使える量から決めましょう。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -244,7 +266,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……ここですか。ありがとうございます。今日は、あなたに見つけていただく方ですね。"
+        "text": "……ここですか。ありがとうございます。今日は、あなたに見つけていただく方ですね。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -252,7 +275,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。あなたが笑ってくださるなら、悪くない失敗です。"
+        "text": "ええ。あなたが笑ってくださるなら、悪くない失敗です。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -260,7 +284,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "でも、袖は洗ってきます。お客様の皿につけるわけにはいきませんから。"
+        "text": "でも、袖は洗ってきます。お客様の皿につけるわけにはいきませんから。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -268,7 +293,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "熱いお皿を置く前に、声をかけていらっしゃるのですね。お客様が安心する理由、分かりました。"
+        "text": "熱いお皿を置く前に、声をかけていらっしゃるのですね。お客様が安心する理由、分かりました。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -302,7 +328,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こんにちは。今、ちょうど温かいのが出たところです。お時間はありますか。"
+        "text": "こんにちは。今、ちょうど温かいのが出たところです。お時間はありますか。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -310,7 +337,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "とても。英国で学んだのはきれいなお菓子ばかりではありませんよ。紙袋を持って歩く午後も、好きなんです。"
+        "text": "とても。英国で学んだのはきれいなお菓子ばかりではありませんよ。紙袋を持って歩く午後も、好きなんです。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -318,7 +346,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "どうぞ、お好きな方を。"
+        "text": "どうぞ、お好きな方を。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -330,7 +359,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "大きい方が気になっています。……半分ずつにしたら、二人とも食べられますね。"
+        "text": "大きい方が気になっています。……半分ずつにしたら、二人とも食べられますね。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -342,7 +372,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。一つは後で、と思って。でも、あなたを見つけた時は、二つでよかったと思いました。"
+        "text": "ええ。一つは後で、と思って。でも、あなたを見つけた時は、二つでよかったと思いました。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -350,7 +381,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そこまでは。……ただ、お見かけできたら声をかけるつもりではいました。"
+        "text": "そこまでは。……ただ、お見かけできたら声をかけるつもりではいました。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -358,7 +390,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "好きなものを一緒に食べたい方がいたら、機会は逃したくありませんから。"
+        "text": "好きなものを一緒に食べたい方がいたら、機会は逃したくありませんから。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -370,7 +403,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "もちろん。あなたと休む午後として、覚えておきます。"
+        "text": "もちろん。あなたと休む午後として、覚えておきます。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -388,7 +422,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "でしたら次は、二人で買いに来ましょう。偶然を待たずにお誘いしても、よろしいですか。"
+            "text": "でしたら次は、二人で買いに来ましょう。偶然を待たずにお誘いしても、よろしいですか。",
+            "expression": "blush"
           },
           {
             "speaker": "narrator",
@@ -396,7 +431,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "次の午後、あなたのご都合から伺います。僕も、きちんと時間を空けておきますね。"
+            "text": "次の午後、あなたのご都合から伺います。僕も、きちんと時間を空けておきますね。",
+            "expression": "blush"
           }
         ]
       },
@@ -410,7 +446,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "では、英国でよく買った菓子の話を。包み紙が少し大きくて、端から食べるのが好きだったんです。"
+            "text": "では、英国でよく買った菓子の話を。包み紙が少し大きくて、端から食べるのが好きだったんです。",
+            "expression": "normal"
           },
           {
             "speaker": "narrator",
@@ -418,7 +455,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "あなたも、お気に入りを教えてください。次は、僕が連れていっていただきたいです。"
+            "text": "あなたも、お気に入りを教えてください。次は、僕が連れていっていただきたいです。",
+            "expression": "normal"
           }
         ]
       }
@@ -438,7 +476,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "何か気になりますか。遠慮せず、聞かせてください。"
+        "text": "何か気になりますか。遠慮せず、聞かせてください。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -450,7 +489,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "なるほど。向こうで喜ばれたものを、そのまま正解にしていましたね。"
+        "text": "なるほど。向こうで喜ばれたものを、そのまま正解にしていましたね。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -458,7 +498,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "分かっています。あなたのお客様のことは、あなたが一番よく見ていらっしゃる。教えていただけて、助かります。"
+        "text": "分かっています。あなたのお客様のことは、あなたが一番よく見ていらっしゃる。教えていただけて、助かります。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -466,7 +507,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらの方が、飲み終わりの紅茶の香りも残りますね。こもれびには、この軽さが似合いそうです。"
+        "text": "こちらの方が、飲み終わりの紅茶の香りも残りますね。こもれびには、この軽さが似合いそうです。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -478,7 +520,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……僕の好みも、残してくださるのですね。"
+        "text": "……僕の好みも、残してくださるのですね。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -490,7 +533,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お店用はこちら、休憩には両方。そう決めましょう。あなたと食べる時間が、また増えてしまいますね。"
+        "text": "お店用はこちら、休憩には両方。そう決めましょう。あなたと食べる時間が、また増えてしまいますね。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -498,7 +542,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "さあ。今のは、あなたが提案してくださったので。"
+        "text": "さあ。今のは、あなたが提案してくださったので。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -533,7 +578,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらへどうぞ。窓の風が当たらない席にしておきました。"
+        "text": "こちらへどうぞ。窓の風が当たらない席にしておきました。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -541,7 +587,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "青いリボンの箱を、よく選んでくださいましたから。あの色がお好きかと思って。"
+        "text": "青いリボンの箱を、よく選んでくださいましたから。あの色がお好きかと思って。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -549,7 +596,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、隣に座っても構いませんか。メモを一緒に見る方が、話しやすそうなので。"
+        "text": "今日は、隣に座っても構いませんか。メモを一緒に見る方が、話しやすそうなので。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -561,7 +609,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "見つかってしまいましたね。あなたの近くで話す理由を、一つ増やしていました。"
+        "text": "見つかってしまいましたね。あなたの近くで話す理由を、一つ増やしていました。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -569,7 +618,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。ですから、今度は正直に。もう少し、あなたとお茶を飲みたいです。"
+        "text": "ええ。ですから、今度は正直に。もう少し、あなたとお茶を飲みたいです。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -577,7 +627,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "英国では、お客様がまた来たくなる席を考えていました。今は、あなたが帰ったあとの椅子が、気になってしまって。"
+        "text": "英国では、お客様がまた来たくなる席を考えていました。今は、あなたが帰ったあとの椅子が、気になってしまって。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -589,7 +640,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……ええ。思ったより。誰にでも、もう一杯とお誘いしているわけではありません。"
+        "text": "……ええ。思ったより。誰にでも、もう一杯とお誘いしているわけではありません。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -601,7 +653,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うれしいです。では、次はあなたの好きな濃さで。"
+        "text": "うれしいです。では、次はあなたの好きな濃さで。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -629,7 +682,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "すみません。今日は、お出しする予定のものがまだ整っていなくて。別の日に……。"
+        "text": "すみません。今日は、お出しする予定のものがまだ整っていなくて。別の日に……。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -641,7 +695,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……それは、予定に入っていませんでしたね。"
+        "text": "……それは、予定に入っていませんでしたね。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -649,7 +704,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あなたが来るまでに仕上げて、驚いていただいて、自然にお茶へ誘う。そういう、都合のいい段取りです。"
+        "text": "あなたが来るまでに仕上げて、驚いていただいて、自然にお茶へ誘う。そういう、都合のいい段取りです。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -657,7 +713,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "僕は、余裕があるように見せるのが得意なんです。相手が楽しいかばかり見て、自分が会いたいのは、理由の陰に隠して。"
+        "text": "僕は、余裕があるように見せるのが得意なんです。相手が楽しいかばかり見て、自分が会いたいのは、理由の陰に隠して。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -665,7 +722,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "はい。朝から。ですから、うまくできていない僕を見られるのが、少し格好悪くて。"
+        "text": "はい。朝から。ですから、うまくできていない僕を見られるのが、少し格好悪くて。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -677,7 +735,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あなたも？　……それは、知らずに緊張させてしまっていましたね。"
+        "text": "あなたも？　……それは、知らずに緊張させてしまっていましたね。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -685,7 +744,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、僕が迎えていただく方で。"
+        "text": "今日は、僕が迎えていただく方で。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -697,7 +757,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "カフェの手伝いも、時間を決めて正式にご相談しましょう。働く時はお仕事として。終わってからのお茶は、僕からお願いしたいです。"
+        "text": "カフェの手伝いも、時間を決めて正式にご相談しましょう。働く時はお仕事として。終わってからのお茶は、僕からお願いしたいです。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -715,7 +776,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "……ありがとうございます。では、今日は僕も、会いたかったとだけお伝えします。"
+            "text": "……ありがとうございます。では、今日は僕も、会いたかったとだけお伝えします。",
+            "expression": "blush"
           },
           {
             "speaker": "narrator",
@@ -723,7 +785,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "これからも、あなたがどうしたいかを伺ってから、二人で決めたいですね。"
+            "text": "これからも、あなたがどうしたいかを伺ってから、二人で決めたいですね。",
+            "expression": "normal"
           }
         ]
       },
@@ -737,7 +800,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "はい。今日は、あなたの淹れる順番を見て待っていることにします。"
+            "text": "はい。今日は、あなたの淹れる順番を見て待っていることにします。",
+            "expression": "normal"
           },
           {
             "speaker": "narrator",
@@ -745,7 +809,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "迎えていただける午後も、いいものですね。次は僕から、あなたに休んでいただきたいです。"
+            "text": "迎えていただける午後も、いいものですね。次は僕から、あなたに休んでいただきたいです。",
+            "expression": "smile"
           }
         ]
       }
@@ -765,7 +830,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、あなたに教わりたいです。手順だけでなく、その時の話も。"
+        "text": "今日は、あなたに教わりたいです。手順だけでなく、その時の話も。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -773,7 +839,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "それが思い出なのですね。ぜひ、そのまま教えてください。"
+        "text": "それが思い出なのですね。ぜひ、そのまま教えてください。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -785,7 +852,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こうでしょうか。……おや、僕の方が少し斜めになりましたね。"
+        "text": "こうでしょうか。……おや、僕の方が少し斜めになりましたね。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -793,7 +861,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あなたが覚えている形に、少し近づけたかもしれません。"
+        "text": "あなたが覚えている形に、少し近づけたかもしれません。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -801,7 +870,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "でしたら今日は、好きな端を半分ずつにしましょう。僕もそちらが気になっています。"
+        "text": "でしたら今日は、好きな端を半分ずつにしましょう。僕もそちらが気になっています。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -809,7 +879,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あなたと分ける方を選びたいんです。……僕も好きだと、お伝えして。"
+        "text": "あなたと分ける方を選びたいんです。……僕も好きだと、お伝えして。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -817,7 +888,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次の休み、出かけませんか。試作も仕入れも関係なく、あなたを誘いたいです。"
+        "text": "次の休み、出かけませんか。試作も仕入れも関係なく、あなたを誘いたいです。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -829,7 +901,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手をつないでも構いませんか。上手に誘えたかより、今は、近くにいたいので。"
+        "text": "手をつないでも構いませんか。上手に誘えたかより、今は、近くにいたいので。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -861,7 +934,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、紅茶より先にお伝えしたいことがあります。"
+        "text": "今日は、紅茶より先にお伝えしたいことがあります。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -873,7 +947,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "きれいな言葉を、いくつか考えてきたんです。でも、顔を見たら、どれも少し違う気がして。"
+        "text": "きれいな言葉を、いくつか考えてきたんです。でも、顔を見たら、どれも少し違う気がして。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -881,11 +956,13 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あなたの分の菓子を選んで、好きな茶器を用意して。隣へ座る理由まで考えていました。"
+        "text": "あなたの分の菓子を選んで、好きな茶器を用意して。隣へ座る理由まで考えていました。",
+        "expression": "serious"
       },
       {
         "speaker": "character",
-        "text": "でも、お茶がなくても会いたいんです。何かをして差し上げるためだけでなく、僕自身が、あなたの近くにいたい。"
+        "text": "でも、お茶がなくても会いたいんです。何かをして差し上げるためだけでなく、僕自身が、あなたの近くにいたい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -897,7 +974,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あなたが好きです。恋人として、二人の時間をいただけませんか。"
+        "text": "あなたが好きです。恋人として、二人の時間をいただけませんか。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -909,7 +987,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……うれしいです。今、うまく微笑めていないと思いますが。"
+        "text": "……うれしいです。今、うまく微笑めていないと思いますが。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -921,7 +1000,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ、ぜひ。……レディファーストで、あなたのお願いを叶えたいのも本当ですが、僕もそうしたいので。"
+        "text": "ええ、ぜひ。……レディファーストで、あなたのお願いを叶えたいのも本当ですが、僕もそうしたいので。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -929,7 +1009,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次に誘う時は、理由を増やす前に、会いたいとお伝えします。"
+        "text": "次に誘う時は、理由を増やす前に、会いたいとお伝えします。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -944,7 +1025,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらの軽さは、あなたに教えていただきました。次の一皿も、遠慮なくご意見をください。"
+        "text": "こちらの軽さは、あなたに教えていただきました。次の一皿も、遠慮なくご意見をください。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -960,7 +1042,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。気の利いた誘い方ばかり考えず、相談したい時はそうお伝えしますね。"
+        "text": "ええ。気の利いた誘い方ばかり考えず、相談したい時はそうお伝えしますね。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -982,7 +1065,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらの軽さ、あなたが最初に教えてくださったものですね。今は、僕もこの店で食べるなら、こちらが好きです。"
+        "text": "こちらの軽さ、あなたが最初に教えてくださったものですね。今は、僕もこの店で食べるなら、こちらが好きです。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -994,7 +1078,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、ちゃんと半分ずつで。僕の好きなところも、いただきます。"
+        "text": "今日は、ちゃんと半分ずつで。僕の好きなところも、いただきます。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1002,7 +1087,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この午後なら、仕事を入れずに空けられます。あなたはいかがですか。"
+        "text": "この午後なら、仕事を入れずに空けられます。あなたはいかがですか。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1010,7 +1096,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うれしいです。今日は僕が、エスコートしていただく方ですね。"
+        "text": "うれしいです。今日は僕が、エスコートしていただく方ですね。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1022,7 +1109,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "希望はしていました。でも、あなたが選んでくださる方が、ずっとうれしいですよ。"
+        "text": "希望はしていました。でも、あなたが選んでくださる方が、ずっとうれしいですよ。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1030,7 +1118,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、少し疲れました。格好よく迎えるばかりでなく、あなたの隣で休んでもいいでしょうか。"
+        "text": "今日は、少し疲れました。格好よく迎えるばかりでなく、あなたの隣で休んでもいいでしょうか。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -1042,7 +1131,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "計画どおりにいかなくても、一緒にいたいとお願いできる。そんな時間が、僕にも増えました。"
+        "text": "計画どおりにいかなくても、一緒にいたいとお願いできる。そんな時間が、僕にも増えました。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1050,7 +1140,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。次の午後を二人で空けるためには、予定をきちんと考えますので。"
+        "text": "ええ。次の午後を二人で空けるためには、予定をきちんと考えますので。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -1058,7 +1149,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "このケーキを食べる時、あなたと過ごした午後も思い出します。……明日も、顔を見に来てもいいですか。"
+        "text": "このケーキを食べる時、あなたと過ごした午後も思い出します。……明日も、顔を見に来てもいいですか。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1079,7 +1171,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "僕一人で作った配合とは違う味になりましたね。あなたが教えてくださった軽さ、ここでよく分かります。"
+        "text": "僕一人で作った配合とは違う味になりましたね。あなたが教えてくださった軽さ、ここでよく分かります。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1091,7 +1184,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お店用が完成しても、休憩の分まで急がなくていいですね。"
+        "text": "お店用が完成しても、休憩の分まで急がなくていいですね。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1099,7 +1193,8 @@ export const earlRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。英国の菓子の話も、あなたの思い出の味も、また聞き合いたいです。"
+        "text": "ええ。英国の菓子の話も、あなたの思い出の味も、また聞き合いたいです。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -1126,7 +1221,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、この時間までですね。道具の場所と、声をかける順番を教えてください。"
+        "text": "今日は、この時間までですね。道具の場所と、声をかける順番を教えてください。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1138,7 +1234,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……どうかしました？　結び方が、間違っていますか。"
+        "text": "……どうかしました？　結び方が、間違っていますか。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -1150,7 +1247,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そう言っていただくと、今日は格好よく動きたくなってしまいますね。"
+        "text": "そう言っていただくと、今日は格好よく動きたくなってしまいますね。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1162,7 +1260,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "なるほど。レディファーストだけでは、仕事が進みませんね。教えていただけて、助かります。"
+        "text": "なるほど。レディファーストだけでは、仕事が進みませんね。教えていただけて、助かります。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1170,7 +1269,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらは僕が見ています。店長さんは、次の準備をお願いできますか。"
+        "text": "こちらは僕が見ています。店長さんは、次の準備をお願いできますか。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1178,7 +1278,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "このあと、お茶をご一緒してもいいでしょうか。お仕事のお礼とは別に、僕からお願いしたいです。"
+        "text": "このあと、お茶をご一緒してもいいでしょうか。お仕事のお礼とは別に、僕からお願いしたいです。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1190,7 +1291,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "隣に座る理由を考えてきたのですが、先に誘っていただけましたね。"
+        "text": "隣に座る理由を考えてきたのですが、先に誘っていただけましたね。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1198,7 +1300,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日の動き方を、メモで一緒に確かめたい、と。……でも、本当は働いていないあなたとも、もう少し一緒にいたくて。"
+        "text": "今日の動き方を、メモで一緒に確かめたい、と。……でも、本当は働いていないあなたとも、もう少し一緒にいたくて。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1213,7 +1316,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "道具の場所は、店長さんの使いやすい形を教えてください。僕の店と同じにする必要はありませんから。"
+        "text": "道具の場所は、店長さんの使いやすい形を教えてください。僕の店と同じにする必要はありませんから。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1225,7 +1329,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こちらは僕が見ています。そちらをお願いできますか。"
+        "text": "こちらは僕が見ています。そちらをお願いできますか。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1237,7 +1342,8 @@ export const earlStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ええ。僕も相談したいことがあります。次も、お互いの営業予定から決めましょう。"
+        "text": "ええ。僕も相談したいことがあります。次も、お互いの営業予定から決めましょう。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1248,15 +1354,15 @@ export const earlStaffStories:StaffStoryEvent[] = [
 ];
 
 // Growth stories can unlock before intimacy; practical cafe work stays central.
-export const earlGrowthDialogue:[string[],string[],string[],string[],string[]]=[
-  ["今日は、菓子の材料を量る順番からご相談しましょう。店長さんのやり方を、先に見せていただけますか。","この砂糖、毎回少しずつ多く取っていらっしゃいますね。目で決めず、一度量ってみましょう。","……このくらいで、ちゃんと一皿分になります。残りも使えるように戻せば、一袋からもう一皿取れそうです。","厳密にするためだけではありません。忙しい日に、同じ順番で続けられる方が、あなたも安心でしょう。","僕の店と同じにする必要はないですよ。こちらの道具でできる方法を残しましょう。","味見の分も、先に決めておいてください。店長さんだけ、食べずに終わってしまわないように。","次に使った時のことも、伺いたいです。あなたのお店で続けられたかまで、聞かせてくださいね。"],
-  ["前の量り方、続けられたのですね。でしたら今日は、香りのある砂糖も少し試しませんか。","僕が配合したバニラ糖です。英国で使った香りを、こちらの菓子に合うよう調整しました。","まずは、いつもの砂糖と同じ量で比べましょう。名前だけで決めずに。","飲み物に合わせるなら、このくらいの香りでしょうか。あなたのご意見も聞かせてください。","……少し控えた方が、ほかの味も残りますね。そういう感想を伺えるの、うれしいです。","一度に仕入れすぎず、使い切れる分から始めましょう。楽しみが負担になってしまわないように。","次の試作もご一緒できたら。あなたのカフェでどんな味になるか、見てみたくなりました。"],
-  ["甘い料理が増えてきましたね。次は、背の高いパフェをご相談しても？","僕が層の組み合わせを考えますので、店長さんには、召し上がりやすい量を見ていただきたいです。","見た目はきれいでも、底までスプーンが届きにくいと、楽しんでいただけませんから。","このグラスなら、最後のベリーまで取れますね。上の飾りは少し控えましょう。","バニラ糖を使う層と、果物の香りを残す層。両方、分かるようにしたいです。","……あなたが軽くした方、飲み物にも合いますね。僕一人で作ると、甘くしすぎたかもしれません。","では、同じ量でもう一つ。忙しい日に作る順番も、メモへ残しましょう。","味見は、二人分を。作った僕たちにも、ゆっくり食べる時間が必要ですね。","バニラベリーパフェ。最初に出した日のお話、僕も楽しみにしています。"],
-  ["冷たい菓子を作る場所も、そろそろ考えたいですね。専用の台の候補を持ってきました。","今日は買うかどうかを決めるより先に、店長さんの動き方を見せてください。","器を取って、材料を並べて。こちらの棚は、いつも手を伸ばす場所なのですね。","でしたら、その位置は変えずに考えましょう。僕の店のやり方へ合わせる必要はありませんから。","大きな台ほどいい、ということでもないですね。掃除する時間も、通路の幅も、あなたの店に合う方を。","……一つずつ理由があるのですね。あなたのお仕事を、こうして近くで見るとよく分かります。","余裕ができた時に選びましょう。使い始めて困ったら、僕にも声をかけてください。"],
-  ["ベリーパフェ、五つも出たのですね。あなたのお店に似合う味になってきました。","今度は、バニラ糖を使ったカスタードを試してみませんか。英国で学んだ配合も、こちらの量へ調整しましょう。","温める方は僕が見ます。店長さんには、甘さと出す量を確かめていただけますか。","香りが立ったところで、火を止めます。味見のひと口目は、少し冷ましてから。","……こちらの軽さがいいですね。あなたが少し控えた分、飲み終わりのお茶の味も残ります。","では、同じ量で作る手順を残しましょう。名前に秘密とついても、店長さんには全部お伝えしますよ。","秘密のバニラカスタード。秘密は、お客様がひと口目に楽しむ香りの方へ残しておきましょうか。","僕たちの味見も、急がずに。今日どこが好きだったか、あなたから聞きたいです。","一緒に考えると、次に試したいことが増えますね。もう一度、お茶の時間を相談したくなりました。"],
+export const earlGrowthDialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]=[
+  [d("今日は、菓子の材料を量る順番からご相談しましょう。店長さんのやり方を、先に見せていただけますか。","serious"),d("この砂糖、毎回少しずつ多く取っていらっしゃいますね。目で決めず、一度量ってみましょう。","serious"),d("……このくらいで、ちゃんと一皿分になります。残りも使えるように戻せば、一袋からもう一皿取れそうです。","serious"),d("厳密にするためだけではありません。忙しい日に、同じ順番で続けられる方が、あなたも安心でしょう。","serious"),d("僕の店と同じにする必要はないですよ。こちらの道具でできる方法を残しましょう。","serious"),d("味見の分も、先に決めておいてください。店長さんだけ、食べずに終わってしまわないように。","serious"),d("次に使った時のことも、伺いたいです。あなたのお店で続けられたかまで、聞かせてくださいね。","serious")],
+  [d("前の量り方、続けられたのですね。でしたら今日は、香りのある砂糖も少し試しませんか。","smile"),d("僕が配合したバニラ糖です。英国で使った香りを、こちらの菓子に合うよう調整しました。","serious"),d("まずは、いつもの砂糖と同じ量で比べましょう。名前だけで決めずに。","serious"),d("飲み物に合わせるなら、このくらいの香りでしょうか。あなたのご意見も聞かせてください。","serious"),d("……少し控えた方が、ほかの味も残りますね。そういう感想を伺えるの、うれしいです。","smile"),d("一度に仕入れすぎず、使い切れる分から始めましょう。楽しみが負担になってしまわないように。","serious"),d("次の試作もご一緒できたら。あなたのカフェでどんな味になるか、見てみたくなりました。","normal")],
+  [d("甘い料理が増えてきましたね。次は、背の高いパフェをご相談しても？","smile"),d("僕が層の組み合わせを考えますので、店長さんには、召し上がりやすい量を見ていただきたいです。","serious"),d("見た目はきれいでも、底までスプーンが届きにくいと、楽しんでいただけませんから。","serious"),d("このグラスなら、最後のベリーまで取れますね。上の飾りは少し控えましょう。","serious"),d("バニラ糖を使う層と、果物の香りを残す層。両方、分かるようにしたいです。","serious"),d("……あなたが軽くした方、飲み物にも合いますね。僕一人で作ると、甘くしすぎたかもしれません。","normal"),d("では、同じ量でもう一つ。忙しい日に作る順番も、メモへ残しましょう。","serious"),d("味見は、二人分を。作った僕たちにも、ゆっくり食べる時間が必要ですね。","smile"),d("バニラベリーパフェ。最初に出した日のお話、僕も楽しみにしています。","smile")],
+  [d("冷たい菓子を作る場所も、そろそろ考えたいですね。専用の台の候補を持ってきました。","serious"),d("今日は買うかどうかを決めるより先に、店長さんの動き方を見せてください。","serious"),d("器を取って、材料を並べて。こちらの棚は、いつも手を伸ばす場所なのですね。","serious"),d("でしたら、その位置は変えずに考えましょう。僕の店のやり方へ合わせる必要はありませんから。","serious"),d("大きな台ほどいい、ということでもないですね。掃除する時間も、通路の幅も、あなたの店に合う方を。","serious"),d("……一つずつ理由があるのですね。あなたのお仕事を、こうして近くで見るとよく分かります。","smile"),d("余裕ができた時に選びましょう。使い始めて困ったら、僕にも声をかけてください。","serious")],
+  [d("ベリーパフェ、五つも出たのですね。あなたのお店に似合う味になってきました。","smile"),d("今度は、バニラ糖を使ったカスタードを試してみませんか。英国で学んだ配合も、こちらの量へ調整しましょう。","serious"),d("温める方は僕が見ます。店長さんには、甘さと出す量を確かめていただけますか。","serious"),d("香りが立ったところで、火を止めます。味見のひと口目は、少し冷ましてから。","serious"),d("……こちらの軽さがいいですね。あなたが少し控えた分、飲み終わりのお茶の味も残ります。","smile"),d("では、同じ量で作る手順を残しましょう。名前に秘密とついても、店長さんには全部お伝えしますよ。","serious"),d("秘密のバニラカスタード。秘密は、お客様がひと口目に楽しむ香りの方へ残しておきましょうか。","serious"),d("僕たちの味見も、急がずに。今日どこが好きだったか、あなたから聞きたいです。","smile"),d("一緒に考えると、次に試したいことが増えますね。もう一度、お茶の時間を相談したくなりました。","smile")],
 ];
 export const earlDateDialogue={
-  amusement:["今日は、あなたと遊ぶために時間を空けました。お仕事の相談は、次の機会へ置いてきましたよ。","まずは、どこへ行きたいですか。僕は、夕焼けの観覧車が気になっています。","もちろん、あなたの乗りたいものも。全部を先に決めず、二人で選ぶ日にしましょう。","この菓子、半分ずつにしても？　僕も大きい方が気になっているので、同じ量で。","……おいしいですね。あなたが笑うところまで見られると、休憩も楽しくなります。","観覧車、思ったより揺れますね。平気な顔をするつもりでしたが、今日は正直に。少し緊張しています。","手をつないでもいいですか。怖いからだけでなく、あなたの近くにいたいので。","夕焼けは、こちらですよ。……ええ、僕も見ています。あなたがどんな顔で見ているのかも。","降りてからも、もう少しご一緒したいです。次の乗り物は、あなたから選んでいただけますか。"],
-  walk:["片づけ、お疲れさまです。今日は菓子の納品ではなく、あなたを誘いに来ました。","川沿いを少し歩きませんか。お疲れでしたら、短い道に変えましょう。","こちらは、英国の帰り道とは違う灯りですね。今は、こもれびの窓を探してしまいます。","店長さんはまだお仕事かな、それから、少し会えたらいいな。見ていた理由も変わりました。","今日は、会いたいと先に言えてよかったです。気の利いた口実を考えるより、早くお会いできましたから。","……手をつないでも？　あなたが隣へ来てくださるのを、待っていました。","いつも僕が道を選ぶばかりでしたね。次の角は、あなたの行きたい方へ。","少し遠回りしたいですか。うれしいです。僕も、すぐに帰りたくなかったので。","次の休みも、二人で相談しましょう。あなたに案内していただく日も、楽しみにしています。"],
-  home:["お邪魔します。今日は、迎えていただく方ですね。あなたの淹れるお茶を、楽しみにしてきました。","菓子は少しだけ持ってきました。品評のためではなく、二人でゆっくり食べる分です。","隣へ座っても構いませんか。……理由は、近くで話したいから。それだけです。","この毛布、もう少し寄ったら二人で使えそうですね。あなたが窮屈でなければ。","今日は、次の予定を詰めずに過ごしましょう。あなたが本を読んでいても、僕はここで休めますから。","……少し眠そう？　ええ。格好よくお迎えする側でないと、肩の力が抜けますね。","肩を少し借りてもいいですか。あなたがお疲れの時は、僕の方へ寄りかかってください。","何も用意しなくても、一緒にいたいとお願いできる。そんな午後を、僕は好きになりました。","次は僕がお茶を淹れます。あなたにも、今日の僕みたいに休んでいただきたいですから。"],
+  amusement:[d("今日は、あなたと遊ぶために時間を空けました。お仕事の相談は、次の機会へ置いてきましたよ。","blush"),d("まずは、どこへ行きたいですか。僕は、夕焼けの観覧車が気になっています。","normal"),d("もちろん、あなたの乗りたいものも。全部を先に決めず、二人で選ぶ日にしましょう。","normal"),d("この菓子、半分ずつにしても？　僕も大きい方が気になっているので、同じ量で。","blush"),d("……おいしいですね。あなたが笑うところまで見られると、休憩も楽しくなります。","smile"),d("観覧車、思ったより揺れますね。平気な顔をするつもりでしたが、今日は正直に。少し緊張しています。","surprised"),d("手をつないでもいいですか。怖いからだけでなく、あなたの近くにいたいので。","blush"),d("夕焼けは、こちらですよ。……ええ、僕も見ています。あなたがどんな顔で見ているのかも。","blush"),d("降りてからも、もう少しご一緒したいです。次の乗り物は、あなたから選んでいただけますか。","smile")],
+  walk:[d("片づけ、お疲れさまです。今日は菓子の納品ではなく、あなたを誘いに来ました。","blush"),d("川沿いを少し歩きませんか。お疲れでしたら、短い道に変えましょう。","normal"),d("こちらは、英国の帰り道とは違う灯りですね。今は、こもれびの窓を探してしまいます。","blush"),d("店長さんはまだお仕事かな、それから、少し会えたらいいな。見ていた理由も変わりました。","blush"),d("今日は、会いたいと先に言えてよかったです。気の利いた口実を考えるより、早くお会いできましたから。","blush"),d("……手をつないでも？　あなたが隣へ来てくださるのを、待っていました。","blush"),d("いつも僕が道を選ぶばかりでしたね。次の角は、あなたの行きたい方へ。","normal"),d("少し遠回りしたいですか。うれしいです。僕も、すぐに帰りたくなかったので。","blush"),d("次の休みも、二人で相談しましょう。あなたに案内していただく日も、楽しみにしています。","smile")],
+  home:[d("お邪魔します。今日は、迎えていただく方ですね。あなたの淹れるお茶を、楽しみにしてきました。","blush"),d("菓子は少しだけ持ってきました。品評のためではなく、二人でゆっくり食べる分です。","smile"),d("隣へ座っても構いませんか。……理由は、近くで話したいから。それだけです。","blush"),d("この毛布、もう少し寄ったら二人で使えそうですね。あなたが窮屈でなければ。","blush"),d("今日は、次の予定を詰めずに過ごしましょう。あなたが本を読んでいても、僕はここで休めますから。","serious"),d("……少し眠そう？　ええ。格好よくお迎えする側でないと、肩の力が抜けますね。","smile"),d("肩を少し借りてもいいですか。あなたがお疲れの時は、僕の方へ寄りかかってください。","blush"),d("何も用意しなくても、一緒にいたいとお願いできる。そんな午後を、僕は好きになりました。","blush"),d("次は僕がお茶を淹れます。あなたにも、今日の僕みたいに休んでいただきたいですから。","serious")],
 };

@@ -107,6 +107,19 @@ export const characters: Character[] = [
     "profile": "祖父母の農園で栽培と直売を担当する。新しい品種や売り方を試すのが好き。勝負を持ちかけたり、大きな野菜を宝物のように差し出したりして、人を笑わせる。距離は近いが、嫌がられたことは繰り返さない。",
     "image": "/assets/characters/aki.png",
     "storyImage": "/assets/characters/aki-story-cutout.png",
+    "expressionImages": {
+      "smile": "/assets/characters/aoi-expression-smile.png",
+      "blush": "/assets/characters/aoi-expression-blush.png",
+      "sad": "/assets/characters/aoi-expression-sad.png",
+      "surprised": "/assets/characters/aoi-expression-surprised.png",
+      "serious": "/assets/characters/aoi-expression-serious.png"
+    },
+    "giftReactionExpressions": {
+      "love": "blush",
+      "like": "smile",
+      "normal": "normal",
+      "dislike": "sad"
+    },
     "silhouette": "葵",
     "favoriteGiftTags": [
       "nature",

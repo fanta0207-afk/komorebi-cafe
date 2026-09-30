@@ -1,4 +1,6 @@
-import type { RelationshipEvent, StaffStoryEvent } from "../types/game";
+import type { CharacterExpression, RelationshipEvent, SimpleDialogueLine, StaffStoryEvent } from "../types/game";
+
+const d=(text:string,expression:CharacterExpression):SimpleDialogueLine=>({text,expression});
 
 // Aoi retains the internal ID "aki" and all existing progression metadata.
 export const aoiRelationshipEvents:RelationshipEvent[] = [
@@ -16,7 +18,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "店長、今日のおすすめ当ててみ？　見た目だけじゃ、分かんないやつ。"
+        "text": "店長、今日のおすすめ当ててみ？　見た目だけじゃ、分かんないやつ。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -24,7 +27,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あ、そっか。俺、三ツ葉葵。こもれびで使う野菜、探してるんでしょ？"
+        "text": "あ、そっか。俺、三ツ葉葵。こもれびで使う野菜、探してるんでしょ？",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -32,7 +36,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "まずこっち。それから、もう一つ。甘さだけじゃなくて、皮も比べて。"
+        "text": "まずこっち。それから、もう一つ。甘さだけじゃなくて、皮も比べて。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -44,7 +49,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "正解！　……って、ちゃんと味で当てたの？　やるじゃん。"
+        "text": "正解！　……って、ちゃんと味で当てたの？　やるじゃん。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -52,7 +58,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "それが聞きたかったんだよ。甘いです、だけなら値札にも書けるじゃん。"
+        "text": "それが聞きたかったんだよ。甘いです、だけなら値札にも書けるじゃん。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -60,7 +67,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "水っぽくしたくないなら、種の周りを少し取って。余ったところは、スープに使えるから。"
+        "text": "水っぽくしたくないなら、種の周りを少し取って。余ったところは、スープに使えるから。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -68,7 +76,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "食べる時においしくなってほしいし。……店長が作ったやつ、俺も食べてみたい。"
+        "text": "食べる時においしくなってほしいし。……店長が作ったやつ、俺も食べてみたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -80,7 +89,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "約束ね。お客さんの感想も、店長の感想も。次のおすすめ当て、準備しとく。"
+        "text": "約束ね。お客さんの感想も、店長の感想も。次のおすすめ当て、準備しとく。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -102,7 +112,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こっちは売り場に出しにくくてさ。味はいいんだけど。店長、何か作戦ない？"
+        "text": "こっちは売り場に出しにくくてさ。味はいいんだけど。店長、何か作戦ない？",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -110,7 +121,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "それ、いいじゃん。じゃあ、にんじん多め。煮るならこっちの玉ねぎも。"
+        "text": "それ、いいじゃん。じゃあ、にんじん多め。煮るならこっちの玉ねぎも。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -118,7 +130,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この向きでいい？　こっちは俺が切るから、店長は鍋を頼む。"
+        "text": "この向きでいい？　こっちは俺が切るから、店長は鍋を頼む。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -130,7 +143,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "一緒に柔らかくなるように。形が曲がってるせいで、味までばらばらだって思われたくないし。"
+        "text": "一緒に柔らかくなるように。形が曲がってるせいで、味までばらばらだって思われたくないし。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -138,7 +152,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……畑のトマトは冷まさなくていいから、つい。"
+        "text": "……畑のトマトは冷まさなくていいから、つい。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -146,7 +161,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そこは見なかったことにして。味はどう？"
+        "text": "そこは見なかったことにして。味はどう？",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -154,7 +170,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "見た目で落選なんて、もったいないもんな。こうなるなら、あいつらも主役じゃん。"
+        "text": "見た目で落選なんて、もったいないもんな。こうなるなら、あいつらも主役じゃん。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -166,7 +183,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この絵、採用してよ。店長が笑ったから、今いいの描けた。"
+        "text": "この絵、採用してよ。店長が笑ったから、今いいの描けた。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -194,7 +212,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "収穫勝負しよ。数じゃなくて、今日いちばんおいしそうな実を見つけた方が勝ち。"
+        "text": "収穫勝負しよ。数じゃなくて、今日いちばんおいしそうな実を見つけた方が勝ち。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -202,7 +221,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "確かに。じゃあ、色と、この香り。引っ張らずに、ここを持って。"
+        "text": "確かに。じゃあ、色と、この香り。引っ張らずに、ここを持って。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -218,7 +238,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そこ気づく？　俺、今年いちばん頑張ったとこ。"
+        "text": "そこ気づく？　俺、今年いちばん頑張ったとこ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -230,7 +251,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……そう。食べて、その先まで聞いてくれるの、うれしいな。"
+        "text": "……そう。食べて、その先まで聞いてくれるの、うれしいな。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -238,7 +260,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "帽子、外していい？　枝、こっちで押さえるから。"
+        "text": "帽子、外していい？　枝、こっちで押さえるから。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -250,7 +273,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……あ。勝負、忘れてた。店長の籠、ちゃんといいの入ってるじゃん。"
+        "text": "……あ。勝負、忘れてた。店長の籠、ちゃんといいの入ってるじゃん。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -258,7 +282,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "でも選んだのは、店長でしょ。今日は引き分けにしよっか。"
+        "text": "でも選んだのは、店長でしょ。今日は引き分けにしよっか。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -266,7 +291,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今度カフェで使う時、俺の分も一口残して。店長がどう出すか、見たい。"
+        "text": "今度カフェで使う時、俺の分も一口残して。店長がどう出すか、見たい。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -294,7 +320,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この白いの、いいんじゃない？　店長のスープも、色がちゃんと見えるし。"
+        "text": "この白いの、いいんじゃない？　店長のスープも、色がちゃんと見えるし。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -302,7 +329,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あれ、まだ使ってくれてるんだ。……ちょっと、うれしい。"
+        "text": "あれ、まだ使ってくれてるんだ。……ちょっと、うれしい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -310,7 +338,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "一個ずつ買って、交換しよ。どっちが当たりか勝負。"
+        "text": "一個ずつ買って、交換しよ。どっちが当たりか勝負。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -318,7 +347,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "店長、もう笑ってるじゃん。いい休憩になるでしょ。"
+        "text": "店長、もう笑ってるじゃん。いい休憩になるでしょ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -326,7 +356,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……これ、デートっぽくない？"
+        "text": "……これ、デートっぽくない？",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -338,7 +369,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "いや、器の買い出しだし。友達なら、これくらい普通……だよな？"
+        "text": "いや、器の買い出しだし。友達なら、これくらい普通……だよな？",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -350,7 +382,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……うん。俺も。帰ってすぐ試作しようって言うつもりだったけど、まだここにいたいし。"
+        "text": "……うん。俺も。帰ってすぐ試作しようって言うつもりだったけど、まだここにいたいし。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -358,7 +391,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "さっきの質問、からかっただけってことにしたくなくて。店長がどう思うか、気になった。"
+        "text": "さっきの質問、からかっただけってことにしたくなくて。店長がどう思うか、気になった。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -376,7 +410,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "え。……そういう返事は、ずるいって。いや、聞いたの俺だけど。"
+            "text": "え。……そういう返事は、ずるいって。いや、聞いたの俺だけど。",
+            "expression": "surprised"
           },
           {
             "speaker": "narrator",
@@ -384,7 +419,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "じゃあ、今日はもう少しここにいよう。次は、買い出しの用がなくても誘っていい？"
+            "text": "じゃあ、今日はもう少しここにいよう。次は、買い出しの用がなくても誘っていい？",
+            "expression": "blush"
           },
           {
             "speaker": "narrator",
@@ -402,7 +438,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "俺？　……まだ、うまく言えない。でも、店長と二人で来たかったのは本当。"
+            "text": "俺？　……まだ、うまく言えない。でも、店長と二人で来たかったのは本当。",
+            "expression": "blush"
           },
           {
             "speaker": "narrator",
@@ -414,7 +451,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "そっか。……次は、もう少しちゃんと誘えるようにする。今日も、誘ってよかった。"
+            "text": "そっか。……次は、もう少しちゃんと誘えるようにする。今日も、誘ってよかった。",
+            "expression": "blush"
           }
         ]
       }
@@ -434,7 +472,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あ、助かった。これなくしたら、今年の失敗まで忘れちゃう。"
+        "text": "あ、助かった。これなくしたら、今年の失敗まで忘れちゃう。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -442,7 +481,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "同じ失敗、またしたくないじゃん。……店長、少し見る？"
+        "text": "同じ失敗、またしたくないじゃん。……店長、少し見る？",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -454,7 +494,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。短期の研修。でも俺、町を出たら、野菜のないところで迷子になりそうだし。"
+        "text": "うん。短期の研修。でも俺、町を出たら、野菜のないところで迷子になりそうだし。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -470,7 +511,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……行ってみたい。ここだと試せないやり方を、ちゃんと見てみたいんだ。"
+        "text": "……行ってみたい。ここだと試せないやり方を、ちゃんと見てみたいんだ。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -478,7 +520,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "笑わないんだ。……いや、笑われると思ってた。葵には畑が似合うって、よく言われるし。"
+        "text": "笑わないんだ。……いや、笑われると思ってた。葵には畑が似合うって、よく言われるし。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -490,7 +533,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "まず、家の仕事をどう回すか考えないとね。資料、ちゃんと読み直す。"
+        "text": "まず、家の仕事をどう回すか考えないとね。資料、ちゃんと読み直す。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -498,7 +542,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "これはカフェ用。さっきのノートとは別に、二人で残そうよ。"
+        "text": "これはカフェ用。さっきのノートとは別に、二人で残そうよ。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -534,7 +579,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "俺でいいの？"
+        "text": "俺でいいの？",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -546,7 +592,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "じゃあ、この三つ。切る厚さを変えると、同じ時間で焼けるから。"
+        "text": "じゃあ、この三つ。切る厚さを変えると、同じ時間で焼けるから。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -554,7 +601,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……字、そこまで小さくしなくていいよ。俺、ちゃんと読むから。"
+        "text": "……字、そこまで小さくしなくていいよ。俺、ちゃんと読むから。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -566,7 +614,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そういうこと、急に言うんだ。……俺だけかと思ってた。"
+        "text": "そういうこと、急に言うんだ。……俺だけかと思ってた。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -578,7 +627,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "よかった。店長が、お客さんに出せるって思う味にしたかったんだ。"
+        "text": "よかった。店長が、お客さんに出せるって思う味にしたかったんだ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -586,7 +636,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "仕事の時は店長って呼ぶけど、二人で休んでる時は、君って呼んでもいい？"
+        "text": "仕事の時は店長って呼ぶけど、二人で休んでる時は、君って呼んでもいい？",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -594,7 +645,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……じゃあ、君はどれが一番好き？　店のおすすめじゃなくて、自分が食べたいの。"
+        "text": "……じゃあ、君はどれが一番好き？　店のおすすめじゃなくて、自分が食べたいの。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -602,7 +654,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "俺にも頼ってよ。君の力になりたいし、君が好きな味も覚えたいんだ。"
+        "text": "俺にも頼ってよ。君の力になりたいし、君が好きな味も覚えたいんだ。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -630,7 +683,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "これ、どうせ無理かな。俺が行ったら、じいちゃんの畑、寂しがるし。"
+        "text": "これ、どうせ無理かな。俺が行ったら、じいちゃんの畑、寂しがるし。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -638,7 +692,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……まだ。うまく言えないうちに、忙しくなって。"
+        "text": "……まだ。うまく言えないうちに、忙しくなって。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -650,7 +705,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "行きたい。新しい品種が、どうやって育つのか見たい。帰って、こっちでも試したい。"
+        "text": "行きたい。新しい品種が、どうやって育つのか見たい。帰って、こっちでも試したい。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -658,7 +714,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "でも、君と会えなくなるのは寂しい。店に寄って、今日は何作ってるって聞けなくなるじゃん。"
+        "text": "でも、君と会えなくなるのは寂しい。店に寄って、今日は何作ってるって聞けなくなるじゃん。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -670,7 +727,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……うれしいって言うと変かな。でも、俺だけが寂しいんじゃないのは、うれしい。"
+        "text": "……うれしいって言うと変かな。でも、俺だけが寂しいんじゃないのは、うれしい。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -678,7 +736,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。今度は、ちゃんと家でも話す。仕事を分ける計画も、俺が考えて持っていく。"
+        "text": "うん。今度は、ちゃんと家でも話す。仕事を分ける計画も、俺が考えて持っていく。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -686,7 +745,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "戻ってきて試したいことまで、話せたよ。じいちゃん、苗の場所を空けとくって。"
+        "text": "戻ってきて試したいことまで、話せたよ。じいちゃん、苗の場所を空けとくって。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -694,7 +754,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あとは、この申込書を出す。……最後、冗談で引っ込めないように、君にも言いに来た。"
+        "text": "あとは、この申込書を出す。……最後、冗談で引っ込めないように、君にも言いに来た。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -702,7 +763,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "カフェの手伝いも、農園と予定を確かめて頼んでね。できる時間と、学びに行く時間、両方ちゃんと話すから。"
+        "text": "カフェの手伝いも、農園と予定を確かめて頼んでね。できる時間と、学びに行く時間、両方ちゃんと話すから。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -720,7 +782,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "うん。この申込書、出すよ。うまくいったことも、失敗したことも、いっぱい持って帰るから。"
+            "text": "うん。この申込書、出すよ。うまくいったことも、失敗したことも、いっぱい持って帰るから。",
+            "expression": "smile"
           },
           {
             "speaker": "narrator",
@@ -728,7 +791,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "君のカフェの話も聞きたい。離れてる間の作戦会議、時間を決めようね。"
+            "text": "君のカフェの話も聞きたい。離れてる間の作戦会議、時間を決めようね。",
+            "expression": "smile"
           }
         ]
       },
@@ -742,7 +806,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "もちろん。俺もそう言う。平気なふりで、笑って済ませたくないから。"
+            "text": "もちろん。俺もそう言う。平気なふりで、笑って済ませたくないから。",
+            "expression": "sad"
           },
           {
             "speaker": "narrator",
@@ -750,7 +815,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "応募するよ。学びたいのも、君と会いたいのも、両方ちゃんと大切にする。"
+            "text": "応募するよ。学びたいのも、君と会いたいのも、両方ちゃんと大切にする。",
+            "expression": "serious"
           }
         ]
       }
@@ -770,7 +836,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この果物、パフェに使うなら切り方を変えたいな。……あ、君、さっきから同じ店見てる。"
+        "text": "この果物、パフェに使うなら切り方を変えたいな。……あ、君、さっきから同じ店見てる。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -778,7 +845,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "じゃあ、一緒に飲もう。仕事のメモ、ここで一回閉じよ。"
+        "text": "じゃあ、一緒に飲もう。仕事のメモ、ここで一回閉じよ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -786,7 +854,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "デートの練習みたいだね。……いや、待って。今の、言い直す。"
+        "text": "デートの練習みたいだね。……いや、待って。今の、言い直す。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -794,7 +863,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "練習って言うの、やめる。俺は、そういうつもりで誘った。"
+        "text": "練習って言うの、やめる。俺は、そういうつもりで誘った。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -806,7 +876,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "よかった。さっきの返事、真面目に聞くの、結構緊張した。"
+        "text": "よかった。さっきの返事、真面目に聞くの、結構緊張した。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -814,7 +885,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手、つないでもいい？　人が多いからだけじゃなくて、俺がつなぎたい。"
+        "text": "手、つないでもいい？　人が多いからだけじゃなくて、俺がつなぎたい。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -826,7 +898,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……急に静かになったね、俺たち。"
+        "text": "……急に静かになったね、俺たち。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -834,7 +907,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "俺も。いつもみたいに笑わせようと思ってたけど、今はこのまま歩きたい。"
+        "text": "俺も。いつもみたいに笑わせようと思ってたけど、今はこのまま歩きたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -842,7 +916,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "研修から帰ったら、またここに来よう。仕事の寄り道じゃなくて、君を誘って。"
+        "text": "研修から帰ったら、またここに来よう。仕事の寄り道じゃなくて、君を誘って。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -873,7 +948,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、話しに来た。新しいトマトを見つけたから、って理由も考えたけど。"
+        "text": "今日は、話しに来た。新しいトマトを見つけたから、って理由も考えたけど。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -885,11 +961,13 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "君が来る日は、俺、入り口の方ばっか見てた。新しい実を見つけると、先に君へ見せたくなるし。"
+        "text": "君が来る日は、俺、入り口の方ばっか見てた。新しい実を見つけると、先に君へ見せたくなるし。",
+        "expression": "serious"
       },
       {
         "speaker": "character",
-        "text": "カフェで隣に立つと、仕事の話だけしてるのがもったいなくなる。帰りにまたねって言っても、すぐには帰りたくない。"
+        "text": "カフェで隣に立つと、仕事の話だけしてるのがもったいなくなる。帰りにまたねって言っても、すぐには帰りたくない。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -901,11 +979,13 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "友達でいられなくなるのが怖くて、デートっぽいねって茶化してた。君が笑ってくれたら、それで済ませられるから。"
+        "text": "友達でいられなくなるのが怖くて、デートっぽいねって茶化してた。君が笑ってくれたら、それで済ませられるから。",
+        "expression": "sad"
       },
       {
         "speaker": "character",
-        "text": "でも今は、ちゃんと返事を聞きたい。いつも笑っててほしいけど、今だけは真面目に聞いて。好きだ。"
+        "text": "でも今は、ちゃんと返事を聞きたい。いつも笑っててほしいけど、今だけは真面目に聞いて。好きだ。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -917,7 +997,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……本当？　今、笑っていい？　うれしくて、全然格好つかない。"
+        "text": "……本当？　今、笑っていい？　うれしくて、全然格好つかない。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -925,7 +1006,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "離れてる間も、連絡したい。毎晩できるって約束はできないけど、君の都合も聞いて決めよう。"
+        "text": "離れてる間も、連絡したい。毎晩できるって約束はできないけど、君の都合も聞いて決めよう。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -937,7 +1019,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手、つないでいい？　今日は恋人として。"
+        "text": "手、つないでいい？　今日は恋人として。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -949,7 +1032,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "帰ってきたら、最初に会いたい。……それも、ちゃんと言っておくね。"
+        "text": "帰ってきたら、最初に会いたい。……それも、ちゃんと言っておくね。",
+        "expression": "blush"
       }
     ],
     "friendshipTitle": "離れていても作戦会議",
@@ -960,7 +1044,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "毎日できるって約束はしないけど、写真とか、失敗した記録も送りたい。君の店ではどう使えそうか、聞きたくて。"
+        "text": "毎日できるって約束はしないけど、写真とか、失敗した記録も送りたい。君の店ではどう使えそうか、聞きたくて。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -968,7 +1053,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。無理なく続けよう。いいことだけ送ると、次の作戦が立てられないし。"
+        "text": "うん。無理なく続けよう。いいことだけ送ると、次の作戦が立てられないし。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -980,7 +1066,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "帰ったら、新しいメニューを相談しような。にんじんの絵、次は果物も足すから。"
+        "text": "帰ったら、新しいメニューを相談しような。にんじんの絵、次は果物も足すから。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -1006,7 +1093,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ただいま。……最初に会いたかったの、やっぱり君だった。"
+        "text": "ただいま。……最初に会いたかったの、やっぱり君だった。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -1018,7 +1106,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "写真で見たカフェ、もう行った気になってたけど。やっぱり、君の声をここで聞く方がいい。"
+        "text": "写真で見たカフェ、もう行った気になってたけど。やっぱり、君の声をここで聞く方がいい。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -1026,7 +1115,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今の実でできることと、次の季節に試したいこと、分けて書こう。君の店も、急に全部変えなくていいし。"
+        "text": "今の実でできることと、次の季節に試したいこと、分けて書こう。君の店も、急に全部変えなくていいし。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1038,7 +1128,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この器、あの買い出しで選んだやつだね。スープだけじゃなくて、果物にも合うじゃん。"
+        "text": "この器、あの買い出しで選んだやつだね。スープだけじゃなくて、果物にも合うじゃん。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1046,7 +1137,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……それは、照れるって。今、果物の絵も足していい？"
+        "text": "……それは、照れるって。今、果物の絵も足していい？",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1058,7 +1150,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そりゃ覚えるよ。店のおすすめと、君が好きなの、違う時もあるし。"
+        "text": "そりゃ覚えるよ。店のおすすめと、君が好きなの、違う時もあるし。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1066,7 +1159,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今度は、休みの日に出かけよう。仕事の相談は今日して、君と遊ぶ時間も空けたい。"
+        "text": "今度は、休みの日に出かけよう。仕事の相談は今日して、君と遊ぶ時間も空けたい。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1078,7 +1172,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次の季節も、君に見せたいものがある。……でもまず、今日の君の話、もっと聞かせて。"
+        "text": "次の季節も、君に見せたいものがある。……でもまず、今日の君の話、もっと聞かせて。",
+        "expression": "smile"
       }
     ],
     "reward": {
@@ -1100,7 +1195,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ただいま！　学んだこと、一緒に形にしようぜ。まず、今の果物でできるところから。"
+        "text": "ただいま！　学んだこと、一緒に形にしようぜ。まず、今の果物でできるところから。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1112,7 +1208,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この器、前の買い出しで選んだやつじゃん。まだ使ってくれてるの、うれしいな。"
+        "text": "この器、前の買い出しで選んだやつじゃん。まだ使ってくれてるの、うれしいな。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1120,7 +1217,8 @@ export const aoiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "任せて。味は君の試作、絵は俺。今度はどっちも、ちゃんと使えるのにしよう。"
+        "text": "任せて。味は君の試作、絵は俺。今度はどっちも、ちゃんと使えるのにしよう。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1147,7 +1245,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日はこの時間までね。いつもの道具の場所、勝手に変えないから、先に教えて。"
+        "text": "今日はこの時間までね。いつもの道具の場所、勝手に変えないから、先に教えて。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1159,7 +1258,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "似合う？　店長と同じやつだと、急にこっち側の人って感じするね。"
+        "text": "似合う？　店長と同じやつだと、急にこっち側の人って感じするね。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1171,7 +1271,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……それ、最初に言う？　格好つける余裕、なくなるじゃん。"
+        "text": "……それ、最初に言う？　格好つける余裕、なくなるじゃん。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1183,7 +1284,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お願い。……近くにいると、変に慌てるな、俺。"
+        "text": "お願い。……近くにいると、変に慌てるな、俺。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1191,7 +1293,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ありがとう。さっきの、冗談じゃないからね。慌てたの、君が近かったから。"
+        "text": "ありがとう。さっきの、冗談じゃないからね。慌てたの、君が近かったから。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1203,7 +1306,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここは俺が見るから、店長はそっちを頼む。終わったら、今どこまで進んだか話すね。"
+        "text": "ここは俺が見るから、店長はそっちを頼む。終わったら、今どこまで進んだか話すね。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1215,7 +1319,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……前に俺が聞いたやつじゃん。じゃあ、今日は君と同じの。一緒に飲んで感想言いたい。"
+        "text": "……前に俺が聞いたやつじゃん。じゃあ、今日は君と同じの。一緒に飲んで感想言いたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1223,7 +1328,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "働くのも。でも、終わってからこうしてるのも。仕事の相談がなくても、君といたいんだ。"
+        "text": "働くのも。でも、終わってからこうしてるのも。仕事の相談がなくても、君といたいんだ。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1238,7 +1344,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "道具の場所、勝手に変えないね。使いやすい向きを、まず教えて。"
+        "text": "道具の場所、勝手に変えないね。使いやすい向きを、まず教えて。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1250,7 +1357,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "畑と違って、通路が狭いね。通る時は後ろ通るって言うから、店長も呼んで。"
+        "text": "畑と違って、通路が狭いね。通る時は後ろ通るって言うから、店長も呼んで。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1262,7 +1370,8 @@ export const aoiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。今日の作戦会議ね。俺の方も、次はこうしたいって相談がある。"
+        "text": "うん。今日の作戦会議ね。俺の方も、次はこうしたいって相談がある。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1273,15 +1382,15 @@ export const aoiStaffStories:StaffStoryEvent[] = [
 ];
 
 // These can unlock early and do not assume a confessed romance or a completed training trip.
-export const aoiGrowthDialogue:[string[],string[],string[],string[],string[]]=[
-  ["店長、畑を少し見ていく？　入っていい場所は、こっちね。","このトマト、見た目の色だけじゃなくて、香りも確かめて。今日使う分と、あとで使う分、分けられるよ。","箱で受け取ったら、押し合わないように並べて。傷んだところを残さず、使えるところを先に揃えよう。","切る時も、毎回多く取りすぎてないか量ってみよ。一箱から、もう一皿分選べそうだ。","……そう、そのくらい。店長、ちゃんと手で覚えてるじゃん。","毎日できる順番にしよ。忙しい日に続かないやり方だと、意味ないし。","次に使った時、どうだったか聞かせて。店長の料理で食べてもらうの、俺も楽しみなんだ。"],
-  ["前のトマト、最後まで使えた？　じゃあ今度、こっちも試してみて。","陽だまりトマト。今日のやつ、香りが少し明るいんだ。","名前で決めないで、まず味見ね。店長なら、ちゃんと違うとこ聞いてくれるし。","皮も比べて。パンに挟むのと、煮て使うのじゃ、合うところが変わるよ。","店長のカフェで何に合わせたい？　俺のおすすめだけじゃなくて、店長の案も聞きたい。","……それ、いいじゃん。最初は少量で試して、使い切れるかも確かめよ。","次の試作メモ、俺にも見せてね。思いつきを料理にするところ、見たいから。"],
-  ["野菜の料理、よく出るようになったね。次は、採れた色をそのまま出すのどう？","朝採れ春色サラダ。赤と緑だけじゃなくて、食感も変えたいな。","切る方は俺がやる。店長は、盛りつけと出す量を考えてくれる？","……この白い皿だと、色がちゃんと見えるね。どこで選んだの？","ドレッシングは、まず少し。せっかくの香り、全部同じにしたくないし。","店長が足した方、飲み物にも合わせやすそう。店の客って、こういう味が好き？","じゃあ、同じ量でもう一皿作ろ。忙しい時にも、同じ味で出したいから。","味見の分、二人分残してね。作った人が食べないまま終わるの、もったいないじゃん。","……うまい。店長と考えたら、俺のおすすめだけで作るのと違う皿になった。"],
-  ["季節の料理が増えたなら、仕込みの場所も考えたいね。","いい作業台、候補を見つけたよ。すぐ買ってって話じゃなくて、使えるか先に見よ。","店長がいつも立つ位置、ここ？　じゃあ、この棚を勝手に動かさないで考えよう。","器を出す動きと、切ったものを置く動き。同じところでぶつからない方が、作りやすいね。","……畑の段取りと違うけど、一つずつ理由があるんだ。店長の仕事、こうして見ると分かるところ増えるな。","大きい台だけが正解じゃないし。掃除の時間も、お金の余裕も、合わせて選ぼ。","置いてから困ったら、俺にも呼んで。説明だけして、あとは一人でってことにしたくないから。"],
-  ["春色サラダ、五皿も出たの？　いいじゃん。店長のカフェの料理になってきたね。","今度は陽だまりトマトを使って、サンドイッチを考えよう。","パンに挟むなら、厚さはこのくらい。水分を少し取る分も、無駄にせず別に使いたいね。","店長は、どの野菜と合わせたい？　俺は、この葉の食感も残したい。","……それなら、こっちの切り方にしよ。店長の案と両方、生かせそうじゃん。","量、ここに書いて。次も同じ味にできるように、俺も収穫の記録を残すから。","陽だまり畑サンド、どう？　名前より先に、二人で味見して決めよ。","店長が作った方、ひと口いい？　俺のと、パンの焼き方が少し違うね。","……こっちも好きだな。今日の発見、ちゃんとメモしとこ。店長と作ると、次に試したいことが増える。"],
+export const aoiGrowthDialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]=[
+  [d("店長、畑を少し見ていく？　入っていい場所は、こっちね。","smile"),d("このトマト、見た目の色だけじゃなくて、香りも確かめて。今日使う分と、あとで使う分、分けられるよ。","serious"),d("箱で受け取ったら、押し合わないように並べて。傷んだところを残さず、使えるところを先に揃えよう。","serious"),d("切る時も、毎回多く取りすぎてないか量ってみよ。一箱から、もう一皿分選べそうだ。","serious"),d("……そう、そのくらい。店長、ちゃんと手で覚えてるじゃん。","smile"),d("毎日できる順番にしよ。忙しい日に続かないやり方だと、意味ないし。","serious"),d("次に使った時、どうだったか聞かせて。店長の料理で食べてもらうの、俺も楽しみなんだ。","smile")],
+  [d("前のトマト、最後まで使えた？　じゃあ今度、こっちも試してみて。","smile"),d("陽だまりトマト。今日のやつ、香りが少し明るいんだ。","smile"),d("名前で決めないで、まず味見ね。店長なら、ちゃんと違うとこ聞いてくれるし。","serious"),d("皮も比べて。パンに挟むのと、煮て使うのじゃ、合うところが変わるよ。","serious"),d("店長のカフェで何に合わせたい？　俺のおすすめだけじゃなくて、店長の案も聞きたい。","normal"),d("……それ、いいじゃん。最初は少量で試して、使い切れるかも確かめよ。","smile"),d("次の試作メモ、俺にも見せてね。思いつきを料理にするところ、見たいから。","smile")],
+  [d("野菜の料理、よく出るようになったね。次は、採れた色をそのまま出すのどう？","smile"),d("朝採れ春色サラダ。赤と緑だけじゃなくて、食感も変えたいな。","serious"),d("切る方は俺がやる。店長は、盛りつけと出す量を考えてくれる？","serious"),d("……この白い皿だと、色がちゃんと見えるね。どこで選んだの？","surprised"),d("ドレッシングは、まず少し。せっかくの香り、全部同じにしたくないし。","serious"),d("店長が足した方、飲み物にも合わせやすそう。店の客って、こういう味が好き？","normal"),d("じゃあ、同じ量でもう一皿作ろ。忙しい時にも、同じ味で出したいから。","serious"),d("味見の分、二人分残してね。作った人が食べないまま終わるの、もったいないじゃん。","smile"),d("……うまい。店長と考えたら、俺のおすすめだけで作るのと違う皿になった。","smile")],
+  [d("季節の料理が増えたなら、仕込みの場所も考えたいね。","serious"),d("いい作業台、候補を見つけたよ。すぐ買ってって話じゃなくて、使えるか先に見よ。","smile"),d("店長がいつも立つ位置、ここ？　じゃあ、この棚を勝手に動かさないで考えよう。","serious"),d("器を出す動きと、切ったものを置く動き。同じところでぶつからない方が、作りやすいね。","serious"),d("……畑の段取りと違うけど、一つずつ理由があるんだ。店長の仕事、こうして見ると分かるところ増えるな。","smile"),d("大きい台だけが正解じゃないし。掃除の時間も、お金の余裕も、合わせて選ぼ。","serious"),d("置いてから困ったら、俺にも呼んで。説明だけして、あとは一人でってことにしたくないから。","serious")],
+  [d("春色サラダ、五皿も出たの？　いいじゃん。店長のカフェの料理になってきたね。","surprised"),d("今度は陽だまりトマトを使って、サンドイッチを考えよう。","smile"),d("パンに挟むなら、厚さはこのくらい。水分を少し取る分も、無駄にせず別に使いたいね。","serious"),d("店長は、どの野菜と合わせたい？　俺は、この葉の食感も残したい。","normal"),d("……それなら、こっちの切り方にしよ。店長の案と両方、生かせそうじゃん。","smile"),d("量、ここに書いて。次も同じ味にできるように、俺も収穫の記録を残すから。","serious"),d("陽だまり畑サンド、どう？　名前より先に、二人で味見して決めよ。","smile"),d("店長が作った方、ひと口いい？　俺のと、パンの焼き方が少し違うね。","normal"),d("……こっちも好きだな。今日の発見、ちゃんとメモしとこ。店長と作ると、次に試したいことが増える。","smile")],
 ];
 export const aoiDateDialogue={
-  amusement:["今日は、農園の仕事を相談して空けてきたよ。君と遊ぶために。……最初に言うと照れるね。","どれから乗る？　俺は、あの乗り物が気になる。君の行きたいのも教えて。","勝負しようと思ったけど、最初は隣に座りたいな。君が楽しそうな顔、見たいし。","この菓子、半分ずつ交換しよ。どっちが好きか、今度こそ味で勝負ね。","……君が選んだ方、俺も好きだった。じゃあ、これは引き分けにしよっか。","観覧車、思ったより高いね。怖いの、笑ってごまかさず言っとく。君は大丈夫？","手、つないでもいい？　揺れるからだけじゃなくて、俺が近くにいたい。","夕焼け見てる君も、さっき笑ってた君も、どっちも好きだな。……急に言うと照れる？　俺も。","次、もう一つ乗ろ。帰りたくないって、今日は君より先に言っておくね。"],
-  walk:["片づけ、終わった？　今日は仕入れの箱なし。君を誘いに来たんだ。","俺は川沿いを歩きたいな。君は？　疲れてたら、短い道にしよ。","走らないよ。……先に言わなくても分かってる？　隣の歩幅で、ゆっくりね。","あの店、器を買った時にも見たよね。仕事の相談で来たのに、帰りたくなくなったところ。","デートっぽいねって言ったあと、君の返事ばっか気にしてたんだ。","今は、ちゃんと誘えてよかった。君の方からも、行きたいって聞けたし。","……手、つないでいい？　いつもふざけてるのに、こういう時はまだ緊張するね。","君のカフェの話も聞きたい。大変だったこと、笑って終わらせなくてもいいよ。","もう少し遠回りしたいな。君もいいなら、次の橋まで一緒に歩こう。","次の休み、君の行きたい場所も教えて。俺も先に、時間を空けるから。"],
-  home:["お邪魔します。野菜の映画、探したけどなかった。……真面目に探したんだよ、途中まで。","今日は何を見る？　君が笑うやつも、途中で眠くなるやつも、一緒ならいいな。","お茶、ありがと。店にいる時より、君の顔が少し柔らかいね。俺も、肩の力抜けた。","隣、座っていい？　……近い？　君が楽な距離、教えて。","この毛布、もう少しこっちへ寄ったら二人で使えるね。嫌じゃなければ。","今日は何か作ろうって言わずに、休む日にしよ。君も、店長の顔しなくていいよ。","……黙ってるの、気まずいんじゃないからね。君とここにいるの、楽しいんだ。","肩を借りてもいい？　君が疲れたら、俺の方へ寄りかかって。","次は俺がお茶を用意する。君が休める時間も、ちゃんと作りたいから。"],
+  amusement:[d("今日は、農園の仕事を相談して空けてきたよ。君と遊ぶために。……最初に言うと照れるね。","blush"),d("どれから乗る？　俺は、あの乗り物が気になる。君の行きたいのも教えて。","smile"),d("勝負しようと思ったけど、最初は隣に座りたいな。君が楽しそうな顔、見たいし。","blush"),d("この菓子、半分ずつ交換しよ。どっちが好きか、今度こそ味で勝負ね。","smile"),d("……君が選んだ方、俺も好きだった。じゃあ、これは引き分けにしよっか。","smile"),d("観覧車、思ったより高いね。怖いの、笑ってごまかさず言っとく。君は大丈夫？","surprised"),d("手、つないでもいい？　揺れるからだけじゃなくて、俺が近くにいたい。","blush"),d("夕焼け見てる君も、さっき笑ってた君も、どっちも好きだな。……急に言うと照れる？　俺も。","blush"),d("次、もう一つ乗ろ。帰りたくないって、今日は君より先に言っておくね。","smile")],
+  walk:[d("片づけ、終わった？　今日は仕入れの箱なし。君を誘いに来たんだ。","smile"),d("俺は川沿いを歩きたいな。君は？　疲れてたら、短い道にしよ。","normal"),d("走らないよ。……先に言わなくても分かってる？　隣の歩幅で、ゆっくりね。","smile"),d("あの店、器を買った時にも見たよね。仕事の相談で来たのに、帰りたくなくなったところ。","blush"),d("デートっぽいねって言ったあと、君の返事ばっか気にしてたんだ。","blush"),d("今は、ちゃんと誘えてよかった。君の方からも、行きたいって聞けたし。","smile"),d("……手、つないでいい？　いつもふざけてるのに、こういう時はまだ緊張するね。","blush"),d("君のカフェの話も聞きたい。大変だったこと、笑って終わらせなくてもいいよ。","serious"),d("もう少し遠回りしたいな。君もいいなら、次の橋まで一緒に歩こう。","smile"),d("次の休み、君の行きたい場所も教えて。俺も先に、時間を空けるから。","smile")],
+  home:[d("お邪魔します。野菜の映画、探したけどなかった。……真面目に探したんだよ、途中まで。","surprised"),d("今日は何を見る？　君が笑うやつも、途中で眠くなるやつも、一緒ならいいな。","smile"),d("お茶、ありがと。店にいる時より、君の顔が少し柔らかいね。俺も、肩の力抜けた。","smile"),d("隣、座っていい？　……近い？　君が楽な距離、教えて。","blush"),d("この毛布、もう少しこっちへ寄ったら二人で使えるね。嫌じゃなければ。","blush"),d("今日は何か作ろうって言わずに、休む日にしよ。君も、店長の顔しなくていいよ。","serious"),d("……黙ってるの、気まずいんじゃないからね。君とここにいるの、楽しいんだ。","blush"),d("肩を借りてもいい？　君が疲れたら、俺の方へ寄りかかって。","blush"),d("次は俺がお茶を用意する。君が休める時間も、ちゃんと作りたいから。","smile")],
 };

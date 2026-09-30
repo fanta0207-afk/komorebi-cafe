@@ -132,6 +132,22 @@ test('Taiyo has five transparent story expression sprites with a normal-art fall
   assert.equal(storyArtSource(taiyo,'missing-expression'),taiyo.storyImage);
 });
 
+test('Aoi has five transparent story expression sprites with a normal-art fallback',()=>{
+  const aoi=characters.find(character=>character.id==='aki');
+  assert.equal(aoi.storyImage,'/assets/characters/aki-story-cutout.png');
+  assert.deepEqual(Object.keys(aoi.expressionImages).sort(),['blush','sad','serious','smile','surprised']);
+  for(const [expression,asset] of Object.entries(aoi.expressionImages)){
+    assert.equal(storyArtSource(aoi,expression),asset);
+    const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
+    assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    assert.equal(png.readUInt32BE(16),1024);
+    assert.equal(png.readUInt32BE(20),1536);
+    assert.equal(png[25],6,`${expression} must use RGBA transparency`);
+  }
+  assert.equal(storyArtSource(aoi,'normal'),aoi.storyImage);
+  assert.equal(storyArtSource(aoi,'missing-expression'),aoi.storyImage);
+});
+
 test('the supplied Toudou Sae artwork is used for full portraits and face selectors',()=>{
   const sae=characters.find(character=>character.id==='sae');
   assert.equal(sae.image,'/assets/characters/toudou-sae.png');

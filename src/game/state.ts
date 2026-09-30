@@ -150,7 +150,9 @@ export function migrateSavedState(saved:Partial<GameState>, now=Date.now()):Game
       && ["love","like","normal","dislike"].includes(pending.reaction)
       && pending.reaction===giftReaction(getCharacter(pending.characterId)!,getGift(pending.giftId)!)
       && typeof pending.response==="string"&&pending.response.length>0
-      && !characterProgress[pending.characterId].viewedGiftReactions.includes(pending.reaction)?pending:undefined;
+      && !characterProgress[pending.characterId].viewedGiftReactions.includes(pending.reaction)
+        ?{...pending,expression:getCharacter(pending.characterId)?.giftReactionExpressions?.[pending.reaction]}
+        :undefined;
     const savedLastPlayedAt=Number.isFinite(saved.lastPlayedAt)&&saved.lastPlayedAt!<=now?saved.lastPlayedAt!:now;
     let migrated:GameState={
       ...fresh, ...saved, saveVersion:GAME_CONFIG.saveVersion,
@@ -297,9 +299,10 @@ function reduceAction(state:GameState, action:Action):GameState {
       const amount=item.handmade?handmadeAmount(item,reaction,current):giftAffectionAmount(item,reaction);
       const nextCount=state.inventory[item.id]-1;
       const nextInventory={ ...state.inventory, [item.id]:nextCount };
+      const character=getCharacter(action.characterId)!;
       return {
         ...state,
-        pendingGiftReaction:current.viewedGiftReactions.includes(reaction)?undefined:{characterId:action.characterId,giftId:item.id,reaction,response:(item.handmade?handmadeResponses[action.characterId]+' ':'')+characterGiftResponse(getCharacter(action.characterId)!,current,item,reaction)},
+        pendingGiftReaction:current.viewedGiftReactions.includes(reaction)?undefined:{characterId:action.characterId,giftId:item.id,reaction,response:(item.handmade?handmadeResponses[action.characterId]+' ':'')+characterGiftResponse(character,current,item,reaction),expression:character.giftReactionExpressions?.[reaction]},
         missions:{...state.missions,gaveBook:state.missions.gaveBook||(action.characterId==="ren"&&item.id==="book")},inventory:nextInventory, dailyGiftStatus:{ ...state.dailyGiftStatus,[action.characterId]:true },
         characterProgress:{ ...state.characterProgress,[action.characterId]:{ ...current,lastGiftId:item.id,giftStreak:current.lastGiftId===item.id?(current.giftStreak||0)+1:1,handmadeFirst:item.handmade&&(reaction==='love'||reaction==='like')?[...new Set([...(current.handmadeFirst||[]),item.id])]:(current.handmadeFirst||[]),affection:Math.max(0,current.affection+amount),giftsGiven:current.giftsGiven+1,giftReactions:{...current.giftReactions,[item.id]:reaction} } },
         notice:notice("heart",amount>0?`好感度 +${amount} ♡`:`好感度 ${amount}・好みではない`),

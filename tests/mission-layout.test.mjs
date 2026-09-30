@@ -25,7 +25,7 @@ test('mission dialog is explicitly centered inside the 430px game and safe viewp
 });
 
 test('only the mission list scrolls; the close button cannot shrink or scroll out of view',()=>{
-  assert.equal(declarations('.mission-notebook[open]').display,'flex');
+  assert.equal(declarations('.mission-notebook').display,'flex');
   assert.equal(declarations('.mission-notebook>header').flex,'none');
   assert.equal(declarations('.mission-notebook>header button').flex,'none');
   assert.equal(declarations('.mission-scroll')['min-height'],'0');
@@ -90,12 +90,12 @@ test('the navigation paints only the dock while the cafe artwork covers the home
   assert.match(globalCss,/\.cafe-restock-hint \{[^}]*bottom:calc\(var\(--bottom-nav-height\) \+ 16px\)/);
 });
 
-test('growth stories use the native modal layer instead of an overlay beneath bottom navigation',()=>{
+test('growth stories use the shared modal layer instead of an overlay beneath bottom navigation',()=>{
   const component=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
   const growth=component.slice(component.indexOf('function GrowthEventModal('),component.indexOf('function DevMenu('));
-  assert.match(growth,/<dialog ref=\{dialog\} className="story-modal story-player growth-event-overlay"/);
-  assert.match(growth,/element\?\.showModal\(\)/);
-  assert.match(growth,/return\(\)=>element\?\.close\(\)/);
+  assert.match(growth,/<GameModal className="story-modal story-player growth-event-overlay"/);
+  assert.match(growth,/layerClassName="story-modal-layer"/);
+  assert.doesNotMatch(growth,/showModal\(\)|\.close\(\)/);
   assert.doesNotMatch(growth,/className="event-overlay/);
   assert.match(growth,/dialogueContent\.current\?\.scrollTo\(\{top:0\}\)/);
 });

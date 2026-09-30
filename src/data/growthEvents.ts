@@ -1,7 +1,7 @@
 import { cacaoGrowthDialogue } from "./cacaoEpisodes";
 import { saeGrowthDialogue } from "./saeEpisodes";
 import { shizukaGrowthDialogue } from "./shizukaEpisodes";
-import type { GrowthEvent, GrowthStatRequirement } from "../types/game";
+import type { GrowthEvent, GrowthStatRequirement, SimpleDialogueLine } from "../types/game";
 
 import { taiyoGrowthDialogue } from "./taiyoEpisodes";
 import { earlGrowthDialogue } from "./earlEpisodes";
@@ -13,7 +13,7 @@ type Route = {
   id:string; name:string; materialId:string; materialName:string; baseIngredientId:string; baseIngredientName:string;
   tag:string; tagLabel:string; recipeId:string; recipeName:string; equipmentId:string; equipmentName:string;
   specialRecipeId:string; specialRecipeName:string;
-  titles:[string,string,string,string,string]; dialogue:[string[],string[],string[],string[],string[]]; hints:[string,string,string,string,string];
+  titles:[string,string,string,string,string]; dialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]; hints:[string,string,string,string,string];
 };
 
 const stat=(type:GrowthStatRequirement["type"],id:string|undefined,target:number,label:string):GrowthStatRequirement=>({type,id,target,label});
@@ -32,7 +32,7 @@ const routes:Route[] = [
 function routeEvents(route:Route):GrowthEvent[] {
   const id=(stage:number)=>`${route.id}-growth${stage}`;
   return [
-    {eventId:id(1),characterId:route.id,routeStage:1,title:"仕入れを整える",requiredRelationshipStage:1,requiredStats:[stat(["sota","aki","cacao"].includes(route.id)?"ingredientPurchases":"tagSales",route.id==="sota"?"milk":route.id==="aki"?"tomato":route.id==="cacao"?"chocolate":route.tag,route.id==="ren"?2:3,route.id==="sota"?"牛乳を仕入れる":route.id==="aki"?"トマトを仕入れる":route.id==="cacao"?"チョコレートを仕入れる":`${route.tagLabel}を販売`)],requiredPreviousEvents:[],rewards:{note:`${route.name}の助言で、${route.baseIngredientName}が1パック5食分になりました`},dialogue:["ren","nagisa","sae","cacao"].includes(route.id)?route.dialogue[0]:[`${route.baseIngredientName}の使い方、ずいぶん安定してきたね。`,"保管と計量の手順を整えよう。次から1パックで、もう1食分取れるよ。"],hint:`${route.name}に${route.baseIngredientName}の扱い方を相談すると、仕入れが効率化しそう`},
+    {eventId:id(1),characterId:route.id,routeStage:1,title:"仕入れを整える",requiredRelationshipStage:1,requiredStats:[stat(["sota","aki","cacao"].includes(route.id)?"ingredientPurchases":"tagSales",route.id==="sota"?"milk":route.id==="aki"?"tomato":route.id==="cacao"?"chocolate":route.tag,route.id==="ren"?2:3,route.id==="sota"?"牛乳を仕入れる":route.id==="aki"?"トマトを仕入れる":route.id==="cacao"?"チョコレートを仕入れる":`${route.tagLabel}を販売`)],requiredPreviousEvents:[],rewards:{note:`${route.name}の助言で、${route.baseIngredientName}が1パック5食分になりました`},dialogue:["ren","nagisa","sae","cacao"].includes(route.id)?route.dialogue[0]:route.id==="haru"?[{text:`${route.baseIngredientName}の使い方、ずいぶん安定してきたね。`,expression:"smile"},{text:"保管と計量の手順を整えよう。次から1パックで、もう1食分取れるよ。",expression:"serious"}]:route.id==="sota"?[{text:`${route.baseIngredientName}の使い方、ずいぶん安定してきたね。`,expression:"smile"},{text:"保管と計量の手順を整えよう。次から1パックで、もう1食分取れるよ。",expression:"serious"}]:[`${route.baseIngredientName}の使い方、ずいぶん安定してきたね。`,"保管と計量の手順を整えよう。次から1パックで、もう1食分取れるよ。"],hint:`${route.name}に${route.baseIngredientName}の扱い方を相談すると、仕入れが効率化しそう`},
     {eventId:id(2),characterId:route.id,routeStage:2,title:route.titles[1],requiredRelationshipStage:2,requiredStats:[stat("ingredientPurchases",route.baseIngredientId,2,`${route.baseIngredientName}を仕入れる`)],requiredPreviousEvents:[id(1)],rewards:{ingredientIds:[route.materialId],note:`特別素材「${route.materialName}」を仕入れられるようになりました`},dialogue:route.dialogue[1],hint:route.hints[1]},
     {eventId:id(3),characterId:route.id,routeStage:3,title:route.titles[2],requiredRelationshipStage:2,requiredStats:[stat("tagSales",route.tag,route.id==="ren"?5:10,`${route.tagLabel}を販売`)],requiredPreviousEvents:[id(2)],rewards:{recipeIds:[route.recipeId],note:`一緒に考えた新料理「${route.recipeName}」がメニューに加わりました`},dialogue:route.dialogue[2],hint:route.hints[2]},
     {eventId:id(4),characterId:route.id,routeStage:4,title:route.titles[3],requiredRelationshipStage:3,requiredStats:[stat("tagSales",route.tag,18,`${route.tagLabel}を販売`)],requiredPreviousEvents:[id(3)],rewards:{equipmentIds:[route.equipmentId],note:`設備店で「${route.equipmentName}」を購入できるようになりました`},dialogue:route.dialogue[3],hint:route.hints[3]},

@@ -25,6 +25,19 @@ export const characters: Character[] = [
     "profile": "亡き父の小さな焙煎店を継いだ職人。接客は不器用だが、買い手の器具や営業形態まで覚えて豆を選ぶ。愛情表現は、荷物を持つ、焙煎日をメモする、閉店まで待つなどの行動が先に出る。豆の説明になると少しだけ口数が増える。",
     "image": "/assets/characters/ren.png",
     "storyImage": "/assets/characters/ren-story-cutout.png",
+    "expressionImages": {
+      "smile": "/assets/characters/ren-expression-smile.png",
+      "blush": "/assets/characters/ren-expression-blush.png",
+      "sad": "/assets/characters/ren-expression-sad.png",
+      "surprised": "/assets/characters/ren-expression-surprised.png",
+      "serious": "/assets/characters/ren-expression-serious.png"
+    },
+    "giftReactionExpressions": {
+      "love": "blush",
+      "like": "smile",
+      "normal": "normal",
+      "dislike": "sad"
+    },
     "silhouette": "蓮",
     "favoriteGiftTags": [
       "coffee",
@@ -53,6 +66,19 @@ export const characters: Character[] = [
     "profile": "家族経営の牧場で働き、乳製品の販売を担当する。動物の小さな変化に気づき、人の話も最後まで聞く。天然さは、牛の誕生日は全頭覚えているのに自分の誕生日を忘れるような生活の偏り。飼育の判断には責任感がある。",
     "image": "/assets/characters/shirakawa-maki.png",
     "storyImage": "/assets/characters/sota-story-cutout.png",
+    "expressionImages": {
+      "smile": "/assets/characters/maki-expression-smile.png",
+      "blush": "/assets/characters/maki-expression-blush.png",
+      "sad": "/assets/characters/maki-expression-sad.png",
+      "surprised": "/assets/characters/maki-expression-surprised.png",
+      "serious": "/assets/characters/maki-expression-serious.png"
+    },
+    "giftReactionExpressions": {
+      "love": "blush",
+      "like": "smile",
+      "normal": "normal",
+      "dislike": "sad"
+    },
     "silhouette": "牧",
     "favoriteGiftTags": [
       "animal",
@@ -137,6 +163,19 @@ export const characters: Character[] = [
     "profile": "パン屋で製造と配達を担う。人懐っこく、困りごとを放っておけない兄貴肌。見えないところで練習を重ねる努力家で、接客中に失敗談を笑って話しても、本当に悩んでいることは言わない。主人公の店に朝いちばんで顔を出すことが多い。",
     "image": "/assets/characters/mugino-taiyo.png",
     "storyImage": "/assets/characters/haru-story-cutout.png",
+    "expressionImages": {
+      "smile": "/assets/characters/taiyo-expression-smile.png",
+      "blush": "/assets/characters/taiyo-expression-blush.png",
+      "sad": "/assets/characters/taiyo-expression-sad.png",
+      "surprised": "/assets/characters/taiyo-expression-surprised.png",
+      "serious": "/assets/characters/taiyo-expression-serious.png"
+    },
+    "giftReactionExpressions": {
+      "love": "blush",
+      "like": "smile",
+      "normal": "normal",
+      "dislike": "sad"
+    },
     "silhouette": "太",
     "favoriteGiftTags": [
       "sweet",

@@ -32,14 +32,20 @@ import { SettingsMenu } from "./SettingsMenu";
 import { GameModal } from "./GameModal";
 import type { MissionDestination } from "../game/missions";
 import { availableDramaEvent } from "../game/drama";
+import { AudioProvider, useAudio } from "../audio/AudioProvider";
+import type { AudioScene, SoundEffect } from "../audio/audioEngine";
+import { StoryStandingArt } from "./StoryStandingArt";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
-export default function CafeGame() { return <GameProvider><GameContent/></GameProvider>; }
+export default function CafeGame() { return <AudioProvider><GameProvider><GameContent/></GameProvider></AudioProvider>; }
 
 function GameContent() {
-  const showDev=import.meta.env.DEV;
+  // Normal development servers expose the tools automatically. A production-
+  // shaped local preview must opt in explicitly; public builds never set this.
+  const showDev=import.meta.env.DEV||import.meta.env.VITE_KOMOREBI_DEV_MENU==="true";
   const {state,hydrated,dispatch,refreshGiftShop,resetGame}=useGame();
+  const {play:playSound,setScene:setAudioScene}=useAudio();
   const cafeManager=useCafeManager(state,dispatch);
   const [screen,setScreen]=useState<Screen>("cafe");
   const [supplierId,setSupplierId]=useState<string>();
@@ -57,6 +63,10 @@ function GameContent() {
   const [dramaReplay,setDramaReplay]=useState<DramaEvent>();
   const [eventPage,setEventPage]=useState(0);
   const stateRef=useRef(state); stateRef.current=state;
+  const previousOrders=useRef<{total:number;ready:number}|null>(null);
+  const previousServedOrders=useRef<number|null>(null);
+  const saleSoundPlayed=useRef(false);
+  const previousFind=useRef<string|undefined>(undefined);
 
   const spawnOrder=useCallback(()=>{
     const current=stateRef.current;
@@ -82,6 +92,40 @@ function GameContent() {
   },[state,screen,event,growthEvent,dateEvent,dramaEvent,dramaReplay,replay,devOpen,settingsOpen]);
 
   useEffect(()=>{if(state.forest.expedition)setScreen(current=>current==="forestBook"?current:"forest");},[state.forest.expedition?.id]);
+  const storyOpen=state.onboardingStage==="prologue"||!!(event||replay||growthEvent||dateEvent||dramaEvent||dramaReplay||state.pendingGiftReaction);
+  const audioScene:AudioScene=dramaEvent||dramaReplay?"drama":storyOpen?"story":screen==="forest"||screen==="forestBook"?"forest":screen==="cafe"?"cafe":"town";
+  useEffect(()=>setAudioScene(audioScene),[audioScene,setAudioScene]);
+  useEffect(()=>{
+    if(!hydrated)return;
+    const current={total:state.orders.length,ready:state.orders.filter(order=>order.status==="ready").length};
+    const prior=previousOrders.current;
+    if(prior){if(current.ready>prior.ready)playSound("ready");else if(current.total>prior.total)playSound("order");}
+    previousOrders.current=current;
+  },[hydrated,playSound,state.orders]);
+  useEffect(()=>{
+    if(!hydrated)return;
+    const current=state.lifetimeStats.totalOrders,prior=previousServedOrders.current;
+    saleSoundPlayed.current=prior!==null&&current>prior;
+    if(saleSoundPlayed.current)playSound("coin");
+    previousServedOrders.current=current;
+  },[hydrated,playSound,state.lifetimeStats.totalOrders]);
+  useEffect(()=>{
+    if(!state.notice)return;
+    if(saleSoundPlayed.current){saleSoundPlayed.current=false;return;}
+    const failed=/足りません|売り切れ|できません|上限/.test(state.notice.text);
+    const sound:SoundEffect=failed?"error":state.notice.type==="coin"?"coin":state.notice.type==="unlock"?"success":state.notice.type==="heart"?"heart":"confirm";
+    playSound(sound);
+  },[playSound,state.notice]);
+  useEffect(()=>{
+    const find=state.forest.expedition?.lastFind;
+    if(!find)return;
+    const key=`${state.forest.expedition?.id}:${state.forest.expedition?.layer.floor}:${find.spot}`;
+    if(previousFind.current&&previousFind.current!==key)playSound(find.food.length||find.fragment||find.coins||find.tickets?"forest":"tap");
+    previousFind.current=key;
+  },[playSound,state.forest.expedition?.id,state.forest.expedition?.lastFind,state.forest.expedition?.layer.floor]);
+  const storySignature=dramaEvent?.id||dramaReplay?.id||dateEvent?.id||growthEvent?.eventId||event?.id||replay?.id;
+  const dramaticStory=!!(dramaEvent||dramaReplay);
+  useEffect(()=>{if(storySignature)playSound(dramaticStory?"error":"story");},[dramaticStory,playSound,storySignature]);
   const navigate=(id:string)=>{if(state.forest.expedition){dispatch({type:"FOREST_RETURN"});setScreen("forest");return;}setScreen(id as Screen);setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);};
   const openSupplier=(id:string,ingredientId?:string)=>{const supplier=getSupplier(id)!;dispatch({type:"VISIT",characterId:supplier.characterId});setSupplierId(id);setHighlightIngredientId(ingredientId);setScreen("supplier");};
   const active=["forest","forestBook"].includes(screen)?"town":["supplier"].includes(screen)?"town":["character"].includes(screen)?"people":screen==="menu"?"cafe":screen;
@@ -156,23 +200,26 @@ function GameContent() {
     {dateEvent&&<DateEventModal event={dateEvent} completed={state.viewedDateEvents.includes(dateEvent.id)} onClose={()=>setDateEvent(undefined)} onComplete={()=>{dispatch({type:"COMPLETE_DATE",eventId:dateEvent.id});setDateEvent(undefined);}}/>}
     {dramaEvent&&<DramaStoryModal key={dramaEvent.id} event={dramaEvent} onComplete={()=>{dispatch({type:"COMPLETE_DRAMA_EVENT",eventId:dramaEvent.id});setDramaEvent(undefined);}}/>}
     {dramaReplay&&<DramaStoryModal key={`replay-${dramaReplay.id}`} event={dramaReplay} readOnly onComplete={()=>setDramaReplay(undefined)}/>}
-    {showDev&&devOpen&&<DevMenu onClose={()=>setDevOpen(false)} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi} onPreviewDrama={id=>{const preview=getDramaEvent(id);if(preview){setDramaEvent(preview);setDevOpen(false);}}}/>}
+    {showDev&&devOpen&&<DevMenu onClose={()=>setDevOpen(false)} onSound={()=>{setDevOpen(false);setSettingsOpen(true);}} onSpawn={spawnOrder} onRefresh={()=>refreshGiftShop(false)} onReset={resetGameAndUi} onPreviewDrama={id=>{const preview=getDramaEvent(id);if(preview){setDramaEvent(preview);setDevOpen(false);}}}/>}
     {!showDev&&settingsOpen&&<SettingsMenu onClose={()=>setSettingsOpen(false)} onReset={resetGameAndUi}/>}
+    {showDev&&settingsOpen&&<SettingsMenu onClose={()=>setSettingsOpen(false)} onReset={resetGameAndUi}/>}
   </main>;
 }
 
 function DateEventModal({event,completed,onClose,onComplete}:{event:DateEvent;completed:boolean;onClose:()=>void;onComplete:()=>void}) {
-  const character=getCharacter(event.characterId)!;const [page,setPage]=useState(0);const [artFailed,setArtFailed]=useState(false);
-  const storyImage=character.storyImage||character.image;
+  const character=getCharacter(event.characterId)!;const [page,setPage]=useState(0);
+  const dialogueLine=event.dialogue[page];
+  const dialogueText=typeof dialogueLine==="string"?dialogueLine:dialogueLine.text;
+  const expression=typeof dialogueLine==="string"?undefined:dialogueLine.expression;
   const finalPage=page===event.dialogue.length-1;
   const next=()=>{if(!finalPage)setPage(value=>value+1);else if(completed)onClose();else onComplete();};
   return <GameModal className="story-modal story-player date-story-player" labelledBy="date-story-title" onCancel={onClose} layerClassName="story-modal-layer">
     <button className="story-close-button" aria-label="デートを閉じる" onClick={onClose}>×</button>
     <header className="story-player-heading"><div className="story-header"><span>{completed?"デートの思い出":"DATE"} · {event.icon} {event.title}</span></div><h2 id="date-story-title">{character.shortName}と{event.title}</h2></header>
     <div className={`story-stage is-speaking date-location-${event.locationId}`} data-character={character.id}>
-      {storyImage&&!artFailed?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>:<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
+      <StoryStandingArt character={character} expression={expression}/>
     </div>
-    <div className="story-dialogue-panel"><div key={page} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&!completed&&<div className="story-reward date-reward"><strong>好感度 +{GAME_CONFIG.dateAffection}</strong><p>初めての{event.title}の思い出が増えます。</p></div>}</div>
+    <div className="story-dialogue-panel"><div key={page} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{dialogueText}」</p>{finalPage&&!completed&&<div className="story-reward date-reward"><strong>好感度 +{GAME_CONFIG.dateAffection}</strong><p>初めての{event.title}の思い出が増えます。</p></div>}</div>
       <div className="story-footer"><button type="button" className="story-back-button" disabled={page===0} onClick={()=>setPage(value=>Math.max(0,value-1))}>← 戻る</button><span>{page+1} / {event.dialogue.length}</span><button className="primary-button" onClick={next}>{finalPage?(completed?"閉じる":"デートを終える"):"次へ →"}</button></div>
     </div>
   </GameModal>;
@@ -182,27 +229,26 @@ function GrowthEventModal({event,page,onBack,onNext}:{event:GrowthEvent;page:num
   const character=getCharacter(event.characterId)!;const finalPage=page===event.dialogue.length-1;
   const dialogueContent=useRef<HTMLDivElement>(null);
   useEffect(()=>{dialogueContent.current?.scrollTo({top:0});},[page]);
-  const storyImage=character.storyImage||character.image;
-  const [artFailed,setArtFailed]=useState(false);
+  const dialogueLine=event.dialogue[page];
+  const dialogueText=typeof dialogueLine==="string"?dialogueLine:dialogueLine.text;
+  const expression=typeof dialogueLine==="string"?undefined:dialogueLine.expression;
   const rewardNames=[...(event.routeStage===1?["仕入れ効率アップ"]:[]),...(event.rewards.ingredientIds || []).map(id=>getIngredient(id)?.name),...(event.rewards.recipeIds || []).map(id=>getRecipe(id)?.name),...(event.rewards.equipmentIds || []).map(id=>getEquipment(id)?.name)].filter(Boolean);
   return <GameModal className="story-modal story-player growth-event-overlay" label={`${event.title}のイベント`} layerClassName="story-modal-layer"><div className="event-scene story-player growth-story-scene">
     <div className="story-stage is-speaking" data-character={character.id}>
-      {storyImage&&!artFailed
-        ?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
-        :<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
+      <StoryStandingArt character={character} expression={expression}/>
     </div>
     <div className="story-dialogue-panel growth-story-dialogue">
-      <div ref={dialogueContent} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{event.dialogue[page]}」</p>{finalPage&&<div className="story-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}</div>
+      <div ref={dialogueContent} className="story-content speaker-character" aria-live="polite"><span className="story-speaker">{character.name}</span><p>「{dialogueText}」</p>{finalPage&&<div className="story-reward growth-reward"><strong>{rewardNames.join("・")}</strong><small>{event.rewards.note}</small></div>}</div>
       <div className="story-footer"><button type="button" className="story-back-button" disabled={page===0} onClick={onBack}>← 戻る</button><span>{page+1} / {event.dialogue.length}</span><button type="button" className="primary-button" onClick={onNext}>{finalPage?"完了":"次へ →"}</button></div>
     </div>
   </div></GameModal>;
 }
 
-function DevMenu({onClose,onSpawn,onRefresh,onReset,onPreviewDrama}:{onClose:()=>void;onSpawn:()=>void;onRefresh:()=>void;onReset:()=>void;onPreviewDrama:(id:string)=>void}) {
+function DevMenu({onClose,onSound,onSpawn,onRefresh,onReset,onPreviewDrama}:{onClose:()=>void;onSound:()=>void;onSpawn:()=>void;onRefresh:()=>void;onReset:()=>void;onPreviewDrama:(id:string)=>void}) {
   const {state,dispatch}=useGame();
   const [confirmingReset,setConfirmingReset]=useState(false);
   const [previewDramaId,setPreviewDramaId]=useState("drama-spare-key");
   const hasDeliveries=state.deliveries.length>0;
   const hasCooking=state.orders.some(order=>order.status==="cooking");
-  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button><button onClick={()=>dispatch({type:"DEV_FOREST_ENERGY"})}>こもれび体力 全回復</button><button disabled={!hasDeliveries} onClick={()=>dispatch({type:"DEV_COMPLETE_DELIVERIES"})}>即仕入れ完了</button><button disabled={!hasCooking} onClick={()=>dispatch({type:"DEV_COMPLETE_COOKING"})}>即調理完了</button></div><button className="dev-affection" onClick={()=>dispatch({type:"DEV_MAX_AFFECTION"})}>全員の好感度MAX・物語読了</button><label>修羅場イベントのプレビュー<select value={previewDramaId} onChange={event=>setPreviewDramaId(event.target.value)}>{dramaEvents.map(event=><option key={event.id} value={event.id}>{event.subtitle}</option>)}</select></label><button className="dev-affection" onClick={()=>onPreviewDrama(previewDramaId)}>選んだ修羅場を再生</button>{confirmingReset?<div className="dev-reset-confirm" role="alert"><p>セーブデータを初期化して、最初からやり直しますか？</p><div><button type="button" onClick={()=>setConfirmingReset(false)}>キャンセル</button><button type="button" className="danger-button" onClick={onReset}>初期化する</button></div></div>:<button className="danger-button" onClick={()=>setConfirmingReset(true)}>セーブデータ初期化</button>}</div></div>;
+  return <div className="modal-backdrop" onClick={onClose}><div className="dev-panel" onClick={e=>e.stopPropagation()}><div className="dev-head"><div><h2>DEVメニュー</h2></div><button onClick={onClose}>×</button></div><div className="dev-grid"><button onClick={onSound}>♫ サウンド設定</button><button onClick={()=>dispatch({type:"DEV_COINS"})}>+10,000コイン</button><button onClick={onSpawn}>注文を即発生</button><button onClick={onRefresh}>ギフトショップ更新</button><button onClick={()=>dispatch({type:"DEV_UNLOCK_ALL"})}>料理全解放</button><button onClick={()=>dispatch({type:"DEV_FOREST_ENERGY"})}>こもれび体力 全回復</button><button disabled={!hasDeliveries} onClick={()=>dispatch({type:"DEV_COMPLETE_DELIVERIES"})}>即仕入れ完了</button><button disabled={!hasCooking} onClick={()=>dispatch({type:"DEV_COMPLETE_COOKING"})}>即調理完了</button></div><button className="dev-affection" onClick={()=>dispatch({type:"DEV_MAX_AFFECTION"})}>全員の好感度MAX・物語読了</button><label>修羅場イベントのプレビュー<select value={previewDramaId} onChange={event=>setPreviewDramaId(event.target.value)}>{dramaEvents.map(event=><option key={event.id} value={event.id}>{event.subtitle}</option>)}</select></label><button className="dev-affection" onClick={()=>onPreviewDrama(previewDramaId)}>選んだ修羅場を再生</button>{confirmingReset?<div className="dev-reset-confirm" role="alert"><p>セーブデータを初期化して、最初からやり直しますか？</p><div><button type="button" onClick={()=>setConfirmingReset(false)}>キャンセル</button><button type="button" className="danger-button" onClick={onReset}>初期化する</button></div></div>:<button className="danger-button" onClick={()=>setConfirmingReset(true)}>セーブデータ初期化</button>}</div></div>;
 }

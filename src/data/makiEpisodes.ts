@@ -1,4 +1,6 @@
-import type { RelationshipEvent, StaffStoryEvent } from "../types/game";
+import type { CharacterExpression, RelationshipEvent, SimpleDialogueLine, StaffStoryEvent } from "../types/game";
+
+const d=(text:string,expression:CharacterExpression):SimpleDialogueLine=>({text,expression});
 
 // Keep internal IDs, affection thresholds, choices and rewards compatible with existing saves.
 export const makiRelationshipEvents:RelationshipEvent[] = [
@@ -16,6 +18,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "あの茶色い子が、こむぎ。こっちを見てる白い子は、すずだよ。"
       },
       {
@@ -28,6 +31,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "あ。僕の名前、まだだったね。白川牧です。牛の紹介は忘れないのに。"
       },
       {
@@ -36,6 +40,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "飲み物に使うのかな。お菓子も作る？　冷蔵庫に入る量から決めよう。"
       },
       {
@@ -44,6 +49,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "じゃあ、ひと口飲んでみて。すずのミルクが入ってるよ。あの子、知らない人には慎重なんだ。"
       },
       {
@@ -52,6 +58,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "でも、覚えた人には自分から寄ってくる。昨日は僕の袖、ずっと引っ張ってた。"
       },
       {
@@ -60,6 +67,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……そうだといいな。僕は、すごく好きだから。"
       },
       {
@@ -76,6 +84,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ありがとう。飲んだ人がどんな顔をしたか、今度教えてもらえるかな。"
       },
       {
@@ -98,6 +107,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "ここで待っていてもらえる？　今日は、この子には風の音が大きいみたい。"
       },
       {
@@ -106,6 +116,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "うん、そのままで。怖がってる時に押すと、余計に進めなくなるから。"
       },
       {
@@ -118,6 +129,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "……そう。自分で一歩、できたね。"
       },
       {
@@ -126,6 +138,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "待ってくれて、ありがとう。急いでなかった？"
       },
       {
@@ -134,6 +147,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "僕も、あの子が何を怖がってるか、もう少し分かるようになりたいんだ。"
       },
       {
@@ -142,6 +156,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "待ってもらう時、理由を話せたらいいね。温かくして出すので、少しだけ、って。"
       },
       {
@@ -150,6 +165,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "君も、味見する分は残してね。店長さんだけ飲めないの、寂しいから。"
       },
       {
@@ -158,6 +174,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……飲んだ感想、君からも聞きたいんだよ。"
       },
       {
@@ -186,6 +203,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "ここなら、すずも見えるよ。食事を分けるのは駄目だけど、見るのは好きみたい。"
       },
       {
@@ -198,6 +216,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "こもれびのご飯、食べてみたかったんだ。いただきます。"
       },
       {
@@ -210,6 +229,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "五時。こむぎの様子が気になって、少し早めに。……でも、今は落ち着いたよ。"
       },
       {
@@ -218,6 +238,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "ごめん。話、聞いてるから。"
       },
       {
@@ -238,6 +259,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "隣に人がいるのに、こんなに眠くなるんだね。……気を張らなくてよかったからかな。"
       },
       {
@@ -246,6 +268,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "うん。君は、退屈じゃなかった？"
       },
       {
@@ -258,6 +281,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "じゃあ、また来て。濃厚ミルクも用意するし……お昼も、また一緒に食べたい。"
       },
       {
@@ -290,6 +314,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "合間に取れると思うよ。頼まれた分だから、なるべく。"
       },
       {
@@ -302,6 +327,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "君に待ってもらうのは……。"
       },
       {
@@ -318,6 +344,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "僕の予定？　……ちゃんと、考えてなかったな。"
       },
       {
@@ -326,6 +353,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "昼寝、したかった。あの木陰で。今日は風が気持ちいいから。"
       },
       {
@@ -334,6 +362,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……僕が寝るって、他の人に言うの、少し変な感じがするね。"
       },
       {
@@ -342,6 +371,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "お父さん、もう仕事に戻ってるし。今日の案内、交代できるか聞いてみる。"
       },
       {
@@ -350,6 +380,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "うん。……それと、牧って呼んでもらっていいかな。ここでは、仕事の僕だけじゃない気がして。"
       },
       {
@@ -372,6 +403,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "serious",
             "text": "……うん。まず、家族に相談してから、ここへ書くね。"
           },
           {
@@ -380,6 +412,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "smile",
             "text": "休めたら、今度は君の話も聞きたい。仕事の相談だけじゃなくて。"
           }
         ]
@@ -394,6 +427,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "surprised",
             "text": "君も？　……よかった。僕だけ、うれしかったのかと思ってた。"
           },
           {
@@ -402,6 +436,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "blush",
             "text": "交代できる日を聞いてみるね。今度は、ちゃんと君と過ごす時間を空けたい。"
           }
         ]
@@ -422,6 +457,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "お客さん用じゃなくて、僕が食べたくて。プリン、一緒に作ってみない？"
       },
       {
@@ -434,6 +470,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "……殻、入っちゃった。牛の世話は、片手でもできるんだけど。"
       },
       {
@@ -446,6 +483,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "ごめん。こっち、持ってもらえる？"
       },
       {
@@ -458,6 +496,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "今日は休みだったね。何かしなきゃって、すぐ思っちゃう。"
       },
       {
@@ -466,6 +505,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "それなら、得意になりたいな。"
       },
       {
@@ -474,10 +514,12 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "子どもの頃ね、誰かを慰めると、えらいねって言ってもらえたんだ。"
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "だから、自分が困ってる時も、先に大丈夫って言うようになった。……今日、殻を落としても笑ってもらえて、ほっとした。"
       },
       {
@@ -486,6 +528,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "楽しかった。君と、次は穴のないのも作ってみたい。"
       },
       {
@@ -494,6 +537,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "四つ葉クリームを使う配合も書いておくね。お店で出す時の分は、ちゃんと揃えよう。"
       },
       {
@@ -528,6 +572,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "急がなくていいよ。今日、ここで休みたくて来たから。"
       },
       {
@@ -544,6 +589,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "ごめん、運ぶものあった？　僕、寝ちゃって……。"
       },
       {
@@ -556,6 +602,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "何もしてなくても、ここにいていいんだね。"
       },
       {
@@ -568,6 +615,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……僕に会うの、楽しみにしてくれてた？"
       },
       {
@@ -576,6 +624,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "朝から楽しみだった。ここに着いたら安心して、それで眠くなっちゃったんだ。"
       },
       {
@@ -584,6 +633,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "でも今は、起きていたい。君がせっかく、隣にいるから。"
       },
       {
@@ -596,6 +646,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "うん。……君と食べる方が、おいしいね。"
       },
       {
@@ -624,6 +675,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "昨日、ごめんね。約束、忘れてしまった。連絡もしないで。"
       },
       {
@@ -636,6 +688,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "大丈夫って、言うところだった。……今日は、違う。牛の引退区画の準備も、一人で進めようとしてた。"
       },
       {
@@ -644,6 +697,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "うん。ずっと働いてくれた子たちだから。でも、家族に費用も時間も相談しないまま、引き受けてた仕事へ足してしまって。"
       },
       {
@@ -652,6 +706,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "書くだけじゃ、空けたことにならないね。君との時間を、余ったところに入れたくないのに。"
       },
       {
@@ -664,6 +719,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "今日、家族と相談する。お父さんに戻せる担当と、区画を小さく始める計画。僕の休みも、先に決めるよ。"
       },
       {
@@ -672,6 +728,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "全部すぐにはできないけど、この時間は交代してもらえる。君に、ちゃんと見せたかった。"
       },
       {
@@ -680,6 +737,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "怖かったよ。でも、思ったより具体的に相談できた。……君にも、会いたかったから。"
       },
       {
@@ -688,6 +746,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "こもれびの手伝いも、この空いた時間なら相談できる。困ってる時に、無理して引き受けるんじゃなくて。"
       },
       {
@@ -710,6 +769,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "serious",
             "text": "ありがとう。次は会えないって、先に言う。君が待ってる時間も、大切にしたいから。"
           },
           {
@@ -718,6 +778,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "smile",
             "text": "その日は、僕もちゃんと楽しみにしてるって、言っておくね。"
           }
         ]
@@ -732,6 +793,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "smile",
             "text": "うん。家族にお願いできたから、君と過ごす時間も空けられたよ。"
           },
           {
@@ -740,6 +802,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "smile",
             "text": "話を聞いてくれて、ありがとう。今度は、君の困ってることも聞きたいな。"
           }
         ]
@@ -764,6 +827,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "どっちでも……。あ、待って。僕は、丘へ行きたい。"
       },
       {
@@ -772,6 +836,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "子どもの頃、おばあちゃんと行ったところなんだ。今度は、君に見てほしい。"
       },
       {
@@ -780,6 +845,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……お店にいる時と、少し違うね。よく似合ってる。"
       },
       {
@@ -796,6 +862,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "僕も、これがいいな。半分ずつにしてもいい？"
       },
       {
@@ -808,6 +875,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "自分の好きなものを言うと、一緒に楽しめるんだね。"
       },
       {
@@ -816,6 +884,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……手、つないでもいい？　ナプキンは、もう飛ばないけど。"
       },
       {
@@ -828,6 +897,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "大きいね、僕の手。君の手が、隠れちゃう。"
       },
       {
@@ -856,6 +926,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "今日は、先に話したいことがあるんだ。歩きながらでも、いいかな。"
       },
       {
@@ -868,6 +939,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "ここでまたねって言う時、最近、すぐ帰れないんだ。"
       },
       {
@@ -880,10 +952,12 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "君の隣で休めるのは、本当にうれしい。でも、それだけじゃなくて。"
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "笑ってる顔をもっと見たいし、手をつなぎたい。君が来る日は、服を選ぶのにも時間がかかる。"
       },
       {
@@ -892,6 +966,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "誰とでも、こうなるわけじゃない。君が好きなんだ。僕と、恋人になってもらえますか。"
       },
       {
@@ -904,6 +979,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "……本当？　今、すごくうれしい。ちゃんと落ち着いて言おうと思ってたのに。"
       },
       {
@@ -916,6 +992,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "うん。会いたい時は、僕からも言う。……今も、あと少し、君といたい。"
       },
       {
@@ -924,6 +1001,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "次は君の好きな場所も教えて。君がそこで、どんな顔をするか見たいな。"
       },
       {
@@ -939,6 +1017,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "僕の都合も、先に話すね。引き受けてから間に合わなくなるより、一緒に考えたい。"
       },
       {
@@ -947,6 +1026,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ありがとう。君が自分の店を大切にしてるの、僕も好きだよ。"
       },
       {
@@ -959,6 +1039,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "牛乳の相談がなくても、お昼を食べに来てね。僕も、休む時間をちゃんと取っておくから。"
       },
       {
@@ -981,6 +1062,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "一度に広げずに、ここから。世話の順番も、家族と分けたよ。"
       },
       {
@@ -989,6 +1071,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "うん。こむぎたちが休める場所なのに、僕が休めないのは、ちょっとおかしいもんね。"
       },
       {
@@ -997,6 +1080,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "君が甘さを控えた方、僕は好きだった。こっちと重ねると、両方分かるね。"
       },
       {
@@ -1009,6 +1093,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "君、さっきから肩を回してる。ここ、座って待っていて。"
       },
       {
@@ -1021,6 +1106,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "次の休み、この日なら空けられる。短い時間でも、一緒に過ごしたいな。"
       },
       {
@@ -1029,6 +1115,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "うん。僕が眠そうな日は、君にお願いしていい？"
       },
       {
@@ -1041,6 +1128,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……今日は、もう少し。君の隣にいたい。"
       },
       {
@@ -1049,6 +1137,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ありがとう。休む日まで、楽しみになったよ。"
       },
       {
@@ -1070,6 +1159,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "動物が休める場所なのに、僕が休めないのはおかしいもんね。家族と順番を決めたよ。"
       },
       {
@@ -1078,6 +1168,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "うん。君にも都合を聞いて、今度またお昼を食べたいな。"
       },
       {
@@ -1090,6 +1181,7 @@ export const makiRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "じゃあ、この配合で。感想を聞いて、僕も牧場で使う量を相談するね。"
       },
       {
@@ -1117,6 +1209,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "この時間までなら大丈夫。牧場の方も、家族と相談して空けてきたよ。"
       },
       {
@@ -1129,6 +1222,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……変かな。君と同じエプロンだと、ちょっと照れるね。"
       },
       {
@@ -1145,6 +1239,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "袖、落ちてきてるよ。まくり直してもいい？"
       },
       {
@@ -1157,6 +1252,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "これで大丈夫。……近くにいると、君も案外慌てるんだね。"
       },
       {
@@ -1165,6 +1261,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "うん。でも、こういう君も知れて、うれしいよ。"
       },
       {
@@ -1177,6 +1274,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "ありがとう。もう少しできるって言いそうだったけど、今日は、決めた時間までにするね。"
       },
       {
@@ -1189,6 +1287,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "そこに座ってもいい？　僕も、お茶を一緒に飲んでから帰りたい。"
       },
       {
@@ -1204,6 +1303,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "困った時は、僕からも呼ぶね。ここのやり方、一つずつ教えてもらえるかな。"
       },
       {
@@ -1216,6 +1316,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ありがとう。できる時間を先に話せると、仕事に集中できるね。"
       },
       {
@@ -1228,6 +1329,7 @@ export const makiStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "うん。僕も相談したいことがある。次も、時間を先に決めて頼んでね。"
       },
       {
@@ -1239,16 +1341,16 @@ export const makiStaffStories:StaffStoryEvent[] = [
 ];
 
 // Growth stories may unlock before romance; these remain about shared cafe work.
-export const makiGrowthDialogue:[string[],string[],string[],string[],string[]]=[
-  ["牧場の保冷庫、見ていく？　商品を置く場所だから、僕と一緒に、ここからね。","牛乳は、冷たいまま運んで、開けた瓶から使い切る。君のカフェだと、どの順番が続けやすいかな。","使うたびに多く注ぎすぎてるところも、一緒に量ってみよう。","……この線までで、ちゃんと一杯分になるね。一瓶から、もう一杯取れそうだよ。","毎日できるやり方にしたいから、分かりにくかったら言ってね。","君が飲む味見の分も、先に決めておこう。店長さんだけ飲めないのは、寂しいから。","次に使い切れたか、教えてくれる？　君のお店でどうだったか、聞くのが楽しみなんだ。"],
-  ["前の牛乳、最後まで使えたんだね。よかった。保冷の順番も、続けられた？","今度は、四つ葉クリームを少し試してみない？　牛乳より濃いから、使う量は別に確かめよう。","いつもの料理に少し添えるだけでも、口当たりが変わるよ。","まず、君が味見してから。濃すぎるって思ったら、それも聞きたいな。","……そういう感想をちゃんと話してくれるの、助かるよ。","一度に仕入れすぎない量で始めよう。余らせず使える方が、僕も安心だから。","お客さんの感想と、君の感想。次に、両方教えてね。"],
-  ["牛乳の料理、よく出るんだね。甘くないものを食べたいお客さんもいる？","それなら、白いクリームスープを一緒に試してみようか。","温めるのは僕が見るね。君は、添えるものと、出す量を考えてもらえる？","……少しとろみがついたよ。スプーン、ここに置くね。熱いから、ひと口目はゆっくり。","牛乳の甘さ、分かる？　塩を足すなら、少しずつにしよう。","君の方の配合、飲み終わりが軽いね。お昼の料理に合わせやすそうだ。","じゃあ、もう一度その量で。忙しい日でも同じ味にできるか、確かめたいな。","今日は味見の前に、僕たちの分も取っておいたよ。君と作ったの、一緒に飲みたかったんだ。","牧場の白いクリームスープ。最初に出した日、僕にも聞かせてね。"],
-  ["乳製品のお菓子が増えたなら、冷たいまま並べる場所も考えたいね。","冷蔵ショーケース、候補を持ってきたよ。今すぐ買ってって話じゃなくて。","置く場所と、掃除する手間も大事だから。君の動き方を先に見せてもらえる？","ここだと、カウンターを通る時に狭いかな。君がいつも使う棚は、動かさずに考えよう。","温度は扉を開ける回数でも変わるよ。忙しい時の並べ方も、一緒に決めたいな。","……君のお店って、一つずつ工夫してあるんだね。今まで気づかなかったところも見られたよ。","余裕ができた時に選ぼう。使い始めて困ったら、僕にも声をかけてね。"],
-  ["白いスープ、五皿も出たんだ。君のカフェに合う味になったね。","今度は、四つ葉クリームを使ったプリンを試してみよう。冷やす手順も、確かめながら。","僕が牛乳を量るから、君は甘さを見てもらえるかな。","……卵の殻、入らなかった。こういうの、出来るとちゃんとうれしいね。","待ってる間、座ろうか。冷えるまで、別の仕事を詰め込まなくてもいいよね。","ひと口目は僕、次は君。どこを変えたらいいか、遠慮せず聞かせて。","君が甘さを控えた分、クリームの香りがよく分かるね。僕は、このくらいが好きだな。","四つ葉ミルクプリン、どうかな。お客さんにも出せる配合を、ここに書いておこう。","味見の時間が、お昼休みみたいだった。……君と作れたから、かもしれないね。"],
+export const makiGrowthDialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]=[
+  [d("牧場の保冷庫、見ていく？　商品を置く場所だから、僕と一緒に、ここからね。","smile"),d("牛乳は、冷たいまま運んで、開けた瓶から使い切る。君のカフェだと、どの順番が続けやすいかな。","serious"),d("使うたびに多く注ぎすぎてるところも、一緒に量ってみよう。","serious"),d("……この線までで、ちゃんと一杯分になるね。一瓶から、もう一杯取れそうだよ。","smile"),d("毎日できるやり方にしたいから、分かりにくかったら言ってね。","normal"),d("君が飲む味見の分も、先に決めておこう。店長さんだけ飲めないのは、寂しいから。","sad"),d("次に使い切れたか、教えてくれる？　君のお店でどうだったか、聞くのが楽しみなんだ。","smile")],
+  [d("前の牛乳、最後まで使えたんだね。よかった。保冷の順番も、続けられた？","smile"),d("今度は、四つ葉クリームを少し試してみない？　牛乳より濃いから、使う量は別に確かめよう。","normal"),d("いつもの料理に少し添えるだけでも、口当たりが変わるよ。","normal"),d("まず、君が味見してから。濃すぎるって思ったら、それも聞きたいな。","serious"),d("……そういう感想をちゃんと話してくれるの、助かるよ。","smile"),d("一度に仕入れすぎない量で始めよう。余らせず使える方が、僕も安心だから。","serious"),d("お客さんの感想と、君の感想。次に、両方教えてね。","smile")],
+  [d("牛乳の料理、よく出るんだね。甘くないものを食べたいお客さんもいる？","surprised"),d("それなら、白いクリームスープを一緒に試してみようか。","smile"),d("温めるのは僕が見るね。君は、添えるものと、出す量を考えてもらえる？","serious"),d("……少しとろみがついたよ。スプーン、ここに置くね。熱いから、ひと口目はゆっくり。","serious"),d("牛乳の甘さ、分かる？　塩を足すなら、少しずつにしよう。","normal"),d("君の方の配合、飲み終わりが軽いね。お昼の料理に合わせやすそうだ。","smile"),d("じゃあ、もう一度その量で。忙しい日でも同じ味にできるか、確かめたいな。","serious"),d("今日は味見の前に、僕たちの分も取っておいたよ。君と作ったの、一緒に飲みたかったんだ。","blush"),d("牧場の白いクリームスープ。最初に出した日、僕にも聞かせてね。","smile")],
+  [d("乳製品のお菓子が増えたなら、冷たいまま並べる場所も考えたいね。","smile"),d("冷蔵ショーケース、候補を持ってきたよ。今すぐ買ってって話じゃなくて。","normal"),d("置く場所と、掃除する手間も大事だから。君の動き方を先に見せてもらえる？","serious"),d("ここだと、カウンターを通る時に狭いかな。君がいつも使う棚は、動かさずに考えよう。","serious"),d("温度は扉を開ける回数でも変わるよ。忙しい時の並べ方も、一緒に決めたいな。","serious"),d("……君のお店って、一つずつ工夫してあるんだね。今まで気づかなかったところも見られたよ。","surprised"),d("余裕ができた時に選ぼう。使い始めて困ったら、僕にも声をかけてね。","smile")],
+  [d("白いスープ、五皿も出たんだ。君のカフェに合う味になったね。","smile"),d("今度は、四つ葉クリームを使ったプリンを試してみよう。冷やす手順も、確かめながら。","smile"),d("僕が牛乳を量るから、君は甘さを見てもらえるかな。","normal"),d("……卵の殻、入らなかった。こういうの、出来るとちゃんとうれしいね。","surprised"),d("待ってる間、座ろうか。冷えるまで、別の仕事を詰め込まなくてもいいよね。","smile"),d("ひと口目は僕、次は君。どこを変えたらいいか、遠慮せず聞かせて。","normal"),d("君が甘さを控えた分、クリームの香りがよく分かるね。僕は、このくらいが好きだな。","smile"),d("四つ葉ミルクプリン、どうかな。お客さんにも出せる配合を、ここに書いておこう。","serious"),d("味見の時間が、お昼休みみたいだった。……君と作れたから、かもしれないね。","blush")],
 ];
 
 export const makiDateDialogue={
-  amusement:["今日は、牧場の仕事を交代してもらってきたよ。帰る時間まで、君と遊びたいな。","地図、見せて。僕は観覧車に乗りたい。……どれでもいいって言わずに、先に話すね。","君の乗りたいものも教えて。二人で決めた順番なら、待つ時間も楽しそう。","このひつじのお菓子、かわいいね。食べる前に君にも見せたいって、すぐ思っちゃった。","半分ずつにしようか。僕も、この顔の方がいいな。……じゃあ、じゃんけんで。","観覧車、思ったより揺れるね。僕は少し緊張してるよ。君は、大丈夫？","手、つないでもいい？　君が隣にいると、揺れるのも少し楽しめそう。","夕焼け、きれいだね。……君の顔も赤い。僕も？　それは夕焼けだけじゃないかも。","降りたら、もう一つ乗ろう。まだ君と帰りたくないって、僕から言っておくね。"],
-  walk:["片づけ、お疲れさま。今日は仕入れの箱を持ってないよ。君を誘いに来たんだ。","僕は川沿いを歩きたいな。君は？　疲れていたら、短い道にしよう。","うん、じゃあゆっくり。明日の仕事まで、僕たちの時間だね。","この時間、カフェの窓の灯りをよく見てたんだ。まだ起きてるかなって。","最初は、仕事が大変なのかなって。それから、少し会えたらいいなって。","今日は、ちゃんと誘えてよかった。君も歩きたかったって聞けたし。","……手をつないでもいい？　近くにいるのに、まだ少し照れるね。","君の手、僕の手に収まるんだね。強く握ってないかな。","もう少し遠回りしたいな。君もいいなら、分かれ道を一本先まで。","次の休みも相談しよう。会う時間は、余ったところじゃなくて、先に空けたいよ。"],
-  home:["お邪魔します。今日は、休むために来たよ。……何か手伝おうかって言うの、ちょっと我慢した。","君が淹れてくれたお茶、いただきます。僕の好きな温かさ、覚えてくれてたんだね。","隣に座ってもいい？　今日は時計ばかり見ないで、君の話を聞きたいな。","この毛布、二人で使うと少し短いね。僕が近づいても大丈夫？","……うん。このくらいなら、二人とも温かいね。君は苦しくない？","眠そう？　少し。でも今、君と目が合うと、寝るのがもったいなくなるよ。","肩、少し借りてもいいかな。君が疲れた時は、僕の方へ寄りかかってね。","何もしない日って、前はうまく想像できなかった。君と過ごすなら、ちゃんと楽しみになるね。","次は僕がお茶を用意するよ。今日の君みたいに、ゆっくり休んでもらいたいから。"],
+  amusement:[d("今日は、牧場の仕事を交代してもらってきたよ。帰る時間まで、君と遊びたいな。","smile"),d("地図、見せて。僕は観覧車に乗りたい。……どれでもいいって言わずに、先に話すね。","serious"),d("君の乗りたいものも教えて。二人で決めた順番なら、待つ時間も楽しそう。","smile"),d("このひつじのお菓子、かわいいね。食べる前に君にも見せたいって、すぐ思っちゃった。","smile"),d("半分ずつにしようか。僕も、この顔の方がいいな。……じゃあ、じゃんけんで。","smile"),d("観覧車、思ったより揺れるね。僕は少し緊張してるよ。君は、大丈夫？","surprised"),d("手、つないでもいい？　君が隣にいると、揺れるのも少し楽しめそう。","blush"),d("夕焼け、きれいだね。……君の顔も赤い。僕も？　それは夕焼けだけじゃないかも。","blush"),d("降りたら、もう一つ乗ろう。まだ君と帰りたくないって、僕から言っておくね。","blush")],
+  walk:[d("片づけ、お疲れさま。今日は仕入れの箱を持ってないよ。君を誘いに来たんだ。","smile"),d("僕は川沿いを歩きたいな。君は？　疲れていたら、短い道にしよう。","normal"),d("うん、じゃあゆっくり。明日の仕事まで、僕たちの時間だね。","smile"),d("この時間、カフェの窓の灯りをよく見てたんだ。まだ起きてるかなって。","normal"),d("最初は、仕事が大変なのかなって。それから、少し会えたらいいなって。","blush"),d("今日は、ちゃんと誘えてよかった。君も歩きたかったって聞けたし。","smile"),d("……手をつないでもいい？　近くにいるのに、まだ少し照れるね。","blush"),d("君の手、僕の手に収まるんだね。強く握ってないかな。","blush"),d("もう少し遠回りしたいな。君もいいなら、分かれ道を一本先まで。","smile"),d("次の休みも相談しよう。会う時間は、余ったところじゃなくて、先に空けたいよ。","serious")],
+  home:[d("お邪魔します。今日は、休むために来たよ。……何か手伝おうかって言うの、ちょっと我慢した。","smile"),d("君が淹れてくれたお茶、いただきます。僕の好きな温かさ、覚えてくれてたんだね。","surprised"),d("隣に座ってもいい？　今日は時計ばかり見ないで、君の話を聞きたいな。","smile"),d("この毛布、二人で使うと少し短いね。僕が近づいても大丈夫？","blush"),d("……うん。このくらいなら、二人とも温かいね。君は苦しくない？","blush"),d("眠そう？　少し。でも今、君と目が合うと、寝るのがもったいなくなるよ。","blush"),d("肩、少し借りてもいいかな。君が疲れた時は、僕の方へ寄りかかってね。","blush"),d("何もしない日って、前はうまく想像できなかった。君と過ごすなら、ちゃんと楽しみになるね。","smile"),d("次は僕がお茶を用意するよ。今日の君みたいに、ゆっくり休んでもらいたいから。","smile")],
 };

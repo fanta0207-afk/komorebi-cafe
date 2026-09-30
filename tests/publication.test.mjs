@@ -6,6 +6,7 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const output = new URL('../dist-public/', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
+const packageJson = JSON.parse(read('package.json'));
 function files(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
     const child = new URL(entry.name + (entry.isDirectory() ? '/' : ''), dir);
@@ -40,6 +41,8 @@ test('Vercel builds only the static client, with an asset-safe SPA fallback', ()
   assert.match(read('app/globals.css'), /\.cafe-hud-right\s*\{[^}]*flex-direction:column;[^}]*gap:8px;/);
   assert.match(read('app/globals.css'), /\.dev-trigger-floating\s*\{[^}]*position:absolute;[^}]*right:8px;/);
   assert.match(read('src/components/CafeGame.tsx'), /import\.meta\.env\.DEV/);
+  assert.match(read('src/components/CafeGame.tsx'), /VITE_KOMOREBI_DEV_MENU==="true"/);
+  assert.match(packageJson.scripts['build:preview'], /VITE_KOMOREBI_DEV_MENU=true/);
   assert.match(read('src/components/CafeGame.tsx'), /showDev&&devOpen&&<DevMenu/);
   assert.match(read('src/components/CafeGame.tsx'), /!showDev&&settingsOpen&&<SettingsMenu/);
   const bundledJs=files(output).filter(file=>/\.js$/.test(file.pathname)).map(file=>readFileSync(file,'utf8')).join('\n');
@@ -73,7 +76,7 @@ test('CSS backgrounds and character portraits resolve in the static output witho
     assert.doesNotMatch(css, /@font-face|fonts\.googleapis|url\(["']?https?:/);
   }
   const characters = read('src/data/characters.ts');
-  for (const match of characters.matchAll(/"(?:image|storyImage)":\s*"(\/assets\/[^"?#]+)"/g)) {
+  for (const match of characters.matchAll(/"(?:image|storyImage|smile|blush|sad|surprised|serious)":\s*"(\/assets\/[^"?#]+)"/g)) {
     assert.ok(existsSync(new URL(match[1].slice(1), output)), match[1]);
   }
 });

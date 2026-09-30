@@ -5,9 +5,12 @@ export type GiftRarity = "common" | "rare" | "superRare" | "ultraRare";
 export type MenuRarity = "normal" | "rare" | "superRare" | "secret";
 export type RelationshipRoute = "undecided" | "romance" | "friendship";
 export type DateLocationId = "amusement" | "walk" | "home";
-export interface StoryLine { speaker:"narrator"|"character"|"player"; text:string; }
+export type CharacterExpression = "normal" | "smile" | "blush" | "sad" | "surprised" | "serious";
+export interface CharacterDialogueLine { text:string; expression?:CharacterExpression; }
+export type SimpleDialogueLine = string | CharacterDialogueLine;
+export interface StoryLine { speaker:"narrator"|"character"|"player"; text:string; expression?:CharacterExpression; }
 export interface StoryChoice { id:string; label:string; response:StoryLine[]; }
-export interface DramaStoryLine { speaker:"narrator"|"player"|string; text:string; }
+export interface DramaStoryLine { speaker:"narrator"|"player"|string; text:string; expression?:CharacterExpression; }
 export interface DramaEvent {
   id:string; title:string; subtitle:string; participantIds:string[]; dialogue:DramaStoryLine[];
 }
@@ -19,6 +22,8 @@ export interface Supplier { id:string; name:string; icon:string; description:str
 export interface Character {
   id:string; name:string; gender:Gender; occupation:string; supplierId:string;
   profile:string; image:string; storyImage?:string; silhouette:string; favoriteGiftTags:string[]; dislikedGiftTags:string[];
+  expressionImages?:Partial<Record<CharacterExpression,string>>;
+  giftReactionExpressions?:Partial<Record<GiftReaction,CharacterExpression>>;
   shortName:string; nameReading:string; routeTheme:string; voice:string;
   backstory:string; concern:string; attraction:string;
   greetings:{ first:string; familiar:string; close:string; romance:string; friendship:string; };
@@ -39,14 +44,14 @@ export interface GrowthEvent {
   eventId:string; characterId:string; routeStage:number; title:string;
   requiredRelationshipStage:number; requiredStats:GrowthStatRequirement[];
   requiredPreviousEvents:string[]; requiredEquipmentIds?:string[];
-  rewards:GrowthRewards; dialogue:string[]; hint:string;
+  rewards:GrowthRewards; dialogue:SimpleDialogueLine[]; hint:string;
 }
-export interface DateEvent { id:string; characterId:string; locationId:DateLocationId; title:string; icon:string; dialogue:string[]; }
+export interface DateEvent { id:string; characterId:string; locationId:DateLocationId; title:string; icon:string; dialogue:SimpleDialogueLine[]; }
 export interface Equipment { id:string; name:string; icon:string; price:number; characterId:string; description:string; effectText:string; }
 export interface Decoration { id:string; name:string; icon:string; characterId:string; placement:"wall"|"shelf"|"counter"|"floor"; }
 export interface HiddenUnlock { id:string; requiredEvents:string[]; recipeId:string; note:string; }
 export interface CharacterProgress { lastGiftId?:string; giftStreak?:number; handmadeFirst?:string[]; affection:number; relationshipStage:number; viewedEvents:string[]; met:boolean; visits:number; giftsGiven:number; route:RelationshipRoute; eventChoices:Record<string,string>; talkedStages:number[]; giftReactions:Record<string,GiftReaction>; viewedGiftReactions:GiftReaction[]; }
-export interface GiftReactionPopup { characterId:string; giftId:string; reaction:GiftReaction; response:string; }
+export interface GiftReactionPopup { characterId:string; giftId:string; reaction:GiftReaction; response:string; expression?:CharacterExpression; }
 export interface Station { id:string; equipmentId:string; level:number; }
 export type StaffRole = "cook"|"server"|"procurement"|"rest";
 export interface Staff { characterId:string; role:StaffRole; servingOrderId?:string; returningFromSlot?:number; remainingMs:number; }

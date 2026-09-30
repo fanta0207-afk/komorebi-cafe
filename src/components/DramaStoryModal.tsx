@@ -5,6 +5,7 @@ import { getCharacter } from "../data/characters";
 import type { DramaEvent } from "../types/game";
 import { GameModal } from "./GameModal";
 import "./story-modal.css";
+import { StoryStandingArt } from "./StoryStandingArt";
 
 export function DramaStoryModal({event,onComplete,readOnly=false}:{event:DramaEvent;onComplete:()=>void;readOnly?:boolean}) {
   const [page,setPage]=useState(0);
@@ -27,7 +28,7 @@ export function DramaStoryModal({event,onComplete,readOnly=false}:{event:DramaEv
     <div className={`story-stage drama-story-stage drama-count-${participants.length} ${activeCharacterId?"has-active-speaker":"no-active-speaker"}`}>
       <div className="drama-cast" aria-label={`登場人物：${participants.map(character=>character!.name).join("、")}`}>
         {participants.map((character,index)=><div key={character!.id} data-character={character!.id} className={`drama-cast-member ${participants.length===2?(index===0?"is-left":"is-right"):""} ${activeCharacterId===character!.id?"is-active":""}`}>
-          <img className="drama-standing-art" src={character!.storyImage||character!.image} alt={`${character!.name}の立ち絵`}/>
+          <StoryStandingArt character={character!} expression={activeCharacterId===character!.id?line.expression:"normal"} className="drama-standing-art"/>
         </div>)}
       </div>
     </div>

@@ -20,7 +20,7 @@ for(const folder of ['data','game']) {
 }
 const require=createRequire(import.meta.url);
 const {characters}=require(join(output,'data/characters.js'));
-const {relationshipEvents}=require(join(output,'data/events.js'));
+const {relationshipEvents,staffStoryEvents}=require(join(output,'data/events.js'));
 const {growthEvents}=require(join(output,'data/growthEvents.js'));
 const {dateEvents,dateLocations}=require(join(output,'data/dates.js'));
 const {dramaEvents}=require(join(output,'data/dramaEvents.js'));
@@ -62,6 +62,119 @@ test('every multi-page story player can return to the previous page',()=>{
   assert.match(game,/onBack=\{\(\)=>setEventPage\(value=>Math\.max\(0,value-1\)\)\}/);
   assert.equal((game.match(/className="story-back-button"/g)||[]).length,2);
   assert.match(prologue,/className="prologue-back" disabled=\{page===0\}/);
+});
+
+test('Ren expressions are explicit in every requested conversation surface',()=>{
+  const ren=characters.find(character=>character.id==='ren');
+  const expressions=['normal','smile','blush','sad','surprised','serious'];
+  assert.deepEqual(ren.giftReactionExpressions,{love:'blush',like:'smile',normal:'normal',dislike:'sad'});
+  assert.ok(Object.values(ren.giftReactionExpressions).every(expression=>expressions.includes(expression)));
+
+  const renStories=relationshipEvents.filter(event=>event.characterId==='ren');
+  assert.equal(renStories.length,10);
+  for(const event of renStories){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[]),...(event.choices||[]).flatMap(choice=>choice.response)];
+    assert.ok(lines.some(line=>line.expression),`${event.id}: missing explicit expression`);
+  }
+  for(const event of growthEvents.filter(event=>event.characterId==='ren')){
+    assert.ok(event.dialogue.some(line=>typeof line==='object'&&line.expression),`${event.eventId}: missing explicit expression`);
+  }
+  for(const event of dateEvents.filter(event=>event.characterId==='ren')){
+    assert.ok(event.dialogue.some(line=>typeof line==='object'&&line.expression),`${event.id}: missing explicit expression`);
+  }
+  for(const event of dramaEvents.filter(event=>event.participantIds.includes('ren'))){
+    assert.ok(event.dialogue.some(line=>line.speaker==='ren'&&line.expression),`${event.id}: missing explicit Ren expression`);
+  }
+
+  for(const reaction of ['love','like','normal','dislike']){
+    const gift=gifts.find(item=>giftReaction(ren,item)===reaction);
+    const state={...createInitialState(),inventory:{[gift.id]:1}};
+    const next=reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:gift.id,reaction});
+    assert.equal(next.pendingGiftReaction.expression,ren.giftReactionExpressions[reaction]);
+  }
+
+  const sources=['StoryModal.tsx','DramaStoryModal.tsx','CafeGame.tsx','GiftReactionModal.tsx'].map(file=>readFileSync(new URL(`../src/components/${file}`,import.meta.url),'utf8')).join('\n');
+  assert.match(sources,/expression=\{/);
+  assert.doesNotMatch(sources,/includes\([^)]*(?:笑|照|悲|驚|真剣)/);
+});
+
+test('Taiyo expressions are explicit in every requested conversation surface',()=>{
+  const taiyo=characters.find(character=>character.id==='haru');
+  const expressions=['normal','smile','blush','sad','surprised','serious'];
+  assert.deepEqual(taiyo.giftReactionExpressions,{love:'blush',like:'smile',normal:'normal',dislike:'sad'});
+  assert.ok(Object.values(taiyo.giftReactionExpressions).every(expression=>expressions.includes(expression)));
+
+  const taiyoStories=relationshipEvents.filter(event=>event.characterId==='haru');
+  assert.equal(taiyoStories.length,10);
+  for(const event of taiyoStories){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[]),...(event.choices||[]).flatMap(choice=>choice.response)];
+    const taiyoLines=lines.filter(line=>line.speaker==='character');
+    assert.ok(taiyoLines.length>0,event.id);
+    assert.ok(taiyoLines.every(line=>expressions.includes(line.expression)),`${event.id}: Taiyo line without explicit expression`);
+  }
+  for(const event of staffStoryEvents.filter(event=>event.characterId==='haru')){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[])].filter(line=>line.speaker==='character');
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: Taiyo staff line without explicit expression`);
+  }
+  for(const event of growthEvents.filter(event=>event.characterId==='haru')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.eventId}: missing explicit Taiyo expression`);
+  }
+  for(const event of dateEvents.filter(event=>event.characterId==='haru')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.id}: missing explicit Taiyo expression`);
+  }
+  for(const event of dramaEvents.filter(event=>event.participantIds.includes('haru'))){
+    const taiyoLines=event.dialogue.filter(line=>line.speaker==='haru');
+    assert.ok(taiyoLines.length>0,event.id);
+    assert.ok(taiyoLines.every(line=>expressions.includes(line.expression)),`${event.id}: missing explicit Taiyo expression`);
+  }
+
+  for(const reaction of ['love','like','normal','dislike']){
+    const gift=gifts.find(item=>giftReaction(taiyo,item)===reaction);
+    const state={...createInitialState(),inventory:{[gift.id]:1}};
+    const next=reducer(state,{type:'GIVE_GIFT',characterId:'haru',giftId:gift.id,reaction});
+    assert.equal(next.pendingGiftReaction.expression,taiyo.giftReactionExpressions[reaction]);
+  }
+});
+
+test('Maki expressions are explicit in every requested conversation surface',()=>{
+  const maki=characters.find(character=>character.id==='sota');
+  const expressions=['normal','smile','blush','sad','surprised','serious'];
+  assert.deepEqual(maki.giftReactionExpressions,{love:'blush',like:'smile',normal:'normal',dislike:'sad'});
+  assert.ok(Object.values(maki.giftReactionExpressions).every(expression=>expressions.includes(expression)));
+
+  const makiStories=relationshipEvents.filter(event=>event.characterId==='sota');
+  assert.equal(makiStories.length,10);
+  for(const event of makiStories){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[]),...(event.choices||[]).flatMap(choice=>choice.response)];
+    const makiLines=lines.filter(line=>line.speaker==='character');
+    assert.ok(makiLines.length>0,event.id);
+    assert.ok(makiLines.every(line=>expressions.includes(line.expression)),`${event.id}: Maki line without explicit expression`);
+  }
+  for(const event of staffStoryEvents.filter(event=>event.characterId==='sota')){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[])].filter(line=>line.speaker==='character');
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: Maki staff line without explicit expression`);
+  }
+  for(const event of growthEvents.filter(event=>event.characterId==='sota')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.eventId}: missing explicit Maki expression`);
+  }
+  for(const event of dateEvents.filter(event=>event.characterId==='sota')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.id}: missing explicit Maki expression`);
+  }
+  for(const event of dramaEvents.filter(event=>event.participantIds.includes('sota'))){
+    const makiLines=event.dialogue.filter(line=>line.speaker==='sota');
+    assert.ok(makiLines.length>0,event.id);
+    assert.ok(makiLines.every(line=>expressions.includes(line.expression)),`${event.id}: missing explicit Maki expression`);
+  }
+
+  for(const reaction of ['love','like','normal','dislike']){
+    const gift=gifts.find(item=>giftReaction(maki,item)===reaction);
+    const state={...createInitialState(),inventory:{[gift.id]:1}};
+    const next=reducer(state,{type:'GIVE_GIFT',characterId:'sota',giftId:gift.id,reaction});
+    assert.equal(next.pendingGiftReaction.expression,maki.giftReactionExpressions[reaction]);
+    const legacy=structuredClone(next);
+    delete legacy.pendingGiftReaction.expression;
+    assert.equal(migrateSavedState(legacy).pendingGiftReaction.expression,maki.giftReactionExpressions[reaction]);
+  }
 });
 
 test('six cafe drama stories have valid fixed casts, deterministic triggers, and no gameplay consequence',()=>{
@@ -621,7 +734,7 @@ test('starter coffee uses ingredients once, takes exactly 10 seconds, and earns 
 test('an old 30-second coffee is converted to the 10-second scale without losing progress',()=>{
   const fresh=start(addOrder(isolated()));
   const legacy={...fresh,saveVersion:14,orders:fresh.orders.map(item=>({...item,totalMs:30000,remainingMs:15000}))};
-  const restored=migrateSavedState(JSON.parse(JSON.stringify(legacy)));
+  const restored=migrateSavedState(JSON.parse(JSON.stringify(legacy)),legacy.lastPlayedAt);
   assert.equal(restored.orders[0].totalMs,10000);
   assert.equal(restored.orders[0].remainingMs,5000);
   const live=reducer(legacy,{type:'TICK',deltaMs:1000});
@@ -632,7 +745,7 @@ test('an old 30-second coffee is converted to the 10-second scale without losing
 test('an old 30-second toast is converted to the 10-second starter scale',()=>{
   const fresh=start(addOrder(isolated(),'toast','toast'),'toast');
   const legacy={...fresh,saveVersion:15,orders:fresh.orders.map(item=>({...item,totalMs:30000,remainingMs:12000}))};
-  const restored=migrateSavedState(JSON.parse(JSON.stringify(legacy)));
+  const restored=migrateSavedState(JSON.parse(JSON.stringify(legacy)),legacy.lastPlayedAt);
   assert.equal(restored.orders[0].totalMs,10000);
   assert.equal(restored.orders[0].remainingMs,4000);
 });
@@ -1483,6 +1596,7 @@ test('Ren staff memories render with their own heading and the friendship replay
   assert.doesNotMatch(detail,/好感度4・雇用後/);
   const story=load('../src/components/StoryModal.tsx',{
     './GameModal':{GameModal:({children})=>children},
+    './StoryStandingArt':{StoryStandingArt:()=>null},
   });
   const html=renderToStaticMarkup(createElement(story.StoryModal,{event:getStaffStoryEvent('ren-help-cafe'),progress:state.characterProgress.ren,readOnly:true,onClose(){}}));
   assert.match(html,/カフェを手伝う日/);
@@ -1576,6 +1690,17 @@ test('pending gift reactions survive reload without consuming or rewarding twice
   state=reducer(state,{type:'GIVE_GIFT',characterId:'ren',giftId:'book',reaction:'like'});
   const resumed=migrateSavedState(JSON.parse(JSON.stringify(state)));
   assert.deepEqual(resumed.pendingGiftReaction,state.pendingGiftReaction);
+  const legacyPending=JSON.parse(JSON.stringify(state));
+  delete legacyPending.pendingGiftReaction.expression;
+  assert.equal(migrateSavedState(legacyPending).pendingGiftReaction.expression,characters.find(character=>character.id==='ren').giftReactionExpressions[state.pendingGiftReaction.reaction]);
+  let taiyoState=createInitialState();
+  taiyoState.inventory.poundCake=1;
+  const taiyo=characters.find(character=>character.id==='haru');
+  const taiyoReaction=giftReaction(taiyo,gifts.find(item=>item.id==='poundCake'));
+  taiyoState=reducer(taiyoState,{type:'GIVE_GIFT',characterId:'haru',giftId:'poundCake',reaction:taiyoReaction});
+  const legacyTaiyo=JSON.parse(JSON.stringify(taiyoState));
+  delete legacyTaiyo.pendingGiftReaction.expression;
+  assert.equal(migrateSavedState(legacyTaiyo).pendingGiftReaction.expression,taiyo.giftReactionExpressions[taiyoReaction]);
   assert.equal(resumed.inventory.book,0);
   assert.equal(resumed.characterProgress.ren.affection,state.characterProgress.ren.affection);
   assert.equal(resumed.characterProgress.ren.giftsGiven,1);

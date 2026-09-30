@@ -47,12 +47,10 @@ export function GameModal({ children, className, label, labelledBy, onCancel, la
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   };
 
-  return createPortal(
-    <div className={`game-modal-layer ${layerClassName}`} onKeyDown={onKeyDown}>
+  const layer=<div className={`game-modal-layer ${layerClassName}`} onKeyDown={onKeyDown}>
       <div ref={modalRef} className={className} role="dialog" aria-modal="true" aria-label={label} aria-labelledby={labelledBy} tabIndex={-1}>
         {children}
       </div>
-    </div>,
-    document.body,
-  );
+    </div>;
+  return typeof document==="undefined"?layer:createPortal(layer,document.body);
 }

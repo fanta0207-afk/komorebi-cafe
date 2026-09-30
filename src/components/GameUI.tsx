@@ -16,7 +16,7 @@ export const navItems = [
 ] as const;
 
 export function BottomNav({active,onChange}:{active:string;onChange:(id:string)=>void}) {
-  return <nav className="bottom-nav" aria-label="メインメニュー">{navItems.map(item=><button type="button" className={active===item.id?"active":""} key={item.id} onClick={()=>onChange(item.id)}><span>{item.icon}</span>{item.label}</button>)}</nav>;
+  return <nav className="bottom-nav" aria-label="メインメニュー">{navItems.map(item=><button type="button" data-sound="navigate" className={active===item.id?"active":""} key={item.id} onClick={()=>onChange(item.id)}><span>{item.icon}</span>{item.label}</button>)}</nav>;
 }
 
 export function Portrait({character,small=false,face=false,unknown=false}:{character:Character;small?:boolean;face?:boolean;unknown?:boolean}) {

@@ -5,6 +5,7 @@ import { GameModal } from "./GameModal";
 import { getCharacter } from "../data/characters";
 import type { CharacterProgress, RelationshipEvent, RelationshipRoute } from "../types/game";
 import "./story-modal.css";
+import { StoryStandingArt } from "./StoryStandingArt";
 
 export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
   event:RelationshipEvent; progress:CharacterProgress; readOnly?:boolean;
@@ -12,12 +13,10 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
   onClose?:()=>void;
 }) {
   const [page,setPage]=useState(0);
-  const [artFailed,setArtFailed]=useState(false);
   const dialoguePanel=useRef<HTMLDivElement>(null);
   const [route,setRoute]=useState<RelationshipRoute>(progress.route);
   const [choiceId,setChoiceId]=useState<string|undefined>(readOnly?progress.eventChoices[event.id]:undefined);
   const character=getCharacter(event.characterId)!;
-  const storyImage=character.storyImage||character.image;
   const choosingRoute=event.toStage===9 && route==="undecided";
   const friendship=route==="friendship" && (event.toStage>=9 || event.kind==="staff");
   const title=friendship?event.friendshipTitle || event.title:event.title;
@@ -49,9 +48,7 @@ export function StoryModal({event,progress,readOnly=false,onComplete,onClose}:{
       <h2 id="story-title">{choosingRoute?"これからのふたり":title}</h2>
     </header>
     <div className={`story-stage ${!choosingRoute&&line.speaker==="character"?"is-speaking":""}`} data-character={character.id}>
-      {storyImage&&!artFailed
-        ?<img className="story-standing-art" src={storyImage} alt={`${character.name}の立ち絵`} onError={()=>setArtFailed(true)}/>
-        :<div className="story-art-fallback"><span>{character.occupation}</span><strong>{character.name}</strong></div>}
+      <StoryStandingArt character={character} expression={choosingRoute?"normal":line.expression}/>
     </div>
     <div className="story-dialogue-panel" ref={dialoguePanel}>
     {choosingRoute?<div className="story-content">

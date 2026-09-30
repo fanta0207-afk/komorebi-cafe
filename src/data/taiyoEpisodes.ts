@@ -1,4 +1,6 @@
-import type { RelationshipEvent, StaffStoryEvent } from "../types/game";
+import type { CharacterExpression, RelationshipEvent, SimpleDialogueLine, StaffStoryEvent } from "../types/game";
+
+const d=(text:string,expression:CharacterExpression):SimpleDialogueLine=>({text,expression});
 
 // Keep Taiyo's existing internal ID "haru", thresholds, choices and rewards.
 export const taiyoRelationshipEvents:RelationshipEvent[] = [
@@ -16,6 +18,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "おはよう！　こもれびの店長だよな。麦野太陽だ。今日の分、用意してあるぞ。"
       },
       {
@@ -24,6 +27,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "大丈夫、慌てなくていい。運ぶ箱はこっちだな。店まで持つの、手伝ってもいいか？"
       },
       {
@@ -36,6 +40,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "これ、まだ温かいから、すぐ袋を閉じないでな。熱がこもると、皮がしんなりする。"
       },
       {
@@ -44,6 +49,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "そう。うまく出すとこまで、相談してくれていいから。"
       },
       {
@@ -52,6 +58,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "まず一個食べな。腹ぺこで開店はきついぞ。"
       },
       {
@@ -60,6 +67,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "じゃあ、こっちに置いとく。俺が箱を片づけたら、一緒に一口食べよう。"
       },
       {
@@ -72,6 +80,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "よかった。最初の一口、店長に食べてもらえたな。"
       },
       {
@@ -80,6 +89,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "じゃあ、明日もおはよう言いに来る。分からないとこは、その時に聞いてくれ。"
       },
       {
@@ -102,6 +112,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "この日、雨だった？　朝の客が少ないと、昼に残るよな。"
       },
       {
@@ -110,6 +121,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "外した日も数えとこうぜ。明日の仕入れに使える。"
       },
       {
@@ -118,6 +130,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "余りそうな分は、まだ味が落ちないうちにトースト用へ回そう。乾いてから何とかするより、先に決めた方がいい。"
       },
       {
@@ -126,6 +139,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "俺だって、毎回ぴったり焼けないよ。パンに次の仕事を用意するのも、店の仕事だろ。"
       },
       {
@@ -134,6 +148,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "ここ、最後の方、急いで書いた？　読めないと次に使えないから、もう少し大きく。"
       },
       {
@@ -146,6 +161,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "ああ。明日の結果も、俺に聞かせて。"
       },
       {
@@ -154,6 +170,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "お、よかったじゃん。トースト、どうだった？"
       },
       {
@@ -162,6 +179,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "店長の分も残せたなら、上出来だな。"
       },
       {
@@ -190,6 +208,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "カンパーニュ、今日は少し薄く切ってみよう。具を挟んでも、噛み切れるように。"
       },
       {
@@ -202,6 +221,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "……そう見える？　それは、うまくいくやつを今見せてるからだな。"
       },
       {
@@ -214,6 +234,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "じゃあ次は、こっちを減らす。落ちた理由も、書いとこう。"
       },
       {
@@ -222,6 +243,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "そういう一ページが、あとで効くんだよな。俺の古いノートも、今度持ってくる。"
       },
       {
@@ -230,6 +252,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "いいよ。店長の失敗だけ、俺が知ってるのも不公平だし。"
       },
       {
@@ -238,6 +261,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……こっち、取って。具、落とさず食べられそう？"
       },
       {
@@ -250,6 +274,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "明日のメニューに合うな。量は、このくらいで残そう。"
       },
       {
@@ -258,6 +283,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "俺も楽しかったよ。……仕事で来たけど、二人で作るの、いいな。"
       },
       {
@@ -297,6 +323,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "久しぶり。パン、ちゃんと届いてた？　困ったことなかったか。"
       },
       {
@@ -305,6 +332,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "よかった。……じゃあ、今日は俺の出番なかったな。"
       },
       {
@@ -321,6 +349,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "パンじゃなくて、俺のほう？　……そっか。"
       },
       {
@@ -333,6 +362,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "俺もさ、こもれびの前を別便で通った時、今、何してるかなって思ってた。"
       },
       {
@@ -341,6 +371,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "いいのか。用もないのに、って考えてた。"
       },
       {
@@ -353,6 +384,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……うれしいな。明日、仕事のあとなら少し時間取れる。お前の都合は？"
       },
       {
@@ -371,6 +403,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "blush",
             "text": "俺に会いたかったのか。……俺もだ。こもれびの前を通るたび、少し寄りたくなってた。"
           },
           {
@@ -379,6 +412,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "smile",
             "text": "次は、用がなくても来ていいか、って先に言う。お前の都合も聞くから。"
           }
         ]
@@ -393,6 +427,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "normal",
             "text": "ああ。仕事の後に、時間空けておくな。お前の仕込みは大丈夫か？"
           },
           {
@@ -401,6 +436,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "blush",
             "text": "こうやって会う予定書くの、少し照れるな。……でも、楽しみにしてる。"
           }
         ]
@@ -421,6 +457,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "焼き色は濃い、真ん中は重い。最初は、こういうのばっかだった。"
       },
       {
@@ -429,6 +466,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "いっぺんに変えると、どれが効いたか分かんないからな。"
       },
       {
@@ -441,6 +479,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "器用に見えてた？　最初なんか、ひどかったぞ。"
       },
       {
@@ -453,6 +492,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……そう言ってもらえると、照れるな。うまいって言われるのとは、また違って。"
       },
       {
@@ -461,6 +501,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "俺の新しいパン。表面は軽くて、中は朝飯にも合うやつ。考えてるけど、頼まれた用事で後回しになってて。"
       },
       {
@@ -469,6 +510,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "じゃあ、途中のやつも味見頼めるか。出来上がってからだけじゃなくて。"
       },
       {
@@ -477,6 +519,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "オーブンも、今すぐじゃなくていい。置く場所と、使う量を見てから選ぼう。"
       },
       {
@@ -489,6 +532,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "次の焼き上がり、最初に聞かせる。……お前に食べてもらうの、楽しみになった。"
       },
       {
@@ -520,6 +564,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "先に運ぶか？　手、空いてるし。"
       },
       {
@@ -532,6 +577,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "何もしないで座ってるの、変な感じだな。……悪くないけど。"
       },
       {
@@ -544,6 +590,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "前は、弟たちの用事とか。今はそれぞれ暮らしてるのに、俺だけ何か手伝うことないか探しちゃうんだよな。"
       },
       {
@@ -552,6 +599,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……お前と、このままお茶飲みたい。"
       },
       {
@@ -560,6 +608,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "そういうの、言うと照れるな。いつもは、困ってることあるかって聞く方だから。"
       },
       {
@@ -572,6 +621,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "仕事のメモに書いたら、配達の途中で思い出しそうだな。"
       },
       {
@@ -584,6 +634,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "また、この席に座りに来ていいか？　手伝う用がない日も。"
       },
       {
@@ -616,6 +667,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "ごめん。町の行事の荷物も引き受けて、時間を読み違えた。連絡も遅くなった。"
       },
       {
@@ -628,6 +680,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "全部できるって返事して、お前との約束を後回しにしたな。そうしたかったわけじゃないのに。"
       },
       {
@@ -640,6 +693,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "誰かの用がない時間って、自分で空けないと残らないんだな。"
       },
       {
@@ -648,6 +702,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "ああ。店で担当を相談する。俺が全部持ったままじゃ、試作も、お前と会う時間も続かない。"
       },
       {
@@ -656,6 +711,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "話してきた。出来る時間はここ。遅れそうな時は、決めたあとでも先に連絡する。"
       },
       {
@@ -668,6 +724,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "……ここ、手伝ってくれないか。味と、どのくらい軽かったか。お前に記録してもらえたら、俺は生地を見直せる。"
       },
       {
@@ -680,6 +737,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "助かる。お前に頼めるの、うれしいな。"
       },
       {
@@ -702,6 +760,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "normal",
             "text": "助かる。じゃあ、その間に生地を見直すな。良かったとこも、違ったとこも、遠慮せず頼む。"
           },
           {
@@ -710,6 +769,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "normal",
             "text": "終わったら、ちゃんと二人で休もう。仕事の相談だけで、今日を終わらせたくないし。"
           }
         ]
@@ -724,6 +784,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "serious",
             "text": "ああ。店でも、これから困ったら先に話す。出来ないって言うのも、ちゃんと引き受けるために必要だな。"
           },
           {
@@ -732,6 +793,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
+            "expression": "smile",
             "text": "お前と会う時間も、先に決めたい。俺も、楽しみにしてるから。"
           }
         ]
@@ -752,6 +814,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "おはよう。今日は、デートに誘いに来た。"
       },
       {
@@ -760,6 +823,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "今日は差し入れなし。その代わり、一日空けてきた。……お前も、出かけたい？"
       },
       {
@@ -772,6 +836,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "ありがと。朝、これでいいかなって、ちょっと迷った。仕事の日は、迷う場所ないのにな。"
       },
       {
@@ -780,6 +845,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "俺は川沿いで、ゆっくり座りたい。お前は？"
       },
       {
@@ -792,10 +858,12 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "弟たちの用事で出かける時は、楽しかったけど、次にすることばっか考えてたんだ。"
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "今は、何かしてやろうって考えるより、お前が隣にいるの見てたい。"
       },
       {
@@ -804,6 +872,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "手、つないでもいいか？　今日は、箱を渡すためじゃなくて。"
       },
       {
@@ -816,6 +885,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……まだ、ちょっと緊張するな。お前は？"
       },
       {
@@ -828,6 +898,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "今度は、お前の好きな場所も教えて。今日みたいな休み、また取ろうな。"
       },
       {
@@ -856,6 +927,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "……今日は、そこで終わらせたくなくて。少し話していいか？"
       },
       {
@@ -868,10 +940,12 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "最初は、店が大丈夫か気になってた。パン、うまく使えたかとか、朝飯食べてるかとか。"
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "今はそれがなくても、顔が見たい。休憩で何の話するかなって、配達の前から考えてる。"
       },
       {
@@ -884,10 +958,12 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "俺、頼ってくれるのがうれしくてさ。何も出来ない日も来ていいって言われた時、すごくほっとした。"
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "でも、安心するからだけじゃない。お前が笑うところ見たいし、手をつなぎたい。俺と出かける日を、楽しみにしてほしい。"
       },
       {
@@ -896,6 +972,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "好きだ。明日も、その先も、好きな人として会いに来たい。俺と、恋人になってくれるか？"
       },
       {
@@ -908,6 +985,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "……うれしいな。今、何かうまいこと言いたかったけど、出てこない。"
       },
       {
@@ -920,6 +998,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "次は、俺から会いたいって言う。何か手伝うことないか、だけじゃなくて。"
       },
       {
@@ -932,6 +1011,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "また明日。……今度は、恋人に言ってる。"
       },
       {
@@ -947,6 +1027,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "これからも試食、頼めるか？　途中の記録を一緒に考えてもらえると、助かる。"
       },
       {
@@ -963,6 +1044,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ああ。俺も、任せとけだけで終わらせないようにする。お前の案も聞きたいし。"
       },
       {
@@ -985,6 +1067,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "焼けたぞ。途中から味見してくれたお前に、まず食べてもらいたい。"
       },
       {
@@ -997,6 +1080,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ここ、俺だけじゃ決められなかったな。お前が軽い方を選んでくれたところ。"
       },
       {
@@ -1009,6 +1093,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "今日は、俺も一緒に座る。店長だけ立って食べるの、なしな。"
       },
       {
@@ -1021,6 +1106,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "次の朝、ここなら時間空けられる。お前の仕込みと重ならない日、ある？"
       },
       {
@@ -1029,6 +1115,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "normal",
         "text": "毎朝絶対、とは言えないけど。変更する時も、ちゃんと連絡する。"
       },
       {
@@ -1037,6 +1124,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "sad",
         "text": "今日、少し疲れた。食べ終わるまで、隣で休んでていいか？"
       },
       {
@@ -1049,6 +1137,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "最初の朝、腹ぺこで開店はきついぞって言ったよな。"
       },
       {
@@ -1057,6 +1146,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "ああ。役に立とうって急ぐより、お前と食べたいから。"
       },
       {
@@ -1065,6 +1155,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "特別な日じゃなくても、一緒に朝飯食べような。……おはようって、顔見て言いたいから。"
       }
     ],
@@ -1085,6 +1176,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "途中の試食、助かった。この軽さ、俺だけで考えてたら決めきれなかったと思う。"
       },
       {
@@ -1097,6 +1189,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "今日は俺も座る。どっちかだけ立って食べるの、なしな。"
       },
       {
@@ -1109,6 +1202,7 @@ export const taiyoRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "次のパンも、一緒に考えような。うまくいったところだけじゃなくて、途中から頼む。"
       }
     ]
@@ -1132,6 +1226,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "この時間までだな。いつもの道具の位置、まず教えてくれ。俺のやり方に変えないから。"
       },
       {
@@ -1144,6 +1239,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "surprised",
         "text": "こっち、通るな。……今、何か言いかけた？"
       },
       {
@@ -1156,6 +1252,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "そういうの、先に言うと照れるな。俺も、さっきからお前が近いの意識してた。"
       },
       {
@@ -1164,6 +1261,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "紐、こっちに引っかかってる。外していいか？"
       },
       {
@@ -1176,6 +1274,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "blush",
         "text": "……慌てなくていい。俺も、今ちょっと落ち着かないから。"
       },
       {
@@ -1184,6 +1283,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "ここは俺が見る。お前には、そっち頼めるか？"
       },
       {
@@ -1196,6 +1296,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "お、最初の朝と逆だな。……ありがと。お前が飲み物持ってきたら、一緒に食べる。"
       },
       {
@@ -1204,6 +1305,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "今日、助けられるだけじゃなくて、頼めるのもうれしかった。"
       },
       {
@@ -1223,6 +1325,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "道具の位置、まず教えてくれ。店長のやり方を覚えてから動くな。"
       },
       {
@@ -1235,6 +1338,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "serious",
         "text": "こっちは俺が見る。そっちを頼めるか？　通る時は声かける。"
       },
       {
@@ -1247,6 +1351,7 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
+        "expression": "smile",
         "text": "ああ。今日は俺も座る。店長に任せられるって分かってるから、ちゃんと休めるな。"
       },
       {
@@ -1258,15 +1363,91 @@ export const taiyoStaffStories:StaffStoryEvent[] = [
 ];
 
 // Growth can happen early; these scripts do not require romance or hired staff.
-export const taiyoGrowthDialogue:[string[],string[],string[],string[],string[]]=[
-  ["店長、パンの保管を見せてくれるか？　俺の店と同じじゃなくていいから、いつもの順番で。","熱が残ってるうちに袋を閉じると、皮がしんなりする。置く時の間も、少し空けよう。","乾かしたくない分は、冷めてから包む。今日使う分と、あとで使う分を先に分けると、忙しくても迷わないぞ。","切る時に毎回多く取りすぎてないか、量ってみよう。……このくらいなら、一袋からもう一皿分取れそうだな。","毎日続けられる順番にしよう。手間が増えすぎたら、また相談してくれ。","店長が食べる味見の分も、先に決めとこう。作った人だけ食べられないの、もったいないし。","次に使い切れたか、俺にも聞かせて。明日の仕入れ、そこから考えような。"],
-  ["前のパン、最後まで使えたんだな。じゃあ、今日はこれも試してみないか。","朝焼けはちみつ。焼きたてに薄く塗ると、香りが立つんだ。","まずは、そのまま少し。甘さを決めてから、パンに合わせよう。","多く塗ればうまい、ってわけでもないからな。パンの味が残るくらいで。","……店長が控えた方、飲み物にも合いそうだな。俺のおすすめだけで決めなくてよかった。","最初は少量で試して、使い切れる量も確かめよう。余らせず楽しめる方がいいし。","次の休憩に食べた感想、聞かせてくれ。お客さんの話も、店長の話も、両方な。"],
-  ["パンの料理、よく出るようになったな。次は、はちみつを合わせて焼いてみよう。","俺が生地を見るから、店長には甘さと食べる量を頼めるか？","層を潰さずに折って、焼いたあとも軽くしたい。見た目だけじゃなくて、最後まで食べやすい方がいいよな。","はちみつは、このくらい。もう少し足したいなら、味見してからにしよう。","……店長の方、香りが残るな。俺はこっちが好きだ。店の客にはどうだろう？","じゃあ、同じ量でもう一組。次も同じ味に出来るように、順番まで書いとこう。","うまくいかなかった方も、消さずに残して。明日、また試す時に使えるから。","味見は二人分、先に取るぞ。仕事で作っても、俺たちの休憩までなくさなくていいし。","はちみつクロワッサン。最初に出た日、どんな顔で食べてもらえたか、俺にも聞かせて。"],
-  ["パンの料理が増えたなら、焼く場所も考えたいな。小さな石窯の候補、見つけたぞ。","今すぐ買ってって話じゃない。店長が毎日使えるか、まず確かめよう。","ここがいつも立つ場所か。じゃあ、この棚を勝手に動かさずに考えるな。","置く幅だけじゃなくて、掃除する時間も要る。仕込みの順番と一緒に見よう。","……一つずつ、店長が使いやすいようにしてあるんだな。こうして見ると分かるとこ、増える。","お金と時間に余裕が出来た時でいい。選ぶ時も、俺に相談してくれ。","使い始めて分からなくなったら呼んで。説明書だけ置いて、あとは一人でってことにしないから。"],
-  ["クロワッサン、五つも出たのか。いいな。店長のカフェに合う味になってきた。","今度は、朝焼けはちみつでフレンチトーストを考えよう。パンに浸す量も、確かめながら。","中まで柔らかくしたいけど、持ち上げた時に崩れると出しにくい。まず、この厚さで試そう。","俺が焼く方を見る。店長には、出す量と甘さを頼めるか？","……少し控えた方、パンの香りが分かるな。飲み物にも合わせやすそうだ。","じゃあ、この配合で。忙しい朝にも同じ味で出せるように、順番を残しておこう。","店長の分も一皿、取ってあるぞ。味見する時は、ちゃんと座って食べて。","俺も一緒に食べる。どこが好きだったか、店長から直接聞きたいから。","朝焼けフレンチトースト。次の朝に出した話、楽しみにしてるな。"],
+export const taiyoGrowthDialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]=[
+  [
+    d("店長、パンの保管を見せてくれるか？　俺の店と同じじゃなくていいから、いつもの順番で。","serious"),
+    d("熱が残ってるうちに袋を閉じると、皮がしんなりする。置く時の間も、少し空けよう。","serious"),
+    d("乾かしたくない分は、冷めてから包む。今日使う分と、あとで使う分を先に分けると、忙しくても迷わないぞ。","serious"),
+    d("切る時に毎回多く取りすぎてないか、量ってみよう。……このくらいなら、一袋からもう一皿分取れそうだな。","serious"),
+    d("毎日続けられる順番にしよう。手間が増えすぎたら、また相談してくれ。","smile"),
+    d("店長が食べる味見の分も、先に決めとこう。作った人だけ食べられないの、もったいないし。","smile"),
+    d("次に使い切れたか、俺にも聞かせて。明日の仕入れ、そこから考えような。","smile"),
+  ],
+  [
+    d("前のパン、最後まで使えたんだな。じゃあ、今日はこれも試してみないか。","smile"),
+    d("朝焼けはちみつ。焼きたてに薄く塗ると、香りが立つんだ。","serious"),
+    d("まずは、そのまま少し。甘さを決めてから、パンに合わせよう。","normal"),
+    d("多く塗ればうまい、ってわけでもないからな。パンの味が残るくらいで。","serious"),
+    d("……店長が控えた方、飲み物にも合いそうだな。俺のおすすめだけで決めなくてよかった。","smile"),
+    d("最初は少量で試して、使い切れる量も確かめよう。余らせず楽しめる方がいいし。","serious"),
+    d("次の休憩に食べた感想、聞かせてくれ。お客さんの話も、店長の話も、両方な。","blush"),
+  ],
+  [
+    d("パンの料理、よく出るようになったな。次は、はちみつを合わせて焼いてみよう。","smile"),
+    d("俺が生地を見るから、店長には甘さと食べる量を頼めるか？","serious"),
+    d("層を潰さずに折って、焼いたあとも軽くしたい。見た目だけじゃなくて、最後まで食べやすい方がいいよな。","serious"),
+    d("はちみつは、このくらい。もう少し足したいなら、味見してからにしよう。","normal"),
+    d("……店長の方、香りが残るな。俺はこっちが好きだ。店の客にはどうだろう？","smile"),
+    d("じゃあ、同じ量でもう一組。次も同じ味に出来るように、順番まで書いとこう。","serious"),
+    d("うまくいかなかった方も、消さずに残して。明日、また試す時に使えるから。","serious"),
+    d("味見は二人分、先に取るぞ。仕事で作っても、俺たちの休憩までなくさなくていいし。","smile"),
+    d("はちみつクロワッサン。最初に出た日、どんな顔で食べてもらえたか、俺にも聞かせて。","smile"),
+  ],
+  [
+    d("パンの料理が増えたなら、焼く場所も考えたいな。小さな石窯の候補、見つけたぞ。","serious"),
+    d("今すぐ買ってって話じゃない。店長が毎日使えるか、まず確かめよう。","serious"),
+    d("ここがいつも立つ場所か。じゃあ、この棚を勝手に動かさずに考えるな。","serious"),
+    d("置く幅だけじゃなくて、掃除する時間も要る。仕込みの順番と一緒に見よう。","serious"),
+    d("……一つずつ、店長が使いやすいようにしてあるんだな。こうして見ると分かるとこ、増える。","smile"),
+    d("お金と時間に余裕が出来た時でいい。選ぶ時も、俺に相談してくれ。","smile"),
+    d("使い始めて分からなくなったら呼んで。説明書だけ置いて、あとは一人でってことにしないから。","smile"),
+  ],
+  [
+    d("クロワッサン、五つも出たのか。いいな。店長のカフェに合う味になってきた。","smile"),
+    d("今度は、朝焼けはちみつでフレンチトーストを考えよう。パンに浸す量も、確かめながら。","serious"),
+    d("中まで柔らかくしたいけど、持ち上げた時に崩れると出しにくい。まず、この厚さで試そう。","serious"),
+    d("俺が焼く方を見る。店長には、出す量と甘さを頼めるか？","serious"),
+    d("……少し控えた方、パンの香りが分かるな。飲み物にも合わせやすそうだ。","smile"),
+    d("じゃあ、この配合で。忙しい朝にも同じ味で出せるように、順番を残しておこう。","serious"),
+    d("店長の分も一皿、取ってあるぞ。味見する時は、ちゃんと座って食べて。","smile"),
+    d("俺も一緒に食べる。どこが好きだったか、店長から直接聞きたいから。","blush"),
+    d("朝焼けフレンチトースト。次の朝に出した話、楽しみにしてるな。","smile"),
+  ],
 ];
-export const taiyoDateDialogue={
-  amusement:["今日は、店で仕事を相談して空けてきたぞ。お前と遊ぶために。……先に言うと照れるな。","どれから乗る？　俺はあれ、気になる。お前の行きたいのも聞いて決めよう。","パンの売り場、見えるな。でも研究は別の日。今日はお前と乗り物に乗りたい。","この菓子、半分ずつ交換しよう。大きい方だけ譲るんじゃなくて、俺も両方食べたいから。","……お前が選んだ方、俺も好きだな。そういうの覚えるの、楽しいな。","観覧車、思ったより揺れる。平気な顔しようと思ったけど、今日は言っとく。少し緊張するな。","手、つないでもいいか？　揺れるからだけじゃなくて、お前の近くにいたい。","夕焼け見てる顔も、さっき笑ってた顔も、どっちも好きだな。……俺も赤い？　まあ、照れるから。","次、もう一つ乗ろう。お前がいいなら、帰る時間までまだ一緒にいたい。"],
-  walk:["片づけ、お疲れ。今日は配達の帰りじゃなくて、お前を誘いに来た。","川沿い、少し歩くか？　疲れてたら短い道に変えよう。お前はどうしたい？","この道、朝は箱を持って急いで通ってた。こうして並ぶと、見えるもの違うな。","こもれびの前を通る時、いつ仕事が終わるかなって考えてたんだ。","最初は、困ってることないかって。それから、少し会いたいなって。","今日は、会いたいって先に言えてよかった。役に立つ用、探さなくてもいいから。","……手、つないでもいいか？　お前と隣で歩くの、まだ少し緊張するな。","今日の店の話も聞かせて。俺の話ばっかじゃなくて、お前がどうだったか知りたい。","もう少し遠回りしたいな。お前もよければ、次の橋まで一緒に。","次の休みも相談しよう。忙しいから余った時間で、じゃなくて、二人で会う日として空けたい。"],
-  home:["お邪魔します。焼きたて、少し持ってきた。でも今日は、役に立つ用を探さず休む日な。","お茶、ありがと。まず俺も座る。何か運ぶかって言いそうになったけど、今日は待つ。","隣、座っていいか？　店にいる時より、お前の顔が少し柔らかいな。","この毛布、もう少し寄れば二人で使えるな。お前が窮屈じゃなければ。","好きな曲、かけようか。あの席で教えてくれたやつ、一緒に聞いてみたかった。","……黙ってるの、気まずいんじゃないぞ。お前と座ってるだけでも、楽しいから。","今日は少し疲れた。肩、借りてもいいか？　お前が疲れた時は、俺の方に寄って。","何もしない日って、前はすぐ仕事を入れてたな。今は、お前と過ごす時間として残したい。","次は俺がお茶を淹れる。お前にも、今日の俺みたいにゆっくり休んでもらいたいから。"],
+
+export const taiyoDateDialogue:{amusement:SimpleDialogueLine[];walk:SimpleDialogueLine[];home:SimpleDialogueLine[]}={
+  amusement:[
+    d("今日は、店で仕事を相談して空けてきたぞ。お前と遊ぶために。……先に言うと照れるな。","blush"),
+    d("どれから乗る？　俺はあれ、気になる。お前の行きたいのも聞いて決めよう。","smile"),
+    d("パンの売り場、見えるな。でも研究は別の日。今日はお前と乗り物に乗りたい。","serious"),
+    d("この菓子、半分ずつ交換しよう。大きい方だけ譲るんじゃなくて、俺も両方食べたいから。","smile"),
+    d("……お前が選んだ方、俺も好きだな。そういうの覚えるの、楽しいな。","blush"),
+    d("観覧車、思ったより揺れる。平気な顔しようと思ったけど、今日は言っとく。少し緊張するな。","surprised"),
+    d("手、つないでもいいか？　揺れるからだけじゃなくて、お前の近くにいたい。","blush"),
+    d("夕焼け見てる顔も、さっき笑ってた顔も、どっちも好きだな。……俺も赤い？　まあ、照れるから。","blush"),
+    d("次、もう一つ乗ろう。お前がいいなら、帰る時間までまだ一緒にいたい。","smile"),
+  ],
+  walk:[
+    d("片づけ、お疲れ。今日は配達の帰りじゃなくて、お前を誘いに来た。","smile"),
+    d("川沿い、少し歩くか？　疲れてたら短い道に変えよう。お前はどうしたい？","normal"),
+    d("この道、朝は箱を持って急いで通ってた。こうして並ぶと、見えるもの違うな。","smile"),
+    d("こもれびの前を通る時、いつ仕事が終わるかなって考えてたんだ。","blush"),
+    d("最初は、困ってることないかって。それから、少し会いたいなって。","blush"),
+    d("今日は、会いたいって先に言えてよかった。役に立つ用、探さなくてもいいから。","smile"),
+    d("……手、つないでもいいか？　お前と隣で歩くの、まだ少し緊張するな。","blush"),
+    d("今日の店の話も聞かせて。俺の話ばっかじゃなくて、お前がどうだったか知りたい。","serious"),
+    d("もう少し遠回りしたいな。お前もよければ、次の橋まで一緒に。","smile"),
+    d("次の休みも相談しよう。忙しいから余った時間で、じゃなくて、二人で会う日として空けたい。","serious"),
+  ],
+  home:[
+    d("お邪魔します。焼きたて、少し持ってきた。でも今日は、役に立つ用を探さず休む日な。","smile"),
+    d("お茶、ありがと。まず俺も座る。何か運ぶかって言いそうになったけど、今日は待つ。","smile"),
+    d("隣、座っていいか？　店にいる時より、お前の顔が少し柔らかいな。","blush"),
+    d("この毛布、もう少し寄れば二人で使えるな。お前が窮屈じゃなければ。","blush"),
+    d("好きな曲、かけようか。あの席で教えてくれたやつ、一緒に聞いてみたかった。","smile"),
+    d("……黙ってるの、気まずいんじゃないぞ。お前と座ってるだけでも、楽しいから。","blush"),
+    d("今日は少し疲れた。肩、借りてもいいか？　お前が疲れた時は、俺の方に寄って。","sad"),
+    d("何もしない日って、前はすぐ仕事を入れてたな。今は、お前と過ごす時間として残したい。","serious"),
+    d("次は俺がお茶を淹れる。お前にも、今日の俺みたいにゆっくり休んでもらいたいから。","smile"),
+  ],
 };

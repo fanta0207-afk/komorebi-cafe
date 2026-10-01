@@ -98,6 +98,46 @@ test('Ren expressions are explicit in every requested conversation surface',()=>
   assert.doesNotMatch(sources,/includes\([^)]*(?:笑|照|悲|驚|真剣)/);
 });
 
+test('Shizuka expressions are explicit in every requested conversation surface',()=>{
+  const shizuka=characters.find(character=>character.id==='nagisa');
+  const expressions=['normal','smile','blush','sad','surprised','serious'];
+  assert.deepEqual(shizuka.giftReactionExpressions,{love:'blush',like:'smile',normal:'normal',dislike:'sad'});
+  assert.ok(Object.values(shizuka.giftReactionExpressions).every(expression=>expressions.includes(expression)));
+
+  const stories=relationshipEvents.filter(event=>event.characterId==='nagisa');
+  assert.equal(stories.length,10);
+  for(const event of stories){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[]),...(event.choices||[]).flatMap(choice=>choice.response)].filter(line=>line.speaker==='character');
+    assert.ok(lines.length>0,event.id);
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: Shizuka line without explicit expression`);
+  }
+  for(const event of staffStoryEvents.filter(event=>event.characterId==='nagisa')){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[])].filter(line=>line.speaker==='character');
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: Shizuka staff line without explicit expression`);
+  }
+  for(const event of growthEvents.filter(event=>event.characterId==='nagisa')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.eventId}: missing explicit Shizuka expression`);
+  }
+  for(const event of dateEvents.filter(event=>event.characterId==='nagisa')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.id}: missing explicit Shizuka expression`);
+  }
+  for(const event of dramaEvents.filter(event=>event.participantIds.includes('nagisa'))){
+    const lines=event.dialogue.filter(line=>line.speaker==='nagisa');
+    assert.ok(lines.length>0,event.id);
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: missing explicit Shizuka expression`);
+  }
+
+  for(const reaction of ['love','like','normal','dislike']){
+    const gift=gifts.find(item=>giftReaction(shizuka,item)===reaction);
+    const state={...createInitialState(),inventory:{[gift.id]:1}};
+    const next=reducer(state,{type:'GIVE_GIFT',characterId:'nagisa',giftId:gift.id,reaction});
+    assert.equal(next.pendingGiftReaction.expression,shizuka.giftReactionExpressions[reaction]);
+    const legacy=structuredClone(next);
+    delete legacy.pendingGiftReaction.expression;
+    assert.equal(migrateSavedState(legacy).pendingGiftReaction.expression,shizuka.giftReactionExpressions[reaction]);
+  }
+});
+
 test('Taiyo expressions are explicit in every requested conversation surface',()=>{
   const taiyo=characters.find(character=>character.id==='haru');
   const expressions=['normal','smile','blush','sad','surprised','serious'];
@@ -218,11 +258,11 @@ test('Aoi expressions are explicit in every requested conversation surface',()=>
   }
 });
 
-test('six cafe drama stories have valid fixed casts, deterministic triggers, and no gameplay consequence',()=>{
+test('eleven cafe drama stories have valid fixed casts, deterministic triggers, and no gameplay consequence',()=>{
   const gameSource=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
   assert.match(gameSource,/if\(screen==="cafe"\)\{[\s\S]*?availableDramaEvent\(state\)/);
-  assert.equal(dramaEvents.length,6);
-  assert.equal(new Set(dramaEvents.map(event=>event.id)).size,6);
+  assert.equal(dramaEvents.length,11);
+  assert.equal(new Set(dramaEvents.map(event=>event.id)).size,11);
   for(const event of dramaEvents){
     assert.ok(event.dialogue.length>=10,event.id);
     assert.ok(event.participantIds.length>=2,event.id);
@@ -272,6 +312,51 @@ test('six cafe drama stories have valid fixed casts, deterministic triggers, and
   assert.deepEqual(completed.unlockedEquipment,before.unlockedEquipment);
   const legacy=structuredClone(key);legacy.saveVersion=25;delete legacy.viewedDramaEvents;
   assert.deepEqual(migrateSavedState(legacy).viewedDramaEvents,[]);
+});
+
+test('new drama stories respect stage, romance and previous-story requirements',()=>{
+  const cases=[
+    ['drama-shared-umbrella',['aki','sae'],7,false,false],
+    ['drama-usual-order',['ren','itsuki'],8,false,false],
+    ['drama-borrowed-jacket',['haru','nagisa'],8,true,false],
+    ['drama-two-reservations',['sota','cacao'],8,true,false],
+    ['drama-practice-confession',['aki','itsuki'],9,true,true],
+  ];
+  for(const [eventId,ids,stage,needsRomance,needsPrevious] of cases){
+    const event=dramaEvents.find(item=>item.id===eventId);
+    const state=createInitialState();
+    for(const id of ids)state.characterProgress[id]={...state.characterProgress[id],met:true,relationshipStage:stage,route:'friendship'};
+    if(needsPrevious)state.viewedDramaEvents=['drama-private-name'];
+    assert.equal(dramaRequirementsMet(event,state),!needsRomance,eventId);
+    state.characterProgress[ids[0]].route='romance';
+    assert.ok(dramaRequirementsMet(event,state),eventId);
+    for(const id of ids){
+      state.characterProgress[id].relationshipStage=stage-1;
+      assert.equal(dramaRequirementsMet(event,state),false,`${eventId}: ${id} below stage`);
+      state.characterProgress[id].relationshipStage=stage;
+    }
+    if(needsPrevious){
+      state.viewedDramaEvents=[];
+      assert.equal(dramaRequirementsMet(event,state),false,eventId);
+      state.viewedDramaEvents=['drama-private-name'];
+    }
+    state.viewedDramaEvents.push(eventId);
+    assert.notEqual(availableDramaEvent(state)?.id,eventId);
+  }
+});
+
+test('drama skip completes once and preserves progress for later replay',()=>{
+  const source=readFileSync(new URL('../src/components/DramaStoryModal.tsx',import.meta.url),'utf8');
+  assert.match(source,/className="drama-skip-button" onClick=\{onComplete\}>スキップ/);
+  const state=createInitialState();
+  const action={type:'COMPLETE_DRAMA_EVENT',eventId:'drama-shared-umbrella'};
+  for(const id of ['aki','sae'])state.characterProgress[id]={...state.characterProgress[id],met:true,relationshipStage:7};
+  const skipped=reducer(state,action);
+  assert.deepEqual(skipped.viewedDramaEvents,['drama-shared-umbrella']);
+  assert.deepEqual(skipped.characterProgress,state.characterProgress);
+  assert.equal(skipped.currency,state.currency);
+  assert.deepEqual(reducer(skipped,action).viewedDramaEvents,skipped.viewedDramaEvents);
+  assert.deepEqual(migrateSavedState(skipped).viewedDramaEvents,skipped.viewedDramaEvents);
 });
 
 test('completed cafe drama stories are listed in the people screen and replay without completion dispatch',()=>{
@@ -526,7 +611,7 @@ for(const character of characters.map(item=>item.id))test(`${character}: normal 
   assert.equal(romance.characterProgress[character].route,'romance');
   assert.equal(friendship.characterProgress[character].route,'friendship');
   assert.equal(romance.characterProgress[character].viewedEvents.length,10);
-  assert.equal(relationshipLabel(10,'romance'),'ふたりの未来');
+  assert.equal(relationshipLabel(10,'romance'),'恋人・ふたりの未来');
   assert.equal(relationshipLabel(10,'friendship'),'これからも仕事仲間');
   for(const key of ['unlockedRecipes','unlockedIngredients','unlockedEquipment','unlockedDecorations'])assert.deepEqual(romance[key],friendship[key]);
   assert.equal(availableEvent(romance,relationshipEvents),undefined);

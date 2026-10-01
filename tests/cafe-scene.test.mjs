@@ -72,6 +72,22 @@ test('the supplied Shizuka artwork is used for full portraits and face selectors
   assert.equal(png.readUInt32BE(20),1536);
 });
 
+test('Shizuka has five transparent story expression sprites with a normal-art fallback',()=>{
+  const shizuka=characters.find(character=>character.id==='nagisa');
+  assert.equal(shizuka.storyImage,'/assets/characters/nagisa-story-cutout.png');
+  assert.deepEqual(Object.keys(shizuka.expressionImages).sort(),['blush','sad','serious','smile','surprised']);
+  for(const [expression,asset] of Object.entries(shizuka.expressionImages)){
+    assert.equal(storyArtSource(shizuka,expression),asset);
+    const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
+    assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    assert.equal(png.readUInt32BE(16),1024);
+    assert.equal(png.readUInt32BE(20),1536);
+    assert.equal(png[25],6,`${expression} must use RGBA transparency`);
+  }
+  assert.equal(storyArtSource(shizuka,'normal'),shizuka.storyImage);
+  assert.equal(storyArtSource(shizuka,'missing-expression'),shizuka.storyImage);
+});
+
 test('the supplied Earl Grey artwork is used for full portraits and face selectors',()=>{
   const earlGrey=characters.find(character=>character.id==='itsuki');
   assert.equal(earlGrey.image,'/assets/characters/earl-grey.png');

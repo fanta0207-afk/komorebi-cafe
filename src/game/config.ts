@@ -50,7 +50,7 @@ export const GAME_CONFIG = {
 
 export const relationshipNames = [
   "未訪問", "はじめまして", "顔なじみ", "信頼の芽", "近づく距離", "素顔を知る",
-  "特別な存在", "心を分かち合う", "大切な約束", "恋人", "ふたりの未来",
+  "特別な存在", "心を分かち合う", "大切な約束", "恋人", "恋人・ふたりの未来",
 ];
 
 export const MENU_MASTERY_LEVELS = [

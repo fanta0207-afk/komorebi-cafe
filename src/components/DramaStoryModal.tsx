@@ -21,7 +21,7 @@ export function DramaStoryModal({event,onComplete,readOnly=false}:{event:DramaEv
   return <GameModal className="story-modal story-player drama-story-player" labelledBy="drama-story-title" onCancel={readOnly?onComplete:undefined} layerClassName="story-modal-layer">
     {readOnly&&<button type="button" className="story-close-button" aria-label="思い出を閉じる" onClick={onComplete}>×</button>}
     <header className="story-player-heading">
-      <div className="story-header"><span>{readOnly?"思い出帳から読み返す":"カフェで起きた特別な出来事"}</span></div>
+      <div className="story-header"><span>{readOnly?"思い出帳から読み返す":"カフェで起きた特別な出来事"}</span><button type="button" className="drama-skip-button" onClick={onComplete}>スキップ</button></div>
       <h2 id="drama-story-title">{event.title}</h2>
       <p>{event.subtitle}</p>
     </header>

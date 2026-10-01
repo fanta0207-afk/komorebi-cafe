@@ -22,7 +22,17 @@ export function dramaRequirementsMet(event:DramaEvent,state:GameState) {
       return Object.values(state.characterProgress).filter(item=>item.relationshipStage>=7).length>=4;
     case "drama-dont-go":
       return ["ren","cacao"].every(id=>romance(state,id))
-        &&dramaEvents.filter(item=>item.id!==event.id).every(item=>state.viewedDramaEvents.includes(item.id));
+        &&["drama-private-name","drama-spare-key","drama-collapse","drama-engagement-rumor","drama-birthday"].every(id=>state.viewedDramaEvents.includes(id));
+    case "drama-shared-umbrella":
+      return ["aki","sae"].every(id=>stageAtLeast(state,id,7));
+    case "drama-usual-order":
+      return ["ren","itsuki"].every(id=>stageAtLeast(state,id,8));
+    case "drama-borrowed-jacket":
+      return ["haru","nagisa"].every(id=>stageAtLeast(state,id,8))&&["haru","nagisa"].some(id=>romance(state,id));
+    case "drama-two-reservations":
+      return ["sota","cacao"].every(id=>stageAtLeast(state,id,8))&&["sota","cacao"].some(id=>romance(state,id));
+    case "drama-practice-confession":
+      return ["aki","itsuki"].every(id=>stageAtLeast(state,id,9))&&["aki","itsuki"].some(id=>romance(state,id))&&state.viewedDramaEvents.includes("drama-private-name");
     default:return false;
   }
 }

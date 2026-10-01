@@ -217,6 +217,19 @@ export const characters: Character[] = [
     "profile": "古い温室のある花・ハーブ店を営む。香りや光に敏感で、「雨の前は葉が少し急いでいる」など独特の表現をする。静かな観察力と、ふいに出る率直な一言が魅力。神秘的に見える場面も、植物や暮らしへの細やかな注意で説明でき、超常現象の有無は確定させない。",
     "image": "/assets/characters/shizuka.png",
     "storyImage": "/assets/characters/nagisa-story-cutout.png",
+    "expressionImages": {
+      "smile": "/assets/characters/shizuka-expression-smile.png",
+      "blush": "/assets/characters/shizuka-expression-blush.png",
+      "sad": "/assets/characters/shizuka-expression-sad.png",
+      "surprised": "/assets/characters/shizuka-expression-surprised.png",
+      "serious": "/assets/characters/shizuka-expression-serious.png"
+    },
+    "giftReactionExpressions": {
+      "love": "blush",
+      "like": "smile",
+      "normal": "normal",
+      "dislike": "sad"
+    },
     "silhouette": "静",
     "favoriteGiftTags": [
       "flower",

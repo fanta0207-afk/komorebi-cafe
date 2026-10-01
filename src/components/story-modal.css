@@ -154,6 +154,25 @@
 }
 .gift-reaction-popup .story-footer { justify-content:flex-end; }
 
+.drama-story-player .story-header { display:flex;align-items:center;justify-content:space-between;gap:8px;letter-spacing:normal; }
+.drama-story-player .story-header>span { flex:1;min-width:0; }
+.drama-story-player .story-header .drama-skip-button {
+  pointer-events:auto;
+  flex:0 0 72px;
+  width:72px;
+  height:32px;
+  min-height:32px;
+  padding:4px 8px;
+  box-sizing:border-box;
+  border:1px solid #ddc18c;
+  border-radius:8px;
+  background:#2b211ddd;
+  color:#fff8e9;
+  font-size:12px;
+  line-height:1.4;
+  white-space:nowrap;
+  cursor:pointer;
+}
 .drama-story-player .story-player-heading>p {
   margin:4px 0 0;
   color:#dfc894;
@@ -182,6 +201,9 @@
 }
 .drama-count-2 .drama-cast-member.is-left { left:-4%;--drama-facing:-1; }
 .drama-count-2 .drama-cast-member.is-right { right:-4%;--drama-facing:1; }
+/* Sae's original standing art faces right, unlike the other two-person cast art. */
+.drama-count-2 .drama-cast-member[data-character="sae"].is-left { --drama-facing:1; }
+.drama-count-2 .drama-cast-member[data-character="sae"].is-right { --drama-facing:-1; }
 .drama-standing-art {
   display:block;
   width:150%;

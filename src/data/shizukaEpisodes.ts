@@ -1,4 +1,6 @@
-import type { RelationshipEvent, StaffStoryEvent } from "../types/game";
+import type { CharacterExpression, RelationshipEvent, SimpleDialogueLine, StaffStoryEvent } from "../types/game";
+
+const d=(text:string,expression:CharacterExpression):SimpleDialogueLine=>({text,expression});
 
 // Existing nagisa IDs, thresholds, choice IDs and rewards stay compatible.
 export const shizukaRelationshipEvents:RelationshipEvent[] = [
@@ -16,7 +18,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "灰島静。こもれびの店長さんだね。……少し雨の匂いがする。ここで一息ついてから選ぼう。"
+        "text": "灰島静。こもれびの店長さんだね。……少し雨の匂いがする。ここで一息ついてから選ぼう。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -24,7 +27,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "湿った土と、葉の匂いがいつもより近い。外れることもあるよ。"
+        "text": "湿った土と、葉の匂いがいつもより近い。外れることもあるよ。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -32,7 +36,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "名前より先に、好きな香りを覚えていいよ。苦手なら、無理に好きにならなくていい。"
+        "text": "名前より先に、好きな香りを覚えていいよ。苦手なら、無理に好きにならなくていい。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -40,7 +45,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "カフェの窓は、どちらを向いてる？　暖房の風が当たらない場所もあるかな。"
+        "text": "カフェの窓は、どちらを向いてる？　暖房の風が当たらない場所もあるかな。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -52,7 +58,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "置いてからも、元気でいてほしいから。あなたが毎朝見る場所なら、なおさら。"
+        "text": "置いてからも、元気でいてほしいから。あなたが毎朝見る場所なら、なおさら。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -60,7 +67,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……持ち手、ここ。濡れても底が抜けないようにした。"
+        "text": "……持ち手、ここ。濡れても底が抜けないようにした。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -68,7 +76,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "元気な時だけ報告しなくていい。葉がしおれた時も、聞かせて。そこから一緒に考えよう。"
+        "text": "元気な時だけ報告しなくていい。葉がしおれた時も、聞かせて。そこから一緒に考えよう。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -76,7 +85,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次に来た時、あの窓辺の話を聞きたい。……あなたが休めたかも。"
+        "text": "次に来た時、あの窓辺の話を聞きたい。……あなたが休めたかも。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -105,7 +115,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "どちらも教えてくれて、ありがとう。土は濡れてる？　窓を開ける時、冷たい風が当たるかな。"
+        "text": "どちらも教えてくれて、ありがとう。土は濡れてる？　窓を開ける時、冷たい風が当たるかな。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -113,7 +124,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "指で表面を確かめてから。毎日決まった量より、乾いた時に少しずつ。"
+        "text": "指で表面を確かめてから。毎日決まった量より、乾いた時に少しずつ。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -121,7 +133,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "心配になると、何かしたくなるよね。……僕も、待つのは上手じゃない。"
+        "text": "心配になると、何かしたくなるよね。……僕も、待つのは上手じゃない。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -129,7 +142,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、お茶にしてみよう。強く揉まないで、最初はこのくらい。"
+        "text": "今日は、お茶にしてみよう。強く揉まないで、最初はこのくらい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -137,7 +151,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。あなたは、どちらが好き？"
+        "text": "うん。あなたは、どちらが好き？",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -149,7 +164,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "じゃあ、カフェで出す量を一緒に決めよう。あなたの休憩の分も、残せるように。"
+        "text": "じゃあ、カフェで出す量を一緒に決めよう。あなたの休憩の分も、残せるように。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -157,7 +173,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……少し温まったね。"
+        "text": "……少し温まったね。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -165,7 +182,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "葉の話をしに来てくれた人も、見てる。覚えていてくれたの、うれしかったから。"
+        "text": "葉の話をしに来てくれた人も、見てる。覚えていてくれたの、うれしかったから。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -193,7 +211,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "濡れたね。乾いた布がある。肩のところ、自分で拭ける？"
+        "text": "濡れたね。乾いた布がある。肩のところ、自分で拭ける？",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -201,7 +220,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "屋根の傾きが違うから。奥は低い音がする。……聞きに行く？"
+        "text": "屋根の傾きが違うから。奥は低い音がする。……聞きに行く？",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -209,7 +229,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "床、ここだけ滑る。僕の腕につかまってもいいよ。"
+        "text": "床、ここだけ滑る。僕の腕につかまってもいいよ。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -221,7 +242,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "雨の日だけ、ここは少し違う部屋になる。祖母も、同じ場所でよく立ち止まってた。"
+        "text": "雨の日だけ、ここは少し違う部屋になる。祖母も、同じ場所でよく立ち止まってた。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -229,7 +251,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。子どもの頃、鋏より先に、落ちた葉を拾う係をもらった。帰りに押し花を一枚、選ばせてくれて。"
+        "text": "うん。子どもの頃、鋏より先に、落ちた葉を拾う係をもらった。帰りに押し花を一枚、選ばせてくれて。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -237,7 +260,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "店を引き継ぐまで、町の外で働いてたんだ。温室を見せてもらう約束、また今度って延ばしてた。"
+        "text": "店を引き継ぐまで、町の外で働いてたんだ。温室を見せてもらう約束、また今度って延ばしてた。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -245,7 +269,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。あなたが音の違いに気づいたから、もう一つ見せたくなった。"
+        "text": "うん。あなたが音の違いに気づいたから、もう一つ見せたくなった。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -253,7 +278,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "カモミールとレモンバームも、カフェで試してみる？　雨の日に、温かい一杯が似合いそう。"
+        "text": "カモミールとレモンバームも、カフェで試してみる？　雨の日に、温かい一杯が似合いそう。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -261,7 +287,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……僕の分も淹れてくれるんだ。楽しみにする。"
+        "text": "……僕の分も淹れてくれるんだ。楽しみにする。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -290,7 +317,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "まだ、少し時間はある？　窓辺に飾る花を持ってきた。"
+        "text": "まだ、少し時間はある？　窓辺に飾る花を持ってきた。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -298,7 +326,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "あの日、カップの模様を見て言ってた。覚えてたよ。"
+        "text": "あの日、カップの模様を見て言ってた。覚えてたよ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -306,7 +335,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "こっちからも見てみて。座った時に、顔が隠れない高さで。"
+        "text": "こっちからも見てみて。座った時に、顔が隠れない高さで。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -314,7 +344,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "それも。……お茶を飲む君の顔も。"
+        "text": "それも。……お茶を飲む君の顔も。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -326,7 +357,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "座りたい。今日は、店がどうなったか見たかった。"
+        "text": "座りたい。今日は、店がどうなったか見たかった。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -334,7 +366,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "花を届ける理由があって、よかった。何も持たずに来るのは、少し迷ったから。"
+        "text": "花を届ける理由があって、よかった。何も持たずに来るのは、少し迷ったから。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -342,7 +375,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……仕入れだけじゃない。君が、ここでどんな顔をしてるか知りたかった。"
+        "text": "……仕入れだけじゃない。君が、ここでどんな顔をしてるか知りたかった。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -350,7 +384,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この花、明日はもう少し開くよ。変わったところ、僕にも聞かせて。"
+        "text": "この花、明日はもう少し開くよ。変わったところ、僕にも聞かせて。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -367,7 +402,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "……うん。君に会いに来た。次は花がなくても、来ていい？"
+            "text": "……うん。君に会いに来た。次は花がなくても、来ていい？",
+            "expression": "blush"
           },
           {
             "speaker": "player",
@@ -385,7 +421,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "ありがとう。君の隣が空いていたら、そこへ座りたい。"
+            "text": "ありがとう。君の隣が空いていたら、そこへ座りたい。",
+            "expression": "smile"
           },
           {
             "speaker": "player",
@@ -413,7 +450,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この花を見せたいと思って。今日の茶葉と、同じ頃に摘んだものなんだ。"
+        "text": "この花を見せたいと思って。今日の茶葉と、同じ頃に摘んだものなんだ。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -421,7 +459,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "祖母は、植物と一緒に、その日のことも残してた。僕のこと、こんなに書いてたんだね。"
+        "text": "祖母は、植物と一緒に、その日のことも残してた。僕のこと、こんなに書いてたんだね。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -429,7 +468,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そのままでいいよ。二人で見やすいから。……狭かったら言って。"
+        "text": "そのままでいいよ。二人で見やすいから。……狭かったら言って。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -437,7 +477,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この先に何を書けばいいか、ずっと分からなかった。"
+        "text": "この先に何を書けばいいか、ずっと分からなかった。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -445,7 +486,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。でも、毎年同じ頁を開いて、閉じてる。祖母がいた頃から、ここだけ進んでないみたいで。"
+        "text": "うん。でも、毎年同じ頁を開いて、閉じてる。祖母がいた頃から、ここだけ進んでないみたいで。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -457,7 +499,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "無理に花を入れなくても、いいのかな。"
+        "text": "無理に花を入れなくても、いいのかな。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -469,7 +512,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "まず、別の紙でやってみる。……君が隣でお茶を飲んだ日、って。"
+        "text": "まず、別の紙でやってみる。……君が隣でお茶を飲んだ日、って。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -477,7 +521,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "これは、カフェの休憩に合うブレンド。君が好きだと言った、軽い方を残してみた。"
+        "text": "これは、カフェの休憩に合うブレンド。君が好きだと言った、軽い方を残してみた。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -485,7 +530,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "僕は……今日みたいに、飲み終わっても急いで帰らなくていいお茶が好き。"
+        "text": "僕は……今日みたいに、飲み終わっても急いで帰らなくていいお茶が好き。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -513,7 +559,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "咲いたんだね。ここで、ちゃんと光を受けたんだ。"
+        "text": "咲いたんだね。ここで、ちゃんと光を受けたんだ。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -525,7 +572,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "花を見たかった。君が喜ぶ顔も、見たかった。"
+        "text": "花を見たかった。君が喜ぶ顔も、見たかった。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -533,7 +581,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。僕まで、ここに苗を置いてよかったと思うくらい。"
+        "text": "うん。僕まで、ここに苗を置いてよかったと思うくらい。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -545,7 +594,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "急がないで。今日は、その後の時間も空けてきた。"
+        "text": "急がないで。今日は、その後の時間も空けてきた。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -553,7 +603,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここ、いい？　同じ窓を見ながら話したい。"
+        "text": "ここ、いい？　同じ窓を見ながら話したい。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -561,7 +612,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "君も、そうなんだ。僕も、温室に君がいると、いつもの場所を見直す。"
+        "text": "君も、そうなんだ。僕も、温室に君がいると、いつもの場所を見直す。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -569,7 +621,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今度、夕暮れの温室を一緒に歩かない？　花の様子を見た後、お茶も飲める。"
+        "text": "今度、夕暮れの温室を一緒に歩かない？　花の様子を見た後、お茶も飲める。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -577,7 +630,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。僕も店の予定を確かめる。……曖昧にしないで、決めたい。"
+        "text": "うん。僕も店の予定を確かめる。……曖昧にしないで、決めたい。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -602,7 +656,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "来てくれてありがとう。ごめん、今日は奥まで歩けない。棚の脚が傷んでいて。"
+        "text": "来てくれてありがとう。ごめん、今日は奥まで歩けない。棚の脚が傷んでいて。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -610,7 +665,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "店の人に見てもらった。交換した方がいいって。……返事だけ、まだ出来てない。"
+        "text": "店の人に見てもらった。交換した方がいいって。……返事だけ、まだ出来てない。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -618,7 +674,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここ、祖母がいつも手を置いてた。新しくすると、それまでなくなる気がする。"
+        "text": "ここ、祖母がいつも手を置いてた。新しくすると、それまでなくなる気がする。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -626,7 +683,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "君に全部決めてもらうつもりはないよ。ただ、少しそばにいてほしい。"
+        "text": "君に全部決めてもらうつもりはないよ。ただ、少しそばにいてほしい。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -634,7 +692,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "約束も、また今度にしそうになった。片づくまで会わない方がいいって。"
+        "text": "約束も、また今度にしそうになった。片づくまで会わない方がいいって。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -642,7 +701,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……僕は、君が来る日を待ってた。棚の返事を考えてる時も。"
+        "text": "……僕は、君が来る日を待ってた。棚の返事を考えてる時も。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -654,7 +714,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。同じ形じゃなくても、ここを好きでいていいのかな。"
+        "text": "うん。同じ形じゃなくても、ここを好きでいていいのかな。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -662,7 +723,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "花店の仕事も少し整理する。カフェを手伝える時間、ちゃんと作りたいから。"
+        "text": "花店の仕事も少し整理する。カフェを手伝える時間、ちゃんと作りたいから。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -670,7 +732,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。君の店で働くことも、会うことも、余った時間のままにしたくない。"
+        "text": "うん。君の店で働くことも、会うことも、余った時間のままにしたくない。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -684,7 +747,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "これと、あの小さな鉢。……自分で選んでみる。木も残せるところがないか、職人さんに聞くよ。"
+            "text": "これと、あの小さな鉢。……自分で選んでみる。木も残せるところがないか、職人さんに聞くよ。",
+            "expression": "serious"
           },
           {
             "speaker": "player",
@@ -692,7 +756,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "うん。次の予定も、そこで決めよう。君を待たせたままにしないで。"
+            "text": "うん。次の予定も、そこで決めよう。君を待たせたままにしないで。",
+            "expression": "smile"
           }
         ]
       },
@@ -702,7 +767,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "うん。新しい棚へ置いても、この鉢で育った時間は残るね。"
+            "text": "うん。新しい棚へ置いても、この鉢で育った時間は残るね。",
+            "expression": "smile"
           },
           {
             "speaker": "player",
@@ -710,7 +776,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "ありがとう。僕が職人さんへ話す。……その後も、君にそばにいてほしい。"
+            "text": "ありがとう。僕が職人さんへ話す。……その後も、君にそばにいてほしい。",
+            "expression": "blush"
           }
         ]
       }
@@ -734,7 +801,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "職人さんに頼んで、残せるところを分けてもらった。全部同じじゃなくても、ここに置けたよ。"
+        "text": "職人さんに頼んで、残せるところを分けてもらった。全部同じじゃなくても、ここに置けたよ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -742,7 +810,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "もう少し右……うん。君にも、ここから見える。"
+        "text": "もう少し右……うん。君にも、ここから見える。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -750,7 +819,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "考えた。君が座った時、どんなふうに見えるか、何度も椅子を動かした。"
+        "text": "考えた。君が座った時、どんなふうに見えるか、何度も椅子を動かした。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -758,7 +828,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "花の話に隠すの、やめてみる。来週、君とお茶を飲みたい。"
+        "text": "花の話に隠すの、やめてみる。来週、君とお茶を飲みたい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -766,7 +837,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "相談も出来るけど、それだけじゃない。仕事が終わった後の君に、会いたい。"
+        "text": "相談も出来るけど、それだけじゃない。仕事が終わった後の君に、会いたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -774,7 +846,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "来週の木曜、夕方はどう？　都合が違ったら、別の日を一緒に決めよう。"
+        "text": "来週の木曜、夕方はどう？　都合が違ったら、別の日を一緒に決めよう。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -786,7 +859,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……そう言われると、予定を書く手が落ち着かないね。"
+        "text": "……そう言われると、予定を書く手が落ち着かないね。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -794,7 +868,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "するよ。君が来ると、うれしくて、何を先に話そうか迷う。"
+        "text": "するよ。君が来ると、うれしくて、何を先に話そうか迷う。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -802,7 +877,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "木曜は、仕入れの包みを持たずに来て。今日は僕が、君のためにお茶を用意する。"
+        "text": "木曜は、仕入れの包みを持たずに来て。今日は僕が、君のためにお茶を用意する。",
+        "expression": "smile"
       }
     ],
     "reward": {
@@ -823,7 +899,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "来てくれて、うれしい。今日は店を早く閉めて、ここで待ってた。"
+        "text": "来てくれて、うれしい。今日は店を早く閉めて、ここで待ってた。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -835,7 +912,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……少し触れたままでも、いい？"
+        "text": "……少し触れたままでも、いい？",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -847,7 +925,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "祖母と約束した日、また今度って言った。その今度は、来なかった。"
+        "text": "祖母と約束した日、また今度って言った。その今度は、来なかった。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -855,7 +934,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。大切にすると、失うのが怖くなる。君が帰った後も、次に来る保証はないって考えてた。"
+        "text": "うん。大切にすると、失うのが怖くなる。君が帰った後も、次に来る保証はないって考えてた。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -863,7 +943,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "でも、会いたくないふりをしても、平気にならなかった。君が来る日を待つのは、もうやめたくない。"
+        "text": "でも、会いたくないふりをしても、平気にならなかった。君が来る日を待つのは、もうやめたくない。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -871,7 +952,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……君が好きだ。仕入れの相手や、大事な友達としてだけじゃなくて。恋人になりたい。"
+        "text": "……君が好きだ。仕入れの相手や、大事な友達としてだけじゃなくて。恋人になりたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -883,7 +965,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "僕も。落ち着いて見せたかったけど……今は、見ててほしい。"
+        "text": "僕も。落ち着いて見せたかったけど……今は、見ててほしい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -891,7 +974,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "先のことは分からない。でも、次の季節も君と過ごしたい。会えない日は相談して、また会う日を決めよう。"
+        "text": "先のことは分からない。でも、次の季節も君と過ごしたい。会えない日は相談して、また会う日を決めよう。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -903,7 +987,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次はカフェへ行くね。花がなくても、君に会いに。"
+        "text": "次はカフェへ行くね。花がなくても、君に会いに。",
+        "expression": "smile"
       }
     ],
     "friendshipTitle": "次の打ち合わせ",
@@ -914,7 +999,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "棚を直してから、来る人の椅子も置きたくなった。君に、店の様子を相談していい？"
+        "text": "棚を直してから、来る人の椅子も置きたくなった。君に、店の様子を相談していい？",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -922,7 +1008,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "じゃあ、安全な通路を残して考えよう。鉢を全部どかすのではなくて。"
+        "text": "じゃあ、安全な通路を残して考えよう。鉢を全部どかすのではなくて。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -930,7 +1017,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "同じ形には戻らないけど、今日の人にも使える場所にしてみたい。"
+        "text": "同じ形には戻らないけど、今日の人にも使える場所にしてみたい。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -938,7 +1026,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。困った葉の話も、教えてね。変わったところを、次も聞きたい。"
+        "text": "うん。困った葉の話も、教えてね。変わったところを、次も聞きたい。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -946,7 +1035,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "来週の木曜、温室でお茶をしよう。営業の都合が変わったら、先に相談する。"
+        "text": "来週の木曜、温室でお茶をしよう。営業の都合が変わったら、先に相談する。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -968,7 +1058,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "おはよう。今日はこっちで、二人の記録を作りたい。"
+        "text": "おはよう。今日はこっちで、二人の記録を作りたい。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -976,7 +1067,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。祖母の頁は温室にある。ここには、君と過ごす今の頁を置こうと思って。"
+        "text": "うん。祖母の頁は温室にある。ここには、君と過ごす今の頁を置こうと思って。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -984,7 +1076,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "元気な根だ。最初に店から持って帰った時より、広い場所が要るね。"
+        "text": "元気な根だ。最初に店から持って帰った時より、広い場所が要るね。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -992,7 +1085,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "覚えてる。よかったところだけじゃなく、困ったことも話してくれた。それが、うれしかった。"
+        "text": "覚えてる。よかったところだけじゃなく、困ったことも話してくれた。それが、うれしかった。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1000,7 +1094,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "君の休憩が終わるまで、僕も座る。今日は、お茶の名前も一緒に考えたい。"
+        "text": "君の休憩が終わるまで、僕も座る。今日は、お茶の名前も一緒に考えたい。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1008,7 +1103,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "僕は、この軽いミントが好き。君が最初に、ほっとすると言った香りでもあるね。"
+        "text": "僕は、この軽いミントが好き。君が最初に、ほっとすると言った香りでもあるね。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1020,7 +1116,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "いいね。飲み終えたら次の約束をしたくなる。……名前のせいじゃなくて、君と飲むからだけど。"
+        "text": "いいね。飲み終えたら次の約束をしたくなる。……名前のせいじゃなくて、君と飲むからだけど。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1028,7 +1125,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手、つないでいい？　休憩の間だけでも。"
+        "text": "手、つないでいい？　休憩の間だけでも。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1036,7 +1134,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……帰り道の分まで、楽しみにしてしまった。"
+        "text": "……帰り道の分まで、楽しみにしてしまった。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1044,7 +1143,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "来年の花も、君と見たい。来週会う日も、先に決めよう。遠い約束だけにしないで。"
+        "text": "来年の花も、君と見たい。来週会う日も、先に決めよう。遠い約束だけにしないで。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1069,7 +1169,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次は、ここも根が伸びる場所にしよう。カフェの光なら、この向きがよさそう。"
+        "text": "次は、ここも根が伸びる場所にしよう。カフェの光なら、この向きがよさそう。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1077,7 +1178,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。毎日世話する人が続けやすい方にしよう。"
+        "text": "うん。毎日世話する人が続けやすい方にしよう。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -1085,7 +1187,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "君の店でよく出る味を聞いて、少し軽くしてみた。どう？"
+        "text": "君の店でよく出る味を聞いて、少し軽くしてみた。どう？",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1093,7 +1196,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "じゃあ、この配合を記録しよう。窓辺の鉢と同じで、変えたくなったらまた相談して。"
+        "text": "じゃあ、この配合を記録しよう。窓辺の鉢と同じで、変えたくなったらまた相談して。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1101,7 +1205,8 @@ export const shizukaRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "植え替えの時は、また呼んで。続きを一緒に考えたい。"
+        "text": "植え替えの時は、また呼んで。続きを一緒に考えたい。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1128,7 +1233,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は花を置くだけじゃなくて、ここで働く日だね。道具の場所から教えて。"
+        "text": "今日は花を置くだけじゃなくて、ここで働く日だね。道具の場所から教えて。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1140,7 +1246,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……君は、ここからお店を見てたんだね。"
+        "text": "……君は、ここからお店を見てたんだね。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -1148,7 +1255,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。声をかける時、君の顔が近い。"
+        "text": "うん。声をかける時、君の顔が近い。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1156,7 +1264,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "先にどうぞ。僕は次を取る。……近いと、少し落ち着かないね。"
+        "text": "先にどうぞ。僕は次を取る。……近いと、少し落ち着かないね。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1168,7 +1277,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "通る時は声をかける。君も、僕を避けるために急がないで。"
+        "text": "通る時は声をかける。君も、僕を避けるために急がないで。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1176,7 +1286,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この分は僕が見る。終わったら知らせるね。君の方で、先に必要なものはある？"
+        "text": "この分は僕が見る。終わったら知らせるね。君の方で、先に必要なものはある？",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1188,7 +1299,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今度は休憩だね。お茶、二人分淹れようか。好きな温かさを教えて。"
+        "text": "今度は休憩だね。お茶、二人分淹れようか。好きな温かさを教えて。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1200,7 +1312,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "君の店で役に立てるのもうれしい。でも……一緒に働いた後、隣で休めるのが楽しみだった。"
+        "text": "君の店で役に立てるのもうれしい。でも……一緒に働いた後、隣で休めるのが楽しみだった。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1219,7 +1332,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "道具の場所から教えて。君が使いやすい順番を覚えてから動くね。"
+        "text": "道具の場所から教えて。君が使いやすい順番を覚えてから動くね。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1231,7 +1345,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "僕は次を取る。ここ、声をかけると動きやすいね。"
+        "text": "僕は次を取る。ここ、声をかけると動きやすいね。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -1239,7 +1354,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この分は終わった。使った道具も戻したよ。あとはお願いして、僕は少し休むね。"
+        "text": "この分は終わった。使った道具も戻したよ。あとはお願いして、僕は少し休むね。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1247,7 +1363,8 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "うん。君のやり方も聞きたい。次も同じ場所で、声をかけ合えるように。"
+        "text": "うん。君のやり方も聞きたい。次も同じ場所で、声をかけ合えるように。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1258,15 +1375,15 @@ export const shizukaStaffStories:StaffStoryEvent[] = [
 ];
 
 // These five business memories unlock early and do not assume romance or employment.
-export const shizukaGrowthDialogue:[string[],string[],string[],string[],string[]]=[
-  ["ハーブの包み、いつもの場所で開いてみて。カフェで続けられる順番を、一緒に確かめたい。","湿ったまま重ねると、下の葉が傷みやすい。乾いた布で水を取り、使う分だけ先に分けよう。","強く握らず、茎を持って。この葉も使えるから、落とさないよう小さな皿へ。","一杯の量を量っておくと、毎回多く取りすぎずに済む。……今の一束から、もう一杯分取れそう。","包みを戻す場所は、君が決めて。僕の店と同じより、ここで迷わない方がいい。","試飲した感想も聞かせて。お客さんが好きな味と、君が好きな味、両方知りたい。","次に葉がしおれた時も、そのまま教えて。うまくいった話だけ待ってるんじゃないよ。"],
-  ["今日はミモザの若葉を持ってきた。いつもと違う香りも、君に試してほしくて。","まず、包みを少し開いてみて。僕には明るい香りに感じるけど、君はどう？","春の朝みたい？　……そう言われると、僕も窓を開けた時を思い出す。","カフェで飲む量は、このくらいから。強く感じたら、薄くして試そう。","一度にたくさん仕入れず、使い切れる量を確かめて。季節の香りを、急いで消費しなくていい。","気に入ったところも、飲みにくかったところも残しておこう。次に摘む時、僕もそれを見たい。","君の言葉で聞くと、育ててきた葉の見え方も変わるね。次の感想、楽しみにしてる。"],
-  ["ミモザの若葉、カフェで使えてるんだね。今日は冷たい飲み物にも合わせてみよう。","温かいお茶と同じ濃さだと、氷で薄まる。この小さな量から試して。","香りを抽出したら冷まして、炭酸を最後に注ぐ。泡を消さないよう、ゆっくり。","……いい音。小さな庭をグラスにしたみたいだね。僕には、葉を揺らす雨音にも似てる。","甘さは、君のカフェに合う方を選ぼう。僕のおすすめだけで決めなくていい。","今の控えた方、香りが分かる。君が飲みやすいと思う方も、聞かせて。","同じ分量でもう一杯。次も出せるように、氷と注ぐ順番まで書いておこう。","庭先ボタニカルソーダ。お客さんに渡す時、君がどう説明するかも聞いてみたい。","僕の言葉を覚えなくていいよ。君が好きだと思ったところを、そのまま伝えて。"],
-  ["飲み物の種類が増えたね。忙しい時、香りを抽出する時間が取りにくくなってない？","少しずつ一定の時間で抽出する道具がある。ハーブ抽出器。今すぐ買う話ではなくて、候補として。","置く場所、君がいつも使う順番で見せて。通路を狭くしないところがいい。","待っている間に別の準備が出来る。でも、掃除する時間も必要だから、そこまで考えよう。","……この棚、手が届きやすい高さにしてあるんだね。いつもの仕事を見ると、分かることが増える。","お金と時間に余裕が出来た時、一緒に確かめよう。使わない道具を増やすより、続けられる方を。","選んだ後も、分からないところは聞いて。香りが違った日も、僕はその話を聞きたい。"],
-  ["庭先ボタニカルソーダ、五杯も出たんだね。抽出器の順番にも慣れたなら、温かい方をもう一つ試そう。","ミモザの若葉を、この量で。急がず待つ間、他に何を準備するかも決めておこう。","香りが開いたところで、少しずつ味を見る。春を待つみたいだけど、時計の時間も残してね。","僕の好きな方はこっち。君が飲みやすい方は、どちらかな。","……君の方、後に軽さが残るね。二つを合わせた量でも試してみたい。","同じ配合で二杯淹れよう。カフェで繰り返し出せるか、最後まで確かめて。","春待ちミモザティー。待った時間も楽しめる一杯になったね。","今日の配合と、君が気に入ったところを紙に残そう。次に変えたくなったら、続きへ書けばいい。","試飲の分は、座って飲もう。君がどんな顔で味わうかも、僕には大事な感想だから。"],
+export const shizukaGrowthDialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]=[
+  [d("ハーブの包み、いつもの場所で開いてみて。カフェで続けられる順番を、一緒に確かめたい。","smile"),d("湿ったまま重ねると、下の葉が傷みやすい。乾いた布で水を取り、使う分だけ先に分けよう。","serious"),d("強く握らず、茎を持って。この葉も使えるから、落とさないよう小さな皿へ。","serious"),d("一杯の量を量っておくと、毎回多く取りすぎずに済む。……今の一束から、もう一杯分取れそう。","serious"),d("包みを戻す場所は、君が決めて。僕の店と同じより、ここで迷わない方がいい。","normal"),d("試飲した感想も聞かせて。お客さんが好きな味と、君が好きな味、両方知りたい。","smile"),d("次に葉がしおれた時も、そのまま教えて。うまくいった話だけ待ってるんじゃないよ。","smile")],
+  [d("今日はミモザの若葉を持ってきた。いつもと違う香りも、君に試してほしくて。","smile"),d("まず、包みを少し開いてみて。僕には明るい香りに感じるけど、君はどう？","normal"),d("春の朝みたい？　……そう言われると、僕も窓を開けた時を思い出す。","smile"),d("カフェで飲む量は、このくらいから。強く感じたら、薄くして試そう。","serious"),d("一度にたくさん仕入れず、使い切れる量を確かめて。季節の香りを、急いで消費しなくていい。","serious"),d("気に入ったところも、飲みにくかったところも残しておこう。次に摘む時、僕もそれを見たい。","normal"),d("君の言葉で聞くと、育ててきた葉の見え方も変わるね。次の感想、楽しみにしてる。","smile")],
+  [d("ミモザの若葉、カフェで使えてるんだね。今日は冷たい飲み物にも合わせてみよう。","smile"),d("温かいお茶と同じ濃さだと、氷で薄まる。この小さな量から試して。","serious"),d("香りを抽出したら冷まして、炭酸を最後に注ぐ。泡を消さないよう、ゆっくり。","serious"),d("……いい音。小さな庭をグラスにしたみたいだね。僕には、葉を揺らす雨音にも似てる。","smile"),d("甘さは、君のカフェに合う方を選ぼう。僕のおすすめだけで決めなくていい。","normal"),d("今の控えた方、香りが分かる。君が飲みやすいと思う方も、聞かせて。","normal"),d("同じ分量でもう一杯。次も出せるように、氷と注ぐ順番まで書いておこう。","serious"),d("庭先ボタニカルソーダ。お客さんに渡す時、君がどう説明するかも聞いてみたい。","smile"),d("僕の言葉を覚えなくていいよ。君が好きだと思ったところを、そのまま伝えて。","smile")],
+  [d("飲み物の種類が増えたね。忙しい時、香りを抽出する時間が取りにくくなってない？","serious"),d("少しずつ一定の時間で抽出する道具がある。ハーブ抽出器。今すぐ買う話ではなくて、候補として。","serious"),d("置く場所、君がいつも使う順番で見せて。通路を狭くしないところがいい。","serious"),d("待っている間に別の準備が出来る。でも、掃除する時間も必要だから、そこまで考えよう。","serious"),d("……この棚、手が届きやすい高さにしてあるんだね。いつもの仕事を見ると、分かることが増える。","surprised"),d("お金と時間に余裕が出来た時、一緒に確かめよう。使わない道具を増やすより、続けられる方を。","normal"),d("選んだ後も、分からないところは聞いて。香りが違った日も、僕はその話を聞きたい。","smile")],
+  [d("庭先ボタニカルソーダ、五杯も出たんだね。抽出器の順番にも慣れたなら、温かい方をもう一つ試そう。","surprised"),d("ミモザの若葉を、この量で。急がず待つ間、他に何を準備するかも決めておこう。","serious"),d("香りが開いたところで、少しずつ味を見る。春を待つみたいだけど、時計の時間も残してね。","serious"),d("僕の好きな方はこっち。君が飲みやすい方は、どちらかな。","normal"),d("……君の方、後に軽さが残るね。二つを合わせた量でも試してみたい。","smile"),d("同じ配合で二杯淹れよう。カフェで繰り返し出せるか、最後まで確かめて。","serious"),d("春待ちミモザティー。待った時間も楽しめる一杯になったね。","smile"),d("今日の配合と、君が気に入ったところを紙に残そう。次に変えたくなったら、続きへ書けばいい。","normal"),d("試飲の分は、座って飲もう。君がどんな顔で味わうかも、僕には大事な感想だから。","blush")],
 ];
 export const shizukaDateDialogue={
-  amusement:["今日は、温室の水やりを済ませてきた。君と過ごす日を、ちゃんと空けて。","人が多いね。聞こえにくかったら、もう少し近くへ寄っていい？","最初はどこへ行きたい？　僕はあの観覧車。高いところで、君とゆっくり話したい。","花の飾りもきれいだけど……今日は、君が何を見て笑うか気になる。","そのお菓子、少し交換しよう。君が選んだ味も知りたい。僕の方も、どうぞ。","思ったより揺れるね。……平気そうに見えた？　少し緊張してる。君が隣なのも。","手、つないでもいい？　怖いからだけじゃなく、近くにいたいから。","光がたくさんあるね。でも、今見ていたのは君の横顔。……気づかれると、照れる。","次は君の選んだ場所へ行こう。僕も、今日楽しかったところを一つずつ覚えたい。","帰る前に、次に会う日も相談しよう。今日の続きを、また君と話したい。"],
-  walk:["片づけ、お疲れさま。今日は花を持ってない。君を誘いに来た。","川沿いを歩こうか。疲れていたら、近い道へ変えよう。君はどうしたい？","夜の葉が揺れる音、聞こえる？　……車が通ったね。少し止まって聞こう。","同じ音なのに、君と並んで聞く日は違う。あとで、今日のことを思い出しそう。","歩く速さ、これくらいでいい？　一人の時のまま急ぎたくないから。","君が帰った後、温室が広く感じるって言ったね。今も、帰り道を少し長くしたくなる。","道に迷うふりはしないよ。……もう少し一緒に歩きたい。次の橋まで、どう？","手をつないでもいい？　暗い道だからだけじゃなくて、恋人として。","温かいね。葉に触れる手とは違う。……君も、僕の手のこと覚えてくれたらうれしい。","次はカフェの窓辺でお茶を飲もう。君の空いている日を聞いてから、僕も予定を空ける。"],
-  home:["お邪魔します。雨の音を聞きながら読む本を、二冊持ってきた。君が好きな方からにしよう。","上着は、ここへ置いていい？　店じゃない君の部屋に来るの、少し緊張するね。","お茶、ありがとう。今日は僕も座る。淹れてもらう側の時間を楽しみにしてた。","この本、同じところで笑ったね。……隣へ座って、もう一度読んでもいい？","ページをめくる時、手が触れる。僕はこの距離が好き。君が窮屈なら言って。","雨の日の温室で、腕を借りてくれたこと、覚えてる。あの時、雨がやむのが少し惜しかった。","今日は、晴れてもすぐ帰らなくていいんだね。君と決めた時間だから。","少し肩を借りていい？　僕だけ静かにしてても、帰りたいという意味じゃないよ。","何も話さない時間も、君となら残しておきたい。……今、笑ってるのは、うれしいから。","次は僕がお茶を淹れる。温室じゃなく、僕の部屋でも。君を迎える日を、先に決めよう。"],
+  amusement:[d("今日は、温室の水やりを済ませてきた。君と過ごす日を、ちゃんと空けて。","smile"),d("人が多いね。聞こえにくかったら、もう少し近くへ寄っていい？","normal"),d("最初はどこへ行きたい？　僕はあの観覧車。高いところで、君とゆっくり話したい。","smile"),d("花の飾りもきれいだけど……今日は、君が何を見て笑うか気になる。","blush"),d("そのお菓子、少し交換しよう。君が選んだ味も知りたい。僕の方も、どうぞ。","smile"),d("思ったより揺れるね。……平気そうに見えた？　少し緊張してる。君が隣なのも。","surprised"),d("手、つないでもいい？　怖いからだけじゃなく、近くにいたいから。","blush"),d("光がたくさんあるね。でも、今見ていたのは君の横顔。……気づかれると、照れる。","blush"),d("次は君の選んだ場所へ行こう。僕も、今日楽しかったところを一つずつ覚えたい。","smile"),d("帰る前に、次に会う日も相談しよう。今日の続きを、また君と話したい。","smile")],
+  walk:[d("片づけ、お疲れさま。今日は花を持ってない。君を誘いに来た。","smile"),d("川沿いを歩こうか。疲れていたら、近い道へ変えよう。君はどうしたい？","normal"),d("夜の葉が揺れる音、聞こえる？　……車が通ったね。少し止まって聞こう。","normal"),d("同じ音なのに、君と並んで聞く日は違う。あとで、今日のことを思い出しそう。","smile"),d("歩く速さ、これくらいでいい？　一人の時のまま急ぎたくないから。","normal"),d("君が帰った後、温室が広く感じるって言ったね。今も、帰り道を少し長くしたくなる。","blush"),d("道に迷うふりはしないよ。……もう少し一緒に歩きたい。次の橋まで、どう？","blush"),d("手をつないでもいい？　暗い道だからだけじゃなくて、恋人として。","blush"),d("温かいね。葉に触れる手とは違う。……君も、僕の手のこと覚えてくれたらうれしい。","smile"),d("次はカフェの窓辺でお茶を飲もう。君の空いている日を聞いてから、僕も予定を空ける。","smile")],
+  home:[d("お邪魔します。雨の音を聞きながら読む本を、二冊持ってきた。君が好きな方からにしよう。","smile"),d("上着は、ここへ置いていい？　店じゃない君の部屋に来るの、少し緊張するね。","blush"),d("お茶、ありがとう。今日は僕も座る。淹れてもらう側の時間を楽しみにしてた。","smile"),d("この本、同じところで笑ったね。……隣へ座って、もう一度読んでもいい？","smile"),d("ページをめくる時、手が触れる。僕はこの距離が好き。君が窮屈なら言って。","blush"),d("雨の日の温室で、腕を借りてくれたこと、覚えてる。あの時、雨がやむのが少し惜しかった。","blush"),d("今日は、晴れてもすぐ帰らなくていいんだね。君と決めた時間だから。","smile"),d("少し肩を借りていい？　僕だけ静かにしてても、帰りたいという意味じゃないよ。","blush"),d("何も話さない時間も、君となら残しておきたい。……今、笑ってるのは、うれしいから。","smile"),d("次は僕がお茶を淹れる。温室じゃなく、僕の部屋でも。君を迎える日を、先に決めよう。","blush")],
 };

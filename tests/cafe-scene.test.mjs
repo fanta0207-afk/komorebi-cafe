@@ -877,6 +877,47 @@ test('forest direct gathering stores food immediately and free return settles be
  }finally{context.useGame=original;}
 });
 
+test('forest notebook alerts when a limited dish or handmade gift becomes craftable',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame;
+ const {craftableForestItemIds,craftableForestItems}=require(join(output,'game/forest.js'));
+ const {ForestScreen}=require(join(output,'screens/ForestScreen.js'));
+ let state=createInitialState(1000);state.lifetimeStats.totalOrders=1;
+ assert.deepEqual(craftableForestItemIds(state),[]);
+ state={...state,unlockedRecipes:[...state.unlockedRecipes,'forestBerrySoda'],ingredients:{forestBerry:1,forestMint:1,sugar:1}};
+ assert.deepEqual(craftableForestItemIds(state),['forestBerrySoda']);
+ state={...state,ingredients:{...state.ingredients,forestPetal:3}};
+ assert.deepEqual(craftableForestItemIds(state),['forestBerrySoda','forestBookmarkGift']);
+ assert.deepEqual(craftableForestItems(state),{recipes:['forestBerrySoda'],gifts:['forestBookmarkGift']});
+ state={...state,forest:{...state.forest,dishes:{...state.forest.dishes,forestBerrySoda:3}}};
+ assert.deepEqual(craftableForestItemIds(state),['forestBookmarkGift'],'the three-plate cap is respected');
+ context.useGame=()=>({state,dispatch(){}});
+ try{
+  const quiet=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){}}));
+  assert.doesNotMatch(quiet,/forest-dock-alert|作れる限定料理または手作り品/);
+  const alerted=renderToStaticMarkup(React.createElement(ForestScreen,{onBook(){},onTown(){},bookNotice:true}));
+  assert.match(alerted,/forest-dock-alert/);
+  assert.match(alerted,/手帳、作れる限定料理または手作り品があります/);
+ }finally{context.useGame=original;}
+});
+
+test('forest notebook identifies and independently clears recipe and handmade tab alerts',()=>{
+ const context=require(join(output,'game/GameContext.js')),original=context.useGame,originalUseState=React.useState;
+ const {ForestBook}=require(join(output,'screens/ForestBook.js'));
+ const state=createInitialState(1000),read=[];
+ context.useGame=()=>({state,dispatch(){}});
+ try{
+  const html=renderToStaticMarkup(React.createElement(ForestBook,{onBack(){},notices:{recipes:true,gifts:true},onNoticeRead:tab=>read.push(tab)}));
+  assert.equal((html.match(/forest-book-tab-alert/g)||[]).length,2);
+  assert.match(html,/限定料理、作れるものがあります/);
+  assert.match(html,/手作り、作れるものがあります/);
+  React.useState=initial=>[initial,()=>{}];
+  const tree=ForestBook({onBack(){},notices:{recipes:true,gifts:true},onNoticeRead:tab=>read.push(tab)});
+  const tabs=tree.props.children[1].props.children;
+  tabs[2].props.onClick();tabs[3].props.onClick();
+  assert.deepEqual(read,['recipes','gifts']);
+ }finally{context.useGame=original;React.useState=originalUseState;}
+});
+
 // Drive only the control's local confirmation state; game updates still use the real reducer.
 function ticketControl(delivery, local) {
  const original=React.useState;

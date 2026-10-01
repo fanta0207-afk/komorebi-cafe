@@ -35,6 +35,7 @@ import { availableDramaEvent } from "../game/drama";
 import { AudioProvider, useAudio } from "../audio/AudioProvider";
 import type { AudioScene, SoundEffect } from "../audio/audioEngine";
 import { StoryStandingArt } from "./StoryStandingArt";
+import { craftableForestItems } from "../game/forest";
 
 type Screen="forest"|"forestBook"|"cafe"|"town"|"gifts"|"people"|"menu"|"supplier"|"character"|"staff";
 
@@ -62,11 +63,16 @@ function GameContent() {
   const [dramaEvent,setDramaEvent]=useState<DramaEvent>();
   const [dramaReplay,setDramaReplay]=useState<DramaEvent>();
   const [eventPage,setEventPage]=useState(0);
+  const [forestNotices,setForestNotices]=useState({book:false,recipes:false,gifts:false});
   const stateRef=useRef(state); stateRef.current=state;
+  const previousCraftableForestItems=useRef({recipes:new Set<string>(),gifts:new Set<string>()});
   const previousOrders=useRef<{total:number;ready:number}|null>(null);
   const previousServedOrders=useRef<number|null>(null);
   const saleSoundPlayed=useRef(false);
   const previousFind=useRef<string|undefined>(undefined);
+  const craftableForest=craftableForestItems(state);
+  const craftableRecipeSignature=craftableForest.recipes.join("|");
+  const craftableGiftSignature=craftableForest.gifts.join("|");
 
   const spawnOrder=useCallback(()=>{
     const current=stateRef.current;
@@ -92,6 +98,14 @@ function GameContent() {
   },[state,screen,event,growthEvent,dateEvent,dramaEvent,dramaReplay,replay,devOpen,settingsOpen]);
 
   useEffect(()=>{if(state.forest.expedition)setScreen(current=>current==="forestBook"?current:"forest");},[state.forest.expedition?.id]);
+  useEffect(()=>{
+    if(!hydrated)return;
+    const current={recipes:new Set(craftableRecipeSignature?craftableRecipeSignature.split("|"):[]),gifts:new Set(craftableGiftSignature?craftableGiftSignature.split("|"):[])};
+    const recipes=[...current.recipes].some(id=>!previousCraftableForestItems.current.recipes.has(id));
+    const gifts=[...current.gifts].some(id=>!previousCraftableForestItems.current.gifts.has(id));
+    if(recipes||gifts)setForestNotices(notices=>({book:true,recipes:notices.recipes||recipes,gifts:notices.gifts||gifts}));
+    previousCraftableForestItems.current=current;
+  },[hydrated,craftableRecipeSignature,craftableGiftSignature]);
   const storyOpen=state.onboardingStage==="prologue"||!!(event||replay||growthEvent||dateEvent||dramaEvent||dramaReplay||state.pendingGiftReaction);
   const audioScene:AudioScene=dramaEvent||dramaReplay?"drama":storyOpen?"story":screen==="forest"||screen==="forestBook"?"forest":screen==="cafe"?"cafe":"town";
   useEffect(()=>setAudioScene(audioScene),[audioScene,setAudioScene]);
@@ -148,9 +162,11 @@ function GameContent() {
   const missionControl=!state.forest.expedition&&!event&&!growthEvent&&!dateEvent&&!dramaEvent&&!dramaReplay&&!replay&&!state.pendingGiftReaction?<MissionGuide onGo={missionGo} tutorial={missionTutorial} onTutorialSkip={()=>dispatch({type:"FINISH_ONBOARDING"})}/>:undefined;
   const resetGameAndUi=()=>{
     resetGame();setScreen("cafe");setSupplierId(undefined);setHighlightIngredientId(undefined);setCharacterId(undefined);setCafePanel(undefined);setMenuTab("equipment");
-    setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setDramaEvent(undefined);setDramaReplay(undefined);setEventPage(0);setDevOpen(false);setSettingsOpen(false);
+    setEvent(undefined);setReplay(undefined);setGrowthEvent(undefined);setDateEvent(undefined);setDramaEvent(undefined);setDramaReplay(undefined);setEventPage(0);setDevOpen(false);setSettingsOpen(false);setForestNotices({book:false,recipes:false,gifts:false});previousCraftableForestItems.current={recipes:new Set(),gifts:new Set()};
   };
   const openGameMenu=()=>showDev?setDevOpen(true):setSettingsOpen(true);
+  const openForestBook=()=>{setForestNotices(notices=>({...notices,book:false}));setScreen("forestBook");};
+  const readForestBookTab=(tab:"recipes"|"gifts")=>setForestNotices(notices=>({...notices,[tab]:false}));
   const gameMenuLabel=showDev?"開発メニュー":"設定";
   // 画面を切り替えるたびに表示領域ごと入れ替え、前画面の画像が一瞬残るのを防ぐ。
   const screenKey=`${screen}:${supplierId||""}:${characterId||""}`;
@@ -172,8 +188,8 @@ function GameContent() {
       {screen==="people"&&<PeopleScreen onOpen={id=>{setCharacterId(id);setScreen("character");}} onReplayDrama={setDramaReplay}/>}
       {screen==="character"&&characterId&&<CharacterDetail key={characterId} characterId={characterId} onBack={()=>setScreen("people")} onReplay={setReplay}/>}
       {screen==="menu"&&<MenuScreen tab={menuTab} onTabChange={setMenuTab}/>}
-      {screen==="forest"&&<ForestScreen onBook={()=>setScreen("forestBook")} onTown={()=>navigate("cafe")}/>}
-      {screen==="forestBook"&&<ForestBook onBack={()=>setScreen("forest")}/>}
+      {screen==="forest"&&<ForestScreen onBook={openForestBook} onTown={()=>navigate("cafe")} bookNotice={forestNotices.book}/>}
+      {screen==="forestBook"&&<ForestBook onBack={()=>setScreen("forest")} notices={forestNotices} onNoticeRead={readForestBookTab}/>}
       {screen==="staff"&&<StaffScreen/>}
     </div>
     {screen!=="forest"&&<BottomNav active={active} onChange={navigate}/>}

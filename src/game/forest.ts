@@ -74,6 +74,20 @@ export function canCookForestDish(s:GameState,recipeId:string,count:number) {
         && (s.forest.dishes[recipeId]||0)+s.orders.filter(o=>o.forestReserved&&o.recipeId===recipeId).length+count<=3
         && canEatForestMeal(recipeId,s,count);
 }
+export function canCraftHandmadeGift(s:GameState,giftId:string) {
+    const gift=handmadeGifts.find(g=>g.id===giftId);
+    return !!gift && s.currency>=100 && Object.entries(gift.materials!).every(([id,n])=>(s.ingredients[id]||0)>=n);
+}
+export function craftableForestItems(s:GameState) {
+    return {
+        recipes:forestRecipes.filter(recipe=>canCookForestDish(s,recipe.id,1)).map(recipe=>recipe.id),
+        gifts:handmadeGifts.filter(gift=>canCraftHandmadeGift(s,gift.id)).map(gift=>gift.id),
+    };
+}
+export function craftableForestItemIds(s:GameState) {
+    const items=craftableForestItems(s);
+    return [...items.recipes,...items.gifts];
+}
 export function createForestLayer(s:GameState,floor:number,seed:number,meal?:ForestMeal,collected:Record<string,number>={},tutorial=false):ForestLayer {
     const band=forestBand(floor),area=forestArea(band.area),random=forestRandom(seed,`layer:${floor}`);
     const count=band.spots[0]+Math.floor(random()*(band.spots[1]-band.spots[0]+1));
@@ -223,7 +237,7 @@ export function reduceForest(state:GameState,a:ForestAction):GameState {
         case 'FOREST_TAKE': return state;
         case 'FOREST_CRAFT': {
             const gift = handmadeGifts.find(g => g.id === a.giftId);
-            if (!gift || state.currency < 100 || !Object.entries(gift.materials!).every(([id, n]) => (state.ingredients[id] || 0) >= n))
+            if (!gift || !canCraftHandmadeGift(state,gift.id))
                 return state;
             const stock = { ...state.ingredients };
             for (const [id, n] of Object.entries(gift.materials!))

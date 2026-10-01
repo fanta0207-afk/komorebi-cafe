@@ -4,20 +4,22 @@ import { useState } from 'react';
 import { useGame } from '../game/GameContext';
 import { forestAreas, forestIngredients, forestRecipes, handmadeGifts } from '../data/forest';
 import { getIngredient } from '../data/ingredients';
-import { canCookForestDish } from '../game/forest';
+import { canCookForestDish, canCraftHandmadeGift } from '../game/forest';
 import { salePrice } from '../game/logic';
 import { ScreenTitle } from '../components/GameUI';
 
-export function ForestBook({ onBack }: { onBack: () => void }) {
+type CraftTab = 'recipes' | 'gifts';
+export function ForestBook({ onBack, notices, onNoticeRead }: { onBack: () => void; notices?:Partial<Record<CraftTab,boolean>>; onNoticeRead?:(tab:CraftTab)=>void }) {
   const { state, dispatch } = useGame(), f = state.forest;
   const [tab, setTab] = useState('food'), [amount, setAmount] = useState(1);
+  const openTab = (id:string) => { setTab(id); if (id === 'recipes' || id === 'gifts') onNoticeRead?.(id); };
   const materials = (items: Record<string, number>, count = 1) => <ul className="forest-book-materials">{Object.entries(items).map(([id, n]) => {
     const owned = state.ingredients[id] || 0, needed = n * count;
     return <li key={id}><span>{getIngredient(id)?.name} ×{needed}</span><small className={owned < needed ? 'is-short' : ''}>所持 {owned}</small></li>;
   })}</ul>;
 
   return <section className="screen forest-screen forest-book"><ScreenTitle title="森の手帳"/>
-    <div className="forest-book-tabs">{[['food', '食材'], ['secret', '秘密のレシピ'], ['recipes', '限定料理'], ['gifts', '手作り']].map(([id, label]) => <button className={tab === id ? 'active' : ''} key={id} onClick={() => setTab(id)}>{label}</button>)}</div>
+    <div className="forest-book-tabs">{[['food', '食材'], ['secret', '秘密のレシピ'], ['recipes', '限定料理'], ['gifts', '手作り']].map(([id, label]) => { const alert=(id==='recipes'||id==='gifts')&&notices?.[id]; return <button className={tab === id ? 'active' : ''} key={id} onClick={() => openTab(id)} aria-label={alert?`${label}、作れるものがあります`:label}>{label}{alert&&<span className="forest-book-tab-alert" aria-hidden="true">!</span>}</button>; })}</div>
     {tab === 'food' && <>
       <p className="forest-book-summary">発見 {forestIngredients.filter(i => f.discovered.includes(i.id)).length}/{forestIngredients.length} · 最深 {f.deepestFloor}層</p>
       {forestIngredients.map(i => <article className="forest-card" key={i.id}>
@@ -60,7 +62,7 @@ export function ForestBook({ onBack }: { onBack: () => void }) {
       <h3>{g.icon} {g.name}<small>{f.crafted.includes(g.id) && '✓'}</small></h3>
       {materials(g.materials!)}
       {(state.inventory[g.id] || 0) > 0 && <small>完成品 {state.inventory[g.id]}</small>}
-      <button className="primary-button" disabled={state.currency < 100 || !Object.entries(g.materials!).every(([id, n]) => (state.ingredients[id] || 0) >= n)} onClick={() => dispatch({ type: 'FOREST_CRAFT', giftId: g.id })}>作る · 100コイン</button>
+      <button className="primary-button" disabled={!canCraftHandmadeGift(state,g.id)} onClick={() => dispatch({ type: 'FOREST_CRAFT', giftId: g.id })}>作る · 100コイン</button>
     </article>)}</>}
     <button className="secondary-button" onClick={onBack}>戻る</button>
   </section>;

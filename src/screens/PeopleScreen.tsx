@@ -4,13 +4,14 @@ import { handmadeAmount } from '../game/forest';
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { getCharacter } from "../data/characters";
-import { getDramaEvent } from "../data/dramaEvents";
+import { dramaEvents, getDramaEvent } from "../data/dramaEvents";
 import { suppliers } from "../data/suppliers";
 import { relationshipEvents, staffStoryEvents } from "../data/events";
 import { compareGiftIds, getGift, allGifts as gifts } from "../data/gifts";
 import { useGame } from "../game/GameContext";
 import { giftReaction, relationshipRequirements } from "../game/logic";
 import { characterGiftResponse } from "../game/conversation";
+import { dramaUnlockHint } from "../game/drama";
 import { relationshipLabel } from "../game/config";
 import type { DramaEvent, GiftReaction, RelationshipEvent } from "../types/game";
 import { EmptyState, Hearts, Portrait, ScreenTitle } from "../components/GameUI";
@@ -27,7 +28,7 @@ export function PeopleScreen({onOpen,onReplayDrama}:{onOpen:(id:string)=>void;on
   return <section className="screen fade-in"><ScreenTitle title={tab==="people"?"出会った人々":"思い出帳"}/>
     <div className="people-tabs" role="tablist" aria-label="人物画面の表示切り替え">
       <button type="button" role="tab" aria-selected={tab==="people"} className={tab==="people"?"active":""} onClick={()=>setTab("people")}>登場人物</button>
-      <button type="button" role="tab" aria-selected={tab==="memories"} className={tab==="memories"?"active":""} onClick={()=>setTab("memories")}>思い出帳 <span>{memories.length}</span></button>
+      <button type="button" role="tab" aria-selected={tab==="memories"} className={tab==="memories"?"active":""} onClick={()=>setTab("memories")}>思い出帳 <span>{memories.length}/{dramaEvents.length}</span></button>
     </div>
     {tab==="people"?<div className="people-list">{suppliers.map(supplier=>{
       const character=getCharacter(supplier.characterId)!;
@@ -37,14 +38,15 @@ export function PeopleScreen({onOpen,onReplayDrama}:{onOpen:(id:string)=>void;on
         <div><span>{p.met?relationshipLabel(p.relationshipStage,p.route):"未遭遇"}</span><strong>{p.met?character.name:"？？？"}</strong>{p.met&&<Hearts stage={p.relationshipStage} route={p.route}/>}</div>
         <em>{p.met?relationshipLabel(p.relationshipStage,p.route):"街で会う"}</em><b>›</b>
       </button>;
-    })}</div>:memories.length?<div className="drama-memory-list">{memories.map(memory=>{
+    })}</div>:<div className="drama-memory-list"><p className="drama-memory-guide">全{dramaEvents.length}話・読了 {memories.length}話。条件達成後、カフェで発生します。好感度は人物の物語を進めると上がります。</p>{dramaEvents.map(memory=>{
+      const unlocked=state.viewedDramaEvents.includes(memory.id);
       const participants=memory.participantIds.map(getCharacter).filter(Boolean);
-      return <button type="button" className="drama-memory-card" key={memory.id} onClick={()=>onReplayDrama(memory)} aria-label={`${memory.title}を読み返す`}>
+      return <button type="button" className={`drama-memory-card ${unlocked?"":"is-locked"}`} disabled={!unlocked} key={memory.id} onClick={()=>onReplayDrama(memory)} aria-label={`${memory.title}${unlocked?"を読み返す":" 未解放"}`}>
         <span className="drama-memory-mark" aria-hidden="true">✎</span>
-        <span className="drama-memory-copy"><small>{memory.subtitle}</small><strong>{memory.title}</strong><em>{participants.map(character=>character!.shortName).join("・")}</em></span>
-        <span className="drama-memory-action">読み返す <b>›</b></span>
+        <span className="drama-memory-copy"><small>{memory.subtitle}</small><strong>{memory.title}</strong><em>{participants.map(character=>character!.shortName).join("・")}</em>{!unlocked&&<small className="drama-memory-condition">解放条件：{dramaUnlockHint(memory)}</small>}</span>
+        <span className="drama-memory-action">{unlocked?<>読み返す <b>›</b></>:"未解放"}</span>
       </button>;
-    })}</div>:<EmptyState icon="✎" title="まだ思い出はありません" text="カフェで特別な出来事が起き、最後まで読むとここに追加されます。"/>}
+    })}</div>}
   </section>;
 }
 

@@ -379,3 +379,9 @@ body { background:#241c16; }
 .recipe-card[class*="menu-rarity-"]{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--menu-rarity) 42%,#d9c5ab);border-left:6px solid var(--menu-rarity);background:linear-gradient(100deg,var(--menu-rarity-soft),#fffdf8 46%)}
 .recipe-card[class*="menu-rarity-"] .recipe-icon{background:color-mix(in srgb,var(--menu-rarity-soft) 82%,#fff)}
 .forest-card[class*="menu-rarity-"]{border-color:color-mix(in srgb,var(--menu-rarity) 42%,#d9c5ab);border-left:6px solid var(--menu-rarity);background:linear-gradient(100deg,var(--menu-rarity-soft),#fffdf8 52%)}
+
+.drama-memory-guide{margin:0 0 4px;color:#897365;font-size:12px;line-height:1.7}
+.drama-memory-card.is-locked{background:#eee9e0;border-color:#d3c9bb;box-shadow:none;cursor:default;opacity:1}
+.drama-memory-card.is-locked .drama-memory-mark{background:#a39a8b;box-shadow:none;border-color:#938b7e}
+.drama-memory-card.is-locked .drama-memory-action{color:#827b70}
+.drama-memory-copy .drama-memory-condition{margin:7px 0 0;font-size:11px;line-height:1.65;color:#776b5c;white-space:normal;overflow-wrap:anywhere}

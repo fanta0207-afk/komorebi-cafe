@@ -41,3 +41,20 @@ export function availableDramaEvent(state:GameState) {
   if(state.pendingGiftReaction)return;
   return dramaEvents.find(event=>!state.viewedDramaEvents.includes(event.id)&&dramaRequirementsMet(event,state));
 }
+
+export function dramaUnlockHint(event:DramaEvent) {
+  switch(event.id) {
+    case "drama-private-name":return "葵・アールとも好感度7以上＋二人を雇用";
+    case "drama-spare-key":return "蓮・カカオとも好感度8以上＋どちらかが恋愛ルート";
+    case "drama-collapse":return "牧・太陽とも好感度8以上＋累計注文100件以上";
+    case "drama-engagement-rumor":return "静・冴とも好感度8以上＋どちらかが恋愛ルート＋店づくり物語を2人分最終話まで読了";
+    case "drama-birthday":return "好感度7以上の人物が4人以上";
+    case "drama-dont-go":return "蓮・カカオとも恋愛ルート＋「呼び方を間違えた午後」「鍵の音がした夜」「灯りが消えなかった夜」「祝福にはまだ早い」「八つの贈り物」を読了（スキップ可）";
+    case "drama-shared-umbrella":return "葵・冴とも好感度7以上";
+    case "drama-usual-order":return "蓮・アールとも好感度8以上";
+    case "drama-borrowed-jacket":return "太陽・静とも好感度8以上＋どちらかが恋愛ルート";
+    case "drama-two-reservations":return "牧・カカオとも好感度8以上＋どちらかが恋愛ルート";
+    case "drama-practice-confession":return "葵・アールとも好感度9以上＋どちらかが恋愛ルート＋「呼び方を間違えた午後」を読了（スキップ可）";
+    default:return "物語を進めると解放";
+  }
+}

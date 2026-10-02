@@ -366,7 +366,10 @@ test('completed cafe drama stories are listed in the people screen and replay wi
   const styles=readFileSync(new URL('../app/globals.css',import.meta.url),'utf8');
 
   assert.match(people,/state\.viewedDramaEvents\.map\(getDramaEvent\)/);
-  assert.match(people,/>\u601d\u3044\u51fa\u5e33 <span>\{memories\.length\}<\/span>/);
+  assert.match(people,/\{memories\.length\}\/\{dramaEvents\.length\}/);
+  assert.match(people,/dramaEvents\.map\(memory/);
+  assert.match(people,/disabled=\{!unlocked\}/);
+  assert.match(people,/dramaUnlockHint\(memory\)/);
   assert.match(people,/onClick=\{\(\)=>onReplayDrama\(memory\)\}/);
   assert.match(game,/onReplayDrama=\{setDramaReplay\}/);
   assert.match(game,/dramaReplay&&<DramaStoryModal[\s\S]*?readOnly onComplete=\{\(\)=>setDramaReplay\(undefined\)\}/);

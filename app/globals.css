@@ -358,7 +358,7 @@ body { background:#241c16; }
 .portrait-face[data-character="haru"] { --face-scale:2.35; }
 .portrait-face[data-character="nagisa"] { --face-scale:2.35; }
 .portrait-face[data-character="sae"] { --face-scale:2.05; --face-shift-y:10%; }
-.portrait-face[data-character="cacao"] { --face-scale:2.15; --face-shift-y:2%; }
+.portrait-face[data-character="cacao"] { --face-scale:2.35; --face-shift-y:24%; }
 .staff-heading>.portrait-face { flex:0 0 58px; width:58px; height:58px; border-radius:50%; }
 .profile-card>.person-summary>.portrait-face,
 .supplier-hero>.portrait-face { flex:0 0 96px; width:96px; height:96px; border-radius:50%; margin:0; align-self:center; }

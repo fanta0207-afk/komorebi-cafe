@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { inflateSync } from 'node:zlib';
 import ts from 'typescript';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -35,6 +36,30 @@ const { decorations } = require(join(output, 'data/decorations.js'));
 const { characters } = require(join(output, 'data/characters.js'));
 const { storyArtSource } = require(join(output, 'components/StoryStandingArt.js'));
 const order = (id = 'one', slot = 0, status = 'queued') => ({ id, customerSlot: slot, recipeId: 'coffee', status, totalMs: 10000, remainingMs: status === 'ready' ? 0 : 5000 });
+
+test('the order notebook keeps manual supply requests enabled while another worker fetches the same ingredient',()=>{
+  const {CafeScreen}=require(join(output,'screens/CafeScreen.js'));
+  const {createManager,managerFrame}=require(join(output,'components/cafe/managerModel.js'));
+  const originalUseState=React.useState;
+  let state={...createInitialState(1000),autoProcurementEnabled:false,orders:[order('first'),order('second',1)],ingredients:{coffeeBeans:0},staff:['ren','sota'].map(characterId=>({characterId,role:'procurement',remainingMs:0}))};
+  const render=()=>{
+    let hook=0;
+    React.useState=initial=>[++hook===1?{page:'orders'}:typeof initial==='function'?initial():initial,()=>{}];
+    const manager=createManager(1000);
+    const html=renderToStaticMarkup(React.createElement(CafeScreen,{state,manager,managerFrame:managerFrame(manager,state),onMenu(){},menuLabel:'開発メニュー',menuCaption:'DEV',onInventory(){},onStart(){},onDecline(){},onCollect(){},onCharacter(){},onTown(){},onEquipment(){},onSupplier(){},onRequestSupply(){}}));
+    return html.match(/<button[^>]*class="missing-supply-link staff-supply-button"[^>]*>[^<]*<\/button>/g)||[];
+  };
+  try{
+    assert.equal(render().length,2);
+    state=reducer(state,{type:'REQUEST_STAFF_SUPPLY',orderId:'first',ingredientId:'coffeeBeans',staffId:'ren',now:1001});
+    const available=render();
+    assert.equal(available.length,2);
+    assert.ok(available.every(button=>!button.includes('disabled')&&button.includes('仕入れを頼む')),'the idle second worker remains available');
+    state=reducer(state,{type:'REQUEST_STAFF_SUPPLY',orderId:'second',ingredientId:'coffeeBeans',staffId:'sota',now:1002});
+    assert.equal(state.deliveries.length,2);
+    assert.ok(render().every(button=>button.includes('disabled')&&button.includes('仕入れ担当は対応中')),'requests stop when every procurement worker is busy');
+  }finally{React.useState=originalUseState;}
+});
 
 test('the supplied Ren artwork is used for full portraits and face selectors',()=>{
   const ren=characters.find(character=>character.id==='ren');
@@ -95,6 +120,50 @@ test('the supplied Earl Grey artwork is used for full portraits and face selecto
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
   assert.equal(png.readUInt32BE(16),1024);
   assert.equal(png.readUInt32BE(20),1536);
+});
+
+test('Earl Grey expression sprites are registered and rendered by the story player',()=>{
+  const earl=characters.find(character=>character.id==='itsuki');
+  const expressions=['blush','sad','serious','smile','surprised'];
+  assert.deepEqual(Object.keys(earl.expressionImages??{}).sort(),expressions);
+  const {StoryModal}=require(join(output,'components/StoryModal.js'));
+  const {relationshipEvents}=require(join(output,'data/events.js'));
+  const originalUseState=React.useState;
+  try{
+    for(const expression of expressions){
+      const asset=`/assets/characters/earl-expression-${expression}.png`;
+      assert.equal(earl.expressionImages[expression],asset);
+      assert.equal(storyArtSource(earl,expression),asset);
+      const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
+      assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+      assert.equal(png.readUInt32BE(16),1024);
+      assert.equal(png.readUInt32BE(20),1536);
+      assert.equal(png[25],6);
+      const event=relationshipEvents.find(event=>event.characterId==='itsuki'&&event.toStage<9&&event.dialogue.some(line=>line.speaker==='character'&&line.expression===expression));
+      assert.ok(event,`${expression} is authored in an Earl story`);
+      const page=event.dialogue.findIndex(line=>line.speaker==='character'&&line.expression===expression);
+      let hook=0;
+      React.useState=initial=>[++hook===1?page:typeof initial==='function'?initial():initial,()=>{}];
+      const html=renderToStaticMarkup(React.createElement(StoryModal,{event,progress:createInitialState().characterProgress.itsuki,onComplete(){}}));
+      assert.ok(html.includes(`src="${asset}"`),`${expression} reaches the rendered story image`);
+      assert.ok(html.includes(`data-expression="${expression}"`));
+    }
+  }finally{React.useState=originalUseState;}
+  assert.equal(storyArtSource(earl,'normal'),earl.storyImage);
+  assert.equal(storyArtSource(earl,'missing-expression'),earl.storyImage);
+  assert.equal(storyArtSource({...earl,expressionImages:undefined},'smile'),earl.storyImage);
+});
+
+test('Earl Grey gift popups render the explicitly selected expression for each preference',()=>{
+  const earl=characters.find(character=>character.id==='itsuki');
+  const {GiftReactionModal}=require(join(output,'components/GiftReactionModal.js'));
+  const expected={love:'blush',like:'smile',normal:'normal',dislike:'sad'};
+  assert.deepEqual(earl.giftReactionExpressions,expected);
+  for(const [reaction,expression] of Object.entries(expected)){
+    const html=renderToStaticMarkup(React.createElement(GiftReactionModal,{reaction:{characterId:'itsuki',giftId:'book',reaction,response:'ありがとうございます。',expression},onClose(){}}));
+    assert.ok(html.includes(`src="${storyArtSource(earl,expression)}"`));
+    assert.ok(html.includes(`data-expression="${expression}"`));
+  }
 });
 
 test('the supplied Shirakawa Maki artwork is used for full portraits and face selectors',()=>{
@@ -192,19 +261,69 @@ test('Sae has five transparent story expression sprites with a normal-art fallba
   assert.equal(storyArtSource(sae,'missing-expression'),sae.storyImage);
 });
 
-test('Cacao keeps the watercolor storefront art and uses the transparent cutout for stories',()=>{
+test('Cacao uses the approved C watercolor design for portraits and its transparent cutout for stories',()=>{
   const cacao=characters.find(character=>character.id==='cacao');
-  assert.equal(cacao.image,'/assets/characters/cacao.png');
-  assert.equal(cacao.storyImage,'/assets/characters/cacao-story-cutout.png');
+  assert.equal(cacao.image,'/assets/characters/cacao-c.png');
+  assert.equal(cacao.storyImage,'/assets/characters/cacao-c-story-cutout.png');
   assert.equal(cacao.supplierId,'chocolaterie');
-  const png=readFileSync(new URL('../public/assets/characters/cacao.png',import.meta.url));
+  const png=readFileSync(new URL(`../public${cacao.image}`,import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
-  assert.equal(png.readUInt32BE(16),512);
-  assert.equal(png.readUInt32BE(20),812);
-  const storyPng=readFileSync(new URL('../public/assets/characters/cacao-story-cutout.png',import.meta.url));
+  assert.equal(png.readUInt32BE(16),1024);
+  assert.equal(png.readUInt32BE(20),1536);
+  const storyPng=readFileSync(new URL(`../public${cacao.storyImage}`,import.meta.url));
   assert.deepEqual([...storyPng.subarray(0,8)],[137,80,78,71,13,10,26,10]);
   assert.equal(storyPng.readUInt32BE(16),1024);
   assert.equal(storyPng.readUInt32BE(20),1536);
+});
+
+test('Cacao has five RGBA expressions, transparent exterior pixels, and a normal-art fallback',()=>{
+  const cacao=characters.find(character=>character.id==='cacao');
+  assert.deepEqual(Object.keys(cacao.expressionImages).sort(),['blush','sad','serious','smile','surprised']);
+  for(const [expression,asset] of Object.entries(cacao.expressionImages)){
+    assert.equal(storyArtSource(cacao,expression),asset);
+    const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
+    assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    assert.equal(png.readUInt32BE(16),1024);
+    assert.equal(png.readUInt32BE(20),1536);
+    assert.equal(png[24],8,'8-bit channels');
+    assert.equal(png[25],6,`${expression} must use RGBA`);
+    assert.equal(png[28],0,'non-interlaced PNG');
+    const compressed=[];
+    for(let offset=8;offset<png.length;){
+      const length=png.readUInt32BE(offset);
+      if(png.toString('ascii',offset+4,offset+8)==='IDAT')compressed.push(png.subarray(offset+8,offset+8+length));
+      offset+=length+12;
+    }
+    // At the first pixel of the first scanline every PNG predictor is zero.
+    assert.equal(inflateSync(Buffer.concat(compressed))[4],0,`${expression}: exterior background is transparent`);
+  }
+  assert.equal(storyArtSource(cacao,'normal'),cacao.storyImage);
+  assert.equal(storyArtSource(cacao),cacao.storyImage);
+  assert.equal(storyArtSource({...cacao,expressionImages:undefined},'smile'),cacao.storyImage);
+  assert.equal(storyArtSource({...cacao,storyImage:undefined,expressionImages:undefined},'sad'),cacao.image);
+  assert.equal(storyArtSource(cacao,'missing-expression'),cacao.storyImage);
+});
+
+test('failed Cacao expressions fall back to normal art and the next expression can load independently',()=>{
+  const {StoryStandingArt}=require(join(output,'components/StoryStandingArt.js'));
+  const cacao=characters.find(character=>character.id==='cacao');
+  const originalUseState=React.useState;
+  let state;
+  React.useState=initial=>{state??=initial;return [state,next=>{state=typeof next==='function'?next(state):next;}];};
+  try{
+    const render=expression=>StoryStandingArt({character:cacao,expression});
+    let art=render('smile');
+    assert.equal(art.props.src,cacao.expressionImages.smile);
+    art.props.onError();
+    assert.equal(render('smile').props.src,cacao.storyImage);
+    art=render('blush');
+    assert.equal(art.props.src,cacao.expressionImages.blush,'a previous failure cannot pin later expressions to normal');
+    art.props.onError();
+    art=render('blush');
+    assert.equal(art.props.src,cacao.storyImage);
+    art.props.onError();
+    assert.equal(render('blush').props.className,'story-art-fallback','a failed normal image also has a safe fallback');
+  }finally{React.useState=originalUseState;}
 });
 
 test('cafe staff and manager use separate transparent chibi sprites instead of full portraits',()=>{
@@ -426,7 +545,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(globalCss,/\.portrait-face\[data-character="ren"\] \{ --face-scale:2\.35; \}/);
     assert.match(globalCss,/\.portrait-face\[data-character="sota"\] \{ --face-scale:2\.15; --face-shift-y:5%; \}/);
     assert.match(globalCss,/\.portrait-face\[data-character="itsuki"\] \{ --face-scale:2\.45; --face-shift-y:18%; \}/);
-    assert.match(globalCss,/\.portrait-face\[data-character="cacao"\] \{ --face-scale:2\.15; --face-shift-y:2%; \}/);
+    assert.match(globalCss,/\.portrait-face\[data-character="cacao"\] \{ --face-scale:2\.35; --face-shift-y:24%; \}/);
     assert.match(globalCss,/\.portrait-face img \{[^}]*mix-blend-mode:multiply;/);
     assert.match(globalCss,/\.profile-card>\.person-summary>\.portrait-face,[\s\S]*\.supplier-hero>\.portrait-face \{[^}]*width:96px;[^}]*height:96px;/);
     assert.match(storyCss,/\.story-standing-art \{[\s\S]*height:var\(--story-height\);[\s\S]*object-position:50% 0;/);
@@ -894,8 +1013,17 @@ test('gift reaction popup renders each preference with existing standing artwork
     assert.match(html,/白川 牧の立ち絵/);
     assert.match(html,/ありがとう。/);
   }
-  const cacao=renderToStaticMarkup(React.createElement(GiftReactionModal,{reaction:{characterId:'cacao',giftId:'book',reaction:'like',response:'ありがとう。'},onClose(){}}));
-  assert.match(cacao,/src="\/assets\/characters\/cacao-story-cutout\.png"/,'uses the same story artwork as episodes');
+  const cacao=characters.find(character=>character.id==='cacao');
+  for(const reaction of ['love','like','normal','dislike']){
+    const expression=cacao.giftReactionExpressions[reaction];
+    const html=renderToStaticMarkup(React.createElement(GiftReactionModal,{reaction:{characterId:'cacao',giftId:'book',reaction,response:'ありがとう。',expression},onClose(){}}));
+    assert.ok(html.includes(`src="${storyArtSource(cacao,expression)}"`));
+    assert.match(html,/カカオ・ショコラの立ち絵/);
+    assert.match(html,/ありがとう。/);
+    assert.doesNotMatch(html,/完了|解放しました/);
+  }
+  const legacy=renderToStaticMarkup(React.createElement(GiftReactionModal,{reaction:{characterId:'cacao',giftId:'book',reaction:'like',response:'ありがとう。'},onClose(){}}));
+  assert.ok(legacy.includes(`src="${cacao.storyImage}"`),'old popup data without an expression uses normal art');
 });
 
 test('forest direct gathering stores food immediately and free return settles before opening the cafe',()=>{

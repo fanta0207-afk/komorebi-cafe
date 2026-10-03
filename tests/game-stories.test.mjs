@@ -1629,6 +1629,44 @@ test('the owner and three procurement workers can fetch four supplies in paralle
   assert.equal(procurementQuote(state,'teaLeaves',1,1002,'ren').blocking.staffId,'ren');
 });
 
+test('manual procurement uses all four workers for the same ingredient with automation disabled',()=>{
+  let state={...isolated(),currency:10000,autoProcurementEnabled:false,orders:[order('first'),order('second','coffee',1)],ingredients:{coffeeBeans:0}};
+  const staffIds=['ren','sota','haru','sae'];
+  for(const id of staffIds)state=hired(state,id,'procurement',8);
+  state=reducer(state,{type:'BUY_INGREDIENT',ingredientId:'coffeeBeans',now:1000});
+  for(const [index,staffId] of staffIds.entries()){
+    state=reducer(state,{type:'REQUEST_STAFF_SUPPLY',orderId:index%2?'second':'first',ingredientId:'coffeeBeans',staffId,now:1001+index});
+    assert.equal(state.deliveries.length,index+2,'a pending batch does not block another idle worker');
+    assert.equal(reducer(state,{type:'REQUEST_STAFF_SUPPLY',orderId:'second',ingredientId:'coffeeBeans',staffId,now:1005}),state,'each worker can carry only one batch');
+  }
+  assert.deepEqual(state.deliveries.map(delivery=>delivery.staffId),[undefined,...staffIds]);
+  assert.equal(new Set(state.deliveries.map(delivery=>delivery.id)).size,5);
+  assert.ok(state.deliveries.every(delivery=>!delivery.automatic));
+  assert.equal(state.lifetimeStats.staffProcurementOrders,4);
+  const restored=migrateSavedState(JSON.parse(JSON.stringify(state)),1005);
+  assert.deepEqual(restored.deliveries,state.deliveries);
+  assert.equal(restored.autoProcurementEnabled,false);
+  const servings=state.deliveries.reduce((total,delivery)=>total+delivery.packs*delivery.servingsPerPack,0);
+  const arrived=receiveSupplies(restored,Math.max(...state.deliveries.map(delivery=>delivery.arrivesAt)));
+  assert.equal(arrived.ingredients.coffeeBeans,servings);
+  assert.equal(arrived.deliveries.length,0);
+  assert.equal(arrived.lifetimeStats.automaticPacks,0);
+  assert.equal(receiveSupplies(arrived,200000).ingredients.coffeeBeans,servings,'parallel batches arrive exactly once');
+  const depleted={...arrived,ingredients:{coffeeBeans:0}};
+  assert.equal(reducer(depleted,{type:'REQUEST_STAFF_SUPPLY',orderId:'first',ingredientId:'coffeeBeans',staffId:'ren',now:200001}).deliveries.length,1,'a returned worker can be asked again');
+});
+
+test('automatic procurement still avoids duplicate ingredients after a manual staff request',()=>{
+  let state={...isolated(),orders:[order('coffee'),order('latte','latte',1)],ingredients:{coffeeBeans:0,milk:0}};
+  for(const id of ['ren','sota','haru'])state=hired(state,id,'procurement',9);
+  state=reducer(state,{type:'REQUEST_STAFF_SUPPLY',orderId:'coffee',ingredientId:'coffeeBeans',staffId:'ren',now:1000});
+  assert.equal(requestStaffSupply(state,'coffee','coffeeBeans','sota',1001,true),state);
+  const next=runAutoProcurement(state,1001);
+  assert.deepEqual(next.deliveries.map(delivery=>delivery.ingredientId),['coffeeBeans','milk']);
+  assert.equal(next.deliveries[0].automatic,undefined);
+  assert.equal(next.deliveries[1].automatic,true);
+});
+
 test('previously paid parallel deliveries preserve their deadlines and settle exactly once', () => {
   const initial = isolated();
   const old = { ...initial, deliveries: [
@@ -2419,6 +2457,122 @@ test('advanced Cacao saves keep stage, route and old choice IDs while the new st
     for(const key of ['route','affection','relationshipStage','eventChoices'])assert.deepEqual(resumed.characterProgress.cacao[key],state.characterProgress.cacao[key]);
     assert.deepEqual(resumed.characterProgress.cacao.viewedEvents,[...state.characterProgress.cacao.viewedEvents,'cacao-help-cafe']);
     assert.equal(availableStaffStory(resumed),undefined);
+  }
+});
+
+test('Earl Grey expressions are explicitly connected across stories, choices, both routes, dates, growth and drama',()=>{
+  const earl=characters.find(character=>character.id==='itsuki');
+  const observed=new Set();
+  const check=(line,label)=>{
+    assert.equal(typeof line,'object',`${label}: explicit dialogue metadata`);
+    assert.ok(['normal','smile','blush','sad','surprised','serious'].includes(line.expression),`${label}: explicit expression`);
+    if(line.expression!=='normal')assert.ok(earl.expressionImages?.[line.expression],`${label}: expression image is registered`);
+    observed.add(line.expression);
+  };
+  const stories=[...relationshipEvents,...staffStoryEvents].filter(event=>event.characterId==='itsuki');
+  assert.equal(stories.length,11);
+  for(const event of stories){
+    for(const key of ['dialogue','friendshipDialogue'])for(const line of (event[key]??[]).filter(line=>line.speaker==='character'))check(line,`${event.id}/${key}`);
+    for(const choice of event.choices??[])for(const line of choice.response.filter(line=>line.speaker==='character'))check(line,`${event.id}/${choice.id}`);
+  }
+  const growth=growthEvents.filter(event=>event.characterId==='itsuki');
+  const dates=dateEvents.filter(event=>event.characterId==='itsuki');
+  assert.equal(growth.length,5);assert.equal(dates.length,3);
+  for(const event of [...growth,...dates])for(const line of event.dialogue)check(line,event.eventId??event.id);
+  const drama=dramaEvents.filter(event=>event.participantIds.includes('itsuki'));
+  assert.equal(drama.length,4);
+  for(const event of drama)for(const line of event.dialogue.filter(line=>line.speaker==='itsuki'))check(line,event.id);
+  assert.deepEqual([...observed].sort(),['blush','normal','sad','serious','smile','surprised']);
+  assert.deepEqual(growth[0].dialogue.map(line=>line.expression),['smile','serious']);
+  const privateName=drama.find(event=>event.id==='drama-private-name').dialogue.filter(line=>line.speaker==='itsuki');
+  assert.equal(privateName[0].expression,'surprised');
+  assert.equal(privateName.at(-1).expression,'blush');
+});
+
+test('Earl Grey gift expressions restore pending saves without changing inventory or affection',()=>{
+  const earl=characters.find(character=>character.id==='itsuki');
+  for(const [reaction,expression] of Object.entries({love:'blush',like:'smile',normal:'normal',dislike:'sad'})){
+    const gift=gifts.find(gift=>!gift.handmade&&giftReaction(earl,gift)===reaction);
+    let state=createInitialState(1000);
+    state.inventory={[gift.id]:2};
+    state.characterProgress.itsuki={...state.characterProgress.itsuki,met:true,relationshipStage:7,affection:800};
+    state=reducer(state,{type:'GIVE_GIFT',characterId:'itsuki',giftId:gift.id});
+    assert.equal(state.pendingGiftReaction.expression,expression);
+    const saved=JSON.parse(JSON.stringify(state));
+    delete saved.pendingGiftReaction.expression;
+    const loaded=migrateSavedState(saved,1000);
+    assert.equal(loaded.pendingGiftReaction.expression,expression);
+    assert.equal(loaded.pendingGiftReaction.response,state.pendingGiftReaction.response);
+    assert.deepEqual(loaded.inventory,state.inventory);
+    assert.deepEqual(loaded.characterProgress.itsuki,state.characterProgress.itsuki);
+    assert.equal(loaded.currency,state.currency);
+    const closed=reducer(loaded,{type:'CLOSE_GIFT_REACTION',characterId:'itsuki',reaction});
+    assert.equal(closed.pendingGiftReaction,undefined);
+    assert.ok(closed.characterProgress.itsuki.viewedGiftReactions.includes(reaction));
+    assert.equal(closed.characterProgress.itsuki.affection,state.characterProgress.itsuki.affection);
+    assert.deepEqual(closed.inventory,state.inventory);
+    assert.equal(reducer(closed,{type:'GIVE_GIFT',characterId:'itsuki',giftId:gift.id}).pendingGiftReaction,undefined);
+  }
+});
+
+test('Cacao expressions are explicitly authored across stories, choices, both routes, dates, growth and drama',()=>{
+  const allowed=new Set(['normal','smile','blush','sad','surprised','serious']);
+  const observed=new Set();
+  const check=(line,label)=>{
+    assert.equal(typeof line,'object',`${label} has explicit dialogue metadata`);
+    assert.ok(allowed.has(line.expression),`${label} has an explicit supported expression`);
+    assert.ok(line.text.length>0);
+    observed.add(line.expression);
+  };
+  const stories=[...relationshipEvents,...staffStoryEvents].filter(event=>event.characterId==='cacao');
+  assert.equal(stories.length,11);
+  for(const event of stories){
+    for(const key of ['dialogue','friendshipDialogue'])for(const [index,line] of (event[key]??[]).entries())check(line,`${event.id}/${key}/${index}`);
+    for(const choice of event.choices??[])for(const [index,line] of choice.response.entries())check(line,`${event.id}/${choice.id}/${index}`);
+  }
+  const dates=dateEvents.filter(event=>event.characterId==='cacao');
+  const growth=growthEvents.filter(event=>event.characterId==='cacao');
+  assert.equal(dates.length,3);assert.equal(growth.length,5);
+  for(const event of [...dates,...growth])for(const line of event.dialogue)check(line,event.id??event.eventId);
+  for(const event of growth)assert.ok(event.dialogue.every(line=>line.expression!=='blush'),'early business memories do not require romantic closeness');
+  const drama=dramaEvents.filter(event=>event.participantIds.includes('cacao'));
+  assert.equal(drama.length,4);
+  for(const event of drama)for(const line of event.dialogue.filter(line=>line.speaker==='cacao'))check(line,event.id);
+  assert.deepEqual([...observed].sort(),[...allowed].sort());
+  const failedTrial=stories.find(event=>event.id==='cacao-stage7');
+  assert.equal(failedTrial.dialogue.find(line=>line.text.startsWith('今日は見るもの')).expression,'sad');
+  assert.equal(failedTrial.choices[1].response[0].expression,'surprised','being told to rest catches him off guard');
+  const confession=stories.find(event=>event.id==='cacao-stage9');
+  assert.equal(confession.dialogue.find(line=>line.text.startsWith('君が好きだ。')).expression,'serious');
+  assert.equal(confession.dialogue.find(line=>line.text.startsWith('……そんな顔で返すんだ。')).expression,'blush');
+  assert.equal(drama.find(event=>event.id==='drama-spare-key').dialogue[2].expression,'surprised');
+});
+
+test('Cacao gift expressions survive old pending-popup saves without consuming or rewarding the gift twice',()=>{
+  const cacao=characters.find(character=>character.id==='cacao');
+  const expected={love:'blush',like:'smile',normal:'normal',dislike:'sad'};
+  for(const [reaction,expression] of Object.entries(expected)){
+    const gift=gifts.find(gift=>!gift.handmade&&giftReaction(cacao,gift)===reaction);
+    let state=createInitialState(1000);
+    state.inventory={[gift.id]:2};
+    state.characterProgress.cacao={...state.characterProgress.cacao,met:true,relationshipStage:7,route:'romance',affection:800};
+    state=reducer(state,{type:'GIVE_GIFT',characterId:'cacao',giftId:gift.id});
+    assert.equal(state.pendingGiftReaction.expression,expression);
+    const saved=JSON.parse(JSON.stringify(state));
+    delete saved.pendingGiftReaction.expression;
+    const loaded=migrateSavedState(saved,1000);
+    assert.equal(loaded.pendingGiftReaction.expression,expression);
+    assert.equal(loaded.pendingGiftReaction.response,state.pendingGiftReaction.response);
+    assert.equal(loaded.inventory[gift.id],1);
+    assert.deepEqual(loaded.characterProgress.cacao,state.characterProgress.cacao);
+    assert.equal(loaded.currency,state.currency);
+    const closed=reducer(loaded,{type:'CLOSE_GIFT_REACTION',characterId:'cacao',reaction});
+    assert.equal(closed.pendingGiftReaction,undefined);
+    assert.ok(closed.characterProgress.cacao.viewedGiftReactions.includes(reaction));
+    assert.equal(closed.characterProgress.cacao.affection,state.characterProgress.cacao.affection);
+    assert.equal(closed.inventory[gift.id],1);
+    const second=reducer(closed,{type:'GIVE_GIFT',characterId:'cacao',giftId:gift.id});
+    assert.equal(second.pendingGiftReaction,undefined,'the same preference remains a one-time popup');
   }
 });
 

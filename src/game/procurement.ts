@@ -53,7 +53,9 @@ export function requestStaffSupply(state:GameState,orderId:string,ingredientId:s
   const order=state.orders.find(item=>item.id===orderId&&item.status==="queued"),recipe=order&&getRecipe(order.recipeId);
   const staff=state.staff.find(person=>person.characterId===staffId&&person.role==="procurement");
   if(!order||!recipe||!recipe.requiredIngredients.includes(ingredientId)||(state.ingredients[ingredientId]||0)>0||!staff||staff.returningFromSlot!==undefined)return state;
-  if(state.deliveries.some(delivery=>delivery.arrivesAt>now&&delivery.staffId===staffId)||state.deliveries.some(delivery=>delivery.arrivesAt>now&&delivery.ingredientId===ingredientId))return state;
+  if(state.deliveries.some(delivery=>delivery.arrivesAt>now&&delivery.staffId===staffId))return state;
+  // Manual requests may send idle workers for the same ingredient; automation avoids duplicate batches.
+  if(automatic&&state.deliveries.some(delivery=>delivery.arrivesAt>now&&delivery.ingredientId===ingredientId))return state;
   if(automatic&&(state.characterProgress[staffId]?.relationshipStage||0)<GAME_CONFIG.autoProcurementStage)return state;
   return orderSupplies(state,ingredientId,1,now,automatic,staffId);
 }

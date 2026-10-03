@@ -556,7 +556,7 @@ test('screens keep playable controls while removing decorative and repeated copy
     assert.match(storyCss,/三ツ葉葵（デフォルト100%）を基準に、人物の余白込みで頭身をそろえる/);
     assert.match(storyCss,/data-character="sota"\] \{ --story-height:90%; --story-top:5%; \}/);
     assert.match(storyCss,/data-character="ren"\] \{ --story-height:97%; --story-top:1%; \}/);
-    assert.match(storyCss,/data-character="itsuki"\] \{ --story-height:91%; --story-top:8%; \}/);
+    assert.match(storyCss,/data-character="itsuki"\] \{ --story-height:91%; --story-top:2%; \}/);
     assert.match(storyCss,/data-character="haru"\] \{ --story-height:95%; --story-top:1%; \}/);
     assert.match(storyCss,/data-character="cacao"\] \{ --story-height:91%; --story-top:5%; \}/);
     assert.match(cafeGame,/className="story-stage is-speaking" data-character=\{character\.id\}/);

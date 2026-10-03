@@ -73,6 +73,26 @@
   opacity:.88;
   transition:opacity .2s ease;
 }
+/* Reserve the actual wrapped title height before drawing a single character.
+   The stage background still fills the whole modal behind the heading. */
+.story-modal.story-player:not(.drama-story-player):not(.growth-event-overlay) {
+  display:flex;
+  flex-direction:column;
+}
+.story-modal.story-player:not(.drama-story-player):not(.growth-event-overlay)>.story-player-heading {
+  position:relative;
+  flex:none;
+  padding-bottom:16px;
+}
+.story-modal.story-player:not(.drama-story-player):not(.growth-event-overlay)>.story-stage {
+  position:absolute;
+  inset:0;
+  padding-top:var(--story-heading-height,0px);
+}
+.story-modal.story-player:not(.drama-story-player):not(.growth-event-overlay)>.story-stage>.story-standing-art {
+  /* Restore the original portrait size after reserving space for the title. */
+  height:calc(var(--story-height) + var(--story-heading-height,0px));
+}
 /* 三ツ葉葵（デフォルト100%）を基準に、人物の余白込みで頭身をそろえる。 */
 .story-player .story-stage[data-character="ren"] { --story-height:97%; --story-top:1%; }
 .story-player .story-stage[data-character="sota"] { --story-height:90%; --story-top:5%; }

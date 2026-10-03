@@ -6,3 +6,5 @@
 - Before finishing a code change, run the relevant tests. For a complete validation, run `npm test`; it refreshes the specification through the `prebuild` hook.
 - Do not create a Git commit or push to any remote unless the user explicitly requests that specific operation. This applies to shell commands, app controls, and connected tools.
 - Requests to implement, fix, test, finish, or deliver work do not imply permission to commit or push. Leave changes uncommitted for the user to review.
+- Default game previews to the iPhone viewport at `/iphone-preview.html` (393 × 793 CSS pixels, matching the game area of the user's 393 × 852 screenshot). Scale the whole preview to fit the chat panel; never substitute desktop width or a different height. Read the parent `AGENTS.md` for browser recovery rules.
+- Show the game in the right side panel with the DEV menu by default. Use `npm run dev:vercel` or `npm run preview:local` rather than the production build for this preview.

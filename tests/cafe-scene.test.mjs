@@ -308,8 +308,12 @@ test('failed Cacao expressions fall back to normal art and the next expression c
   const {StoryStandingArt}=require(join(output,'components/StoryStandingArt.js'));
   const cacao=characters.find(character=>character.id==='cacao');
   const originalUseState=React.useState;
+  const originalUseRef=React.useRef;
+  const originalUseEffect=React.useEffect;
   let state;
   React.useState=initial=>{state??=initial;return [state,next=>{state=typeof next==='function'?next(state):next;}];};
+  React.useRef=()=>({current:null});
+  React.useEffect=()=>{};
   try{
     const render=expression=>StoryStandingArt({character:cacao,expression});
     let art=render('smile');
@@ -323,7 +327,7 @@ test('failed Cacao expressions fall back to normal art and the next expression c
     assert.equal(art.props.src,cacao.storyImage);
     art.props.onError();
     assert.equal(render('blush').props.className,'story-art-fallback','a failed normal image also has a safe fallback');
-  }finally{React.useState=originalUseState;}
+  }finally{React.useState=originalUseState;React.useRef=originalUseRef;React.useEffect=originalUseEffect;}
 });
 
 test('cafe staff and manager use separate transparent chibi sprites instead of full portraits',()=>{

@@ -20,6 +20,7 @@ export default defineConfig(({command}) => ({
         filter(source) {
           const relative = source.slice(resolve(root, "public").length);
           return relative === "" || relative === "/favicon.svg"
+            || (relative === "/iphone-preview.html" && process.env.VITE_KOMOREBI_DEV_MENU === "true")
             || (relative.startsWith("/assets") && (statSync(source).isDirectory() || media.has(extname(source).toLowerCase())));
         },
       });

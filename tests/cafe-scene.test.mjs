@@ -173,6 +173,25 @@ test('the supplied Toudou Sae artwork is used for full portraits and face select
   assert.equal(png.readUInt32BE(20),1536);
 });
 
+test('Sae has five transparent story expression sprites with a normal-art fallback',()=>{
+  const sae=characters.find(character=>character.id==='sae');
+  assert.equal(sae.storyImage,'/assets/characters/sae-story-cutout.png');
+  assert.deepEqual(Object.keys(sae.expressionImages).sort(),['blush','sad','serious','smile','surprised']);
+  for(const [expression,asset] of Object.entries(sae.expressionImages)){
+    assert.equal(storyArtSource(sae,expression),asset);
+    const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
+    assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
+    assert.equal(png.readUInt32BE(16),1024);
+    assert.equal(png.readUInt32BE(20),1536);
+    assert.equal(png[25],6,`${expression} must use RGBA transparency`);
+  }
+  assert.equal(storyArtSource(sae,'normal'),sae.storyImage);
+  assert.equal(storyArtSource(sae),sae.storyImage);
+  assert.equal(storyArtSource({...sae,expressionImages:undefined},'smile'),sae.storyImage);
+  assert.equal(storyArtSource({...sae,storyImage:undefined,expressionImages:undefined},'sad'),sae.image);
+  assert.equal(storyArtSource(sae,'missing-expression'),sae.storyImage);
+});
+
 test('Cacao keeps the watercolor storefront art and uses the transparent cutout for stories',()=>{
   const cacao=characters.find(character=>character.id==='cacao');
   assert.equal(cacao.image,'/assets/characters/cacao.png');

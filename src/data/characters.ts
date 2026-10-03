@@ -258,6 +258,19 @@ export const characters: Character[] = [
     "profile": "アイスや冷凍果実を保管する冷凍倉庫の管理者。常に厚着で、マフラーとフードに隠れて表情が見えにくい。人と関わるのを避け、必要なことしか話さないが、温度管理と品質への妥協はない。主人公の温かさに触れ、凍った距離が少しずつ溶けていく。",
     "image": "/assets/characters/toudou-sae.png",
     "storyImage": "/assets/characters/sae-story-cutout.png",
+    "expressionImages": {
+      "smile": "/assets/characters/sae-expression-smile.png",
+      "blush": "/assets/characters/sae-expression-blush.png",
+      "sad": "/assets/characters/sae-expression-sad.png",
+      "surprised": "/assets/characters/sae-expression-surprised.png",
+      "serious": "/assets/characters/sae-expression-serious.png"
+    },
+    "giftReactionExpressions": {
+      "love": "blush",
+      "like": "smile",
+      "normal": "normal",
+      "dislike": "sad"
+    },
     "silhouette": "冴",
     "favoriteGiftTags": [
       "practical",

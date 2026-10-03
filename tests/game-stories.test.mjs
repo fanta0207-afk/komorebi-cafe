@@ -258,6 +258,58 @@ test('Aoi expressions are explicit in every requested conversation surface',()=>
   }
 });
 
+test('Sae expressions are explicit in every requested conversation surface',()=>{
+  const sae=characters.find(character=>character.id==='sae');
+  const expressions=['normal','smile','blush','sad','surprised','serious'];
+  assert.deepEqual(sae.giftReactionExpressions,{love:'blush',like:'smile',normal:'normal',dislike:'sad'});
+  assert.ok(Object.values(sae.giftReactionExpressions).every(expression=>expressions.includes(expression)));
+
+  const stories=relationshipEvents.filter(event=>event.characterId==='sae');
+  assert.equal(stories.length,10);
+  for(const event of stories){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[]),...(event.choices||[]).flatMap(choice=>choice.response)].filter(line=>line.speaker==='character');
+    assert.ok(lines.length>0,event.id);
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: Sae line without explicit expression`);
+  }
+  for(const event of staffStoryEvents.filter(event=>event.characterId==='sae')){
+    const lines=[...event.dialogue,...(event.friendshipDialogue||[])].filter(line=>line.speaker==='character');
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: Sae staff line without explicit expression`);
+  }
+  for(const event of growthEvents.filter(event=>event.characterId==='sae')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.eventId}: missing explicit Sae expression`);
+  }
+  for(const event of dateEvents.filter(event=>event.characterId==='sae')){
+    assert.ok(event.dialogue.every(line=>typeof line==='object'&&expressions.includes(line.expression)),`${event.id}: missing explicit Sae expression`);
+  }
+  for(const event of dramaEvents.filter(event=>event.participantIds.includes('sae'))){
+    const lines=event.dialogue.filter(line=>line.speaker==='sae');
+    assert.ok(lines.length>0,event.id);
+    assert.ok(lines.every(line=>expressions.includes(line.expression)),`${event.id}: missing explicit Sae expression`);
+  }
+
+  const confession=stories.find(event=>event.toStage===9).dialogue;
+  assert.equal(confession.find(line=>line.text.startsWith('お前が好きだ。')).expression,'serious');
+  assert.equal(confession.find(line=>line.text.startsWith('ああ。それが、うれしかった。')).expression,'sad');
+  const drama=dramaEvents.find(event=>event.id==='drama-engagement-rumor');
+  assert.equal(drama.dialogue.find(line=>line.speaker==='sae'&&line.text.startsWith('そうか。')).expression,'sad');
+  assert.equal(drama.dialogue.find(line=>line.speaker==='sae'&&line.text.startsWith('……俺の名前')).expression,'surprised');
+
+  for(const reaction of ['love','like','normal','dislike']){
+    const gift=gifts.find(item=>giftReaction(sae,item)===reaction);
+    const state={...createInitialState(),inventory:{[gift.id]:1}};
+    const next=reducer(state,{type:'GIVE_GIFT',characterId:'sae',giftId:gift.id,reaction});
+    assert.equal(next.pendingGiftReaction.expression,sae.giftReactionExpressions[reaction]);
+    const legacy=structuredClone(next);
+    delete legacy.pendingGiftReaction.expression;
+    const resumed=migrateSavedState(legacy);
+    assert.equal(resumed.pendingGiftReaction.expression,sae.giftReactionExpressions[reaction]);
+    assert.equal(resumed.pendingGiftReaction.response,next.pendingGiftReaction.response);
+    assert.equal(resumed.inventory[gift.id],next.inventory[gift.id]);
+    assert.equal(resumed.currency,next.currency);
+    assert.deepEqual(resumed.characterProgress.sae,next.characterProgress.sae);
+  }
+});
+
 test('eleven cafe drama stories have valid fixed casts, deterministic triggers, and no gameplay consequence',()=>{
   const gameSource=readFileSync(new URL('../src/components/CafeGame.tsx',import.meta.url),'utf8');
   assert.match(gameSource,/if\(screen==="cafe"\)\{[\s\S]*?availableDramaEvent\(state\)/);

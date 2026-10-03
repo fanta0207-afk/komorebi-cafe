@@ -1,4 +1,6 @@
-import type { RelationshipEvent, StaffStoryEvent } from "../types/game";
+import type { CharacterExpression, RelationshipEvent, SimpleDialogueLine, StaffStoryEvent } from "../types/game";
+
+const d=(text:string,expression:CharacterExpression):SimpleDialogueLine=>({text,expression});
 
 // Preserve Sae's original IDs, thresholds, choice IDs and rewards.
 export const saeRelationshipEvents:RelationshipEvent[] = [
@@ -16,7 +18,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "凍堂冴。こもれびの店長か。受け取りはこっちだ。"
+        "text": "凍堂冴。こもれびの店長か。受け取りはこっちだ。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -24,7 +27,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "聞け。分からないまま持って帰るよりいい。"
+        "text": "聞け。分からないまま持って帰るよりいい。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -32,7 +36,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "店の冷凍庫へ先に入れろ。荷ほどきは、その後でいい。"
+        "text": "店の冷凍庫へ先に入れろ。荷ほどきは、その後でいい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -40,7 +45,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "最初に場所を空けておけ。置く時に迷わないように。"
+        "text": "最初に場所を空けておけ。置く時に迷わないように。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -48,7 +54,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "止まれ。そこ、滑る。"
+        "text": "止まれ。そこ、滑る。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -60,7 +67,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……怪我はないな。"
+        "text": "……怪我はないな。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -68,7 +76,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "倉庫は寒い。長居するな。相談は受付で出来る。"
+        "text": "倉庫は寒い。長居するな。相談は受付で出来る。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -76,7 +85,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "話す場所を変えるだけだ。……聞きたいこと、まだあるだろ。"
+        "text": "話す場所を変えるだけだ。……聞きたいこと、まだあるだろ。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -88,7 +98,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "そうしろ。帰り道も冷える。"
+        "text": "そうしろ。帰り道も冷える。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -114,7 +125,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手元に余分があった。返すのは急がなくていい。"
+        "text": "手元に余分があった。返すのは急がなくていい。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -126,7 +138,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "使う場所まで届いて、仕入れだろ。"
+        "text": "使う場所まで届いて、仕入れだろ。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -138,7 +151,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……客は、どうだった。"
+        "text": "……客は、どうだった。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -146,7 +160,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お前の分も、取れたのか。"
+        "text": "お前の分も、取れたのか。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -154,7 +169,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "その待ち方でいい。"
+        "text": "その待ち方でいい。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -162,7 +178,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次も使え。毎回、人を呼ぶより手元で分かる方がいい。"
+        "text": "次も使え。毎回、人を呼ぶより手元で分かる方がいい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -170,7 +187,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……いい。数字だけで迷ったら、食べた感じも言え。"
+        "text": "……いい。数字だけで迷ったら、食べた感じも言え。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -182,7 +200,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "分かった。……手袋、今日は持ってるな。"
+        "text": "分かった。……手袋、今日は持ってるな。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -210,7 +229,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "解凍の時間、ここの室温で測る。俺の倉庫とは違うからな。"
+        "text": "解凍の時間、ここの室温で測る。俺の倉庫とは違うからな。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -218,7 +238,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "頼む。変わったところも書いてくれ。"
+        "text": "頼む。変わったところも書いてくれ。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -226,7 +247,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "まだ硬い。あと少し待て。"
+        "text": "まだ硬い。あと少し待て。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -234,7 +256,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今は待つのが仕事だ。……俺も、座る。"
+        "text": "今は待つのが仕事だ。……俺も、座る。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -242,7 +265,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……何だ。"
+        "text": "……何だ。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -254,7 +278,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "その速度でいい。一番うまい状態だ。"
+        "text": "その速度でいい。一番うまい状態だ。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -266,7 +291,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今の、書いておくか。"
+        "text": "今の、書いておくか。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -274,7 +300,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……そこは、覚えてなくていい。"
+        "text": "……そこは、覚えてなくていい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -309,7 +336,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "問題ない。次の分は、紙に書いた。"
+        "text": "問題ない。次の分は、紙に書いた。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -321,7 +349,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……俺が黙ってても、困らないのか。"
+        "text": "……俺が黙ってても、困らないのか。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -333,7 +362,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "熱くないか、先に確かめたのか。"
+        "text": "熱くないか、先に確かめたのか。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -341,7 +371,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "このくらいでいい。"
+        "text": "このくらいでいい。",
+        "expression": "normal"
       },
       {
         "speaker": "narrator",
@@ -349,7 +380,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……見てると、何か話さないといけない気がする。"
+        "text": "……見てると、何か話さないといけない気がする。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -361,7 +393,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "冷めるまではいる。……お前も、その分は座って飲め。"
+        "text": "冷めるまではいる。……お前も、その分は座って飲め。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -379,7 +412,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "……じゃあ、少しだけ。お前も座って飲め。"
+            "text": "……じゃあ、少しだけ。お前も座って飲め。",
+            "expression": "blush"
           },
           {
             "speaker": "player",
@@ -397,7 +431,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "……温度なら見る。だが、今日は仕事を増やさなくていい。"
+            "text": "……温度なら見る。だが、今日は仕事を増やさなくていい。",
+            "expression": "serious"
           },
           {
             "speaker": "player",
@@ -405,7 +440,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "今のがいい。……お前と飲むなら、このままで。"
+            "text": "今のがいい。……お前と飲むなら、このままで。",
+            "expression": "blush"
           }
         ]
       }
@@ -425,7 +461,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は終わりだ。食べなくていい。"
+        "text": "今日は終わりだ。食べなくていい。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -433,7 +470,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……お前のせいにしてない。"
+        "text": "……お前のせいにしてない。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -445,7 +483,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "俺が配合を見る。お前は、冷凍庫から出した時の感じを頼む。"
+        "text": "俺が配合を見る。お前は、冷凍庫から出した時の感じを頼む。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -457,7 +496,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……ああ。急いで全部捨てなくてよかった。"
+        "text": "……ああ。急いで全部捨てなくてよかった。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -465,7 +505,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "人とやると、失敗の数が増えると思ってた。"
+        "text": "人とやると、失敗の数が増えると思ってた。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -473,7 +514,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "それだけじゃない。失敗したら、期待した分、怒らせると思ってた。"
+        "text": "それだけじゃない。失敗したら、期待した分、怒らせると思ってた。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -485,7 +527,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……次も、記録を見てくれるか。"
+        "text": "……次も、記録を見てくれるか。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -497,7 +540,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "アイスクリームメーカーも、カフェで使える候補を探す。氷温ミルクアイスは、この配合で試せそうだ。"
+        "text": "アイスクリームメーカーも、カフェで使える候補を探す。氷温ミルクアイスは、この配合で試せそうだ。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -505,7 +549,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "分かった。……俺も、最初の一皿を見たい。"
+        "text": "分かった。……俺も、最初の一皿を見たい。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -536,7 +581,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は倉庫の仕事、済ませてきた。……ここは、暑いな。"
+        "text": "今日は倉庫の仕事、済ませてきた。……ここは、暑いな。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -552,7 +598,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "いや。お前の店が、静かになる時間を覚えてた。"
+        "text": "いや。お前の店が、静かになる時間を覚えてた。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -560,7 +607,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お前も座るなら、ここ。"
+        "text": "お前も座るなら、ここ。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -568,7 +616,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……用を探してから来ると、いつも仕事の話になるからな。"
+        "text": "……用を探してから来ると、いつも仕事の話になるからな。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -576,7 +625,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "一人分ずつあるんだな。"
+        "text": "一人分ずつあるんだな。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -588,7 +638,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……昔から、同じ机で食べるのは、落ち着かないと思ってた。"
+        "text": "……昔から、同じ机で食べるのは、落ち着かないと思ってた。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -596,7 +647,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "静かでも平気だ。お前が途中で席を立たないのも、分かる。"
+        "text": "静かでも平気だ。お前が途中で席を立たないのも、分かる。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -604,7 +656,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここは暑い。だが、嫌いじゃない。……次も、この席が空いてたら来る。"
+        "text": "ここは暑い。だが、嫌いじゃない。……次も、この席が空いてたら来る。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -636,7 +689,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "悪い。まだ整理出来てない。今日は、紙だけ渡す。"
+        "text": "悪い。まだ整理出来てない。今日は、紙だけ渡す。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -648,7 +702,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……自分の仕事だ。お前まで巻き込みたくない。"
+        "text": "……自分の仕事だ。お前まで巻き込みたくない。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -664,7 +719,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……なぜ、そこまで。"
+        "text": "……なぜ、そこまで。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -676,7 +732,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "入れ。廊下で待つな。……寒いだろ。"
+        "text": "入れ。廊下で待つな。……寒いだろ。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -684,7 +741,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "数を見落とした。遅れは連絡したが、全部話すと、信用をなくすと思った。"
+        "text": "数を見落とした。遅れは連絡したが、全部話すと、信用をなくすと思った。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -692,7 +750,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……頼めるか。俺の分と、届いた分の照合。"
+        "text": "……頼めるか。俺の分と、届いた分の照合。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -704,7 +763,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ああ。俺も、次に何をするか言う。黙ったまま抱えないように。"
+        "text": "ああ。俺も、次に何をするか言う。黙ったまま抱えないように。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -712,7 +772,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "カフェを手伝う話も、時間を作ってからしたい。頼るのも、任せてもらうのも……お前となら考えられる。"
+        "text": "カフェを手伝う話も、時間を作ってからしたい。頼るのも、任せてもらうのも……お前となら考えられる。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -726,7 +787,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "……少し待ってくれ。今日話せるところを、俺から選ぶ。"
+            "text": "……少し待ってくれ。今日話せるところを、俺から選ぶ。",
+            "expression": "sad"
           },
           {
             "speaker": "player",
@@ -744,7 +806,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
         "response": [
           {
             "speaker": "character",
-            "text": "半分……か。全部じゃなくていいんだな。届いた数の照合、頼めるか。"
+            "text": "半分……か。全部じゃなくていいんだな。届いた数の照合、頼めるか。",
+            "expression": "surprised"
           },
           {
             "speaker": "player",
@@ -752,7 +815,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
           },
           {
             "speaker": "character",
-            "text": "分かった。区切ったところで、互いに知らせよう。"
+            "text": "分かった。区切ったところで、互いに知らせよう。",
+            "expression": "serious"
           }
         ]
       }
@@ -772,7 +836,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次の休み、空いてるか。"
+        "text": "次の休み、空いてるか。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -780,7 +845,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "違う。……二人で出かけたい。"
+        "text": "違う。……二人で出かけたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -792,7 +858,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この速さでいいか。疲れたら、先に言え。"
+        "text": "この速さでいいか。疲れたら、先に言え。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -800,7 +867,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "分かった。予定だけ守る日にはしない。"
+        "text": "分かった。予定だけ守る日にはしない。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -808,7 +876,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "一口、交換するか。"
+        "text": "一口、交換するか。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -824,7 +893,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、覚えておく。……お前がうれしそうだったことも。"
+        "text": "今日は、覚えておく。……お前がうれしそうだったことも。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -832,7 +902,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手、つないでいいか。道のためじゃない。"
+        "text": "手、つないでいいか。道のためじゃない。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -844,7 +915,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "人混みは嫌いだ。だが、お前と来る場所は増やしたい。……今日だけで終わりたくない。"
+        "text": "人混みは嫌いだ。だが、お前と来る場所は増やしたい。……今日だけで終わりたくない。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -876,7 +948,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は仕事の用じゃない。少し、一緒に歩けるか。"
+        "text": "今日は仕事の用じゃない。少し、一緒に歩けるか。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -888,7 +961,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "湖で、手をつないだだろ。"
+        "text": "湖で、手をつないだだろ。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -896,7 +970,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……俺も。仕事をしてても、次に会う日を考えてた。"
+        "text": "……俺も。仕事をしてても、次に会う日を考えてた。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -904,7 +979,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "一人なら、誰も失望させないと思ってた。必要なことだけ話せば、期待されずに済む。"
+        "text": "一人なら、誰も失望させないと思ってた。必要なことだけ話せば、期待されずに済む。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -912,7 +988,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ああ。それが、うれしかった。……うれしいから、なくなるのが怖かった。"
+        "text": "ああ。それが、うれしかった。……うれしいから、なくなるのが怖かった。",
+        "expression": "sad"
       },
       {
         "speaker": "narrator",
@@ -920,7 +997,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "お前が好きだ。仕事の相手としてだけじゃない。恋人になってほしい。"
+        "text": "お前が好きだ。仕事の相手としてだけじゃない。恋人になってほしい。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -932,7 +1010,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……俺も、来てよかったと思ってた。"
+        "text": "……俺も、来てよかったと思ってた。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -940,7 +1019,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "格好いい返事は、すぐ出ない。それでも、言う。……これからも、隣にいてほしい。"
+        "text": "格好いい返事は、すぐ出ない。それでも、言う。……これからも、隣にいてほしい。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -948,7 +1028,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手、つないでいいか。"
+        "text": "手、つないでいいか。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -956,7 +1037,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次の休み、また空けたい。お前の都合を聞いてから決める。"
+        "text": "次の休み、また空けたい。お前の都合を聞いてから決める。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -971,7 +1053,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "俺は倉庫側の数を見る。お前は、カフェで使った分を頼む。"
+        "text": "俺は倉庫側の数を見る。お前は、カフェで使った分を頼む。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -979,7 +1062,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ああ。俺も、分からないまま黙らない。"
+        "text": "ああ。俺も、分からないまま黙らない。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -987,7 +1071,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "一人で全部見ていた時、ここを何度も戻ってた。別の記録があると、確かめやすいな。"
+        "text": "一人で全部見ていた時、ここを何度も戻ってた。別の記録があると、確かめやすいな。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -995,7 +1080,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "頼む。お前の店でどう食べてもらったかも、知りたい。"
+        "text": "頼む。お前の店でどう食べてもらったかも、知りたい。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1003,7 +1089,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……これからも頼む。困った時だけじゃなく、うまくいった話も聞かせてくれ。"
+        "text": "……これからも頼む。困った時だけじゃなく、うまくいった話も聞かせてくれ。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1025,7 +1112,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "アイスは俺が用意した。コーヒーは、お前の好きな味で。"
+        "text": "アイスは俺が用意した。コーヒーは、お前の好きな味で。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1037,7 +1125,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここに置くのも、慣れたな。"
+        "text": "ここに置くのも、慣れたな。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1045,7 +1134,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……今は、飲み終わっても帰りたくない時がある。"
+        "text": "……今は、飲み終わっても帰りたくない時がある。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1057,7 +1147,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "最初の冷たいところ。だが、今のも好きだ。お前は？"
+        "text": "最初の冷たいところ。だが、今のも好きだ。お前は？",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1069,7 +1160,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……照れる。だが、お前と作ったって分かるのは、嫌じゃない。"
+        "text": "……照れる。だが、お前と作ったって分かるのは、嫌じゃない。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1077,7 +1169,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次の冬も、俺が作る。お前と、同じ席で食べたい。"
+        "text": "次の冬も、俺が作る。お前と、同じ席で食べたい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1085,7 +1178,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ああ。来年だけじゃ遠い。……来週も会いたい。"
+        "text": "ああ。来年だけじゃ遠い。……来週も会いたい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1093,7 +1187,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "疲れた日は、疲れたって言う。お前も、我慢して元気なふりをしなくていい。"
+        "text": "疲れた日は、疲れたって言う。お前も、我慢して元気なふりをしなくていい。",
+        "expression": "sad"
       },
       {
         "speaker": "player",
@@ -1105,7 +1200,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "溶ける前に食べろ。……その後も、少し隣にいてくれ。"
+        "text": "溶ける前に食べろ。……その後も、少し隣にいてくれ。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1129,7 +1225,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "温度は俺が見る。お前は、味を頼む。"
+        "text": "温度は俺が見る。お前は、味を頼む。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1141,7 +1238,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この量なら、途中で味が変わるところも楽しめる。"
+        "text": "この量なら、途中で味が変わるところも楽しめる。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1149,7 +1247,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ああ。俺だけだと、温度を揃える方へ考えてた。"
+        "text": "ああ。俺だけだと、温度を揃える方へ考えてた。",
+        "expression": "surprised"
       },
       {
         "speaker": "narrator",
@@ -1157,7 +1256,8 @@ export const saeRelationshipEvents:RelationshipEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "温度は俺、味はお前。……どちらかだけで決めない方がいい。"
+        "text": "温度は俺、味はお前。……どちらかだけで決めない方がいい。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1188,7 +1288,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "手順から教えてくれ。お前が使う順番を覚える。"
+        "text": "手順から教えてくれ。お前が使う順番を覚える。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1204,7 +1305,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……俺の分か。"
+        "text": "……俺の分か。",
+        "expression": "surprised"
       },
       {
         "speaker": "player",
@@ -1216,7 +1318,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "今日は、届けたら帰る日じゃないんだな。"
+        "text": "今日は、届けたら帰る日じゃないんだな。",
+        "expression": "smile"
       },
       {
         "speaker": "player",
@@ -1228,7 +1331,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "……俺も。近いと、落ち着かないが。"
+        "text": "……俺も。近いと、落ち着かないが。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1236,7 +1340,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "先に取れ。俺は次を使う。通る時は、声をかける。"
+        "text": "先に取れ。俺は次を使う。通る時は、声をかける。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1248,7 +1353,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この分は俺が見る。次の準備は頼めるか。終わったら知らせる。"
+        "text": "この分は俺が見る。次の準備は頼めるか。終わったら知らせる。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1256,7 +1362,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここまで終わった。あとは頼む。……先に休んでいいか。"
+        "text": "ここまで終わった。あとは頼む。……先に休んでいいか。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1268,7 +1375,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "冷める前に来たな。……一緒に飲みたかった。"
+        "text": "冷める前に来たな。……一緒に飲みたかった。",
+        "expression": "blush"
       },
       {
         "speaker": "player",
@@ -1280,7 +1388,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "次に来る時も、ここへかける。俺の分の場所があるのは……うれしい。"
+        "text": "次に来る時も、ここへかける。俺の分の場所があるのは……うれしい。",
+        "expression": "blush"
       },
       {
         "speaker": "narrator",
@@ -1295,7 +1404,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "道具と持ち場を教えてくれ。お前が使う順番で確かめる。"
+        "text": "道具と持ち場を教えてくれ。お前が使う順番で確かめる。",
+        "expression": "serious"
       },
       {
         "speaker": "player",
@@ -1307,7 +1417,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "この分は俺が見る。次の準備は頼む。途中で変わったら知らせてくれ。"
+        "text": "この分は俺が見る。次の準備は頼む。途中で変わったら知らせてくれ。",
+        "expression": "serious"
       },
       {
         "speaker": "narrator",
@@ -1315,7 +1426,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ここまで終わった。あとは頼む。先に休むな。"
+        "text": "ここまで終わった。あとは頼む。先に休むな。",
+        "expression": "normal"
       },
       {
         "speaker": "player",
@@ -1323,7 +1435,8 @@ export const saeStaffStories:StaffStoryEvent[] = [
       },
       {
         "speaker": "character",
-        "text": "ああ。次も同じ手順で出来るよう、残しておく。"
+        "text": "ああ。次も同じ手順で出来るよう、残しておく。",
+        "expression": "smile"
       },
       {
         "speaker": "narrator",
@@ -1334,15 +1447,15 @@ export const saeStaffStories:StaffStoryEvent[] = [
 ];
 
 // Business memories can unlock early, so they do not assume romance or employment.
-export const saeGrowthDialogue:[string[],string[],string[],string[],string[]]=[
-  ["バニラアイスの使い方、見せてくれ。カフェの冷凍庫で使う順番を確かめる。","まず、必要な量を決めてから出す。容器を開けたまま、別の準備を始めるな。","一皿分を量ってみろ。……今まで少し多く取ってたな。客が食べる量も見て、決めよう。","この分量なら、同じ一パックからもう一皿分取れる。次も同じ量になるよう、目安を残しておけ。","余った分を戻す場所も先に空ける。忙しくなってから探すと、迷う。","分からなかったら聞け。数字だけで判断しにくい時は、硬さと食べた感じも言ってくれ。","試食の分も取ったか。……お前が出すものだ。自分の好きなところまで知っておけ。"],
-  ["保管の順番、続けられてるんだな。今日は別の氷を試してみるか。","ダイヤモンドアイス。透明なところと、溶け方を見てほしい。","まず、いつもの器で。俺の倉庫とお前の店では、室温が違う。","時間は俺が見る。お前は、口にした時の感じを頼む。","……今の感想も残す。見た目がきれいなだけなら、カフェで使う理由が弱いからな。","最初は使い切れる量で試せ。仕入れを増やすのは、出す量が決まってからでいい。","気に入ったか。……そうか。俺が選んだものを、お前の店で試すのは、悪くない。"],
-  ["ダイヤモンドアイス、使えたんだな。今日はベリーと合わせる。","溶け方は、この器で測る。ベリーを出した時間、お前が記録してくれるか。","半解凍のところで味を見る。冷たさを揃えるだけじゃなく、果肉が残る方も比べたい。","……その速度でいい。急いで崩さず、一口ずつ。","アイスの甘さと、ベリーの酸味が両方分かるか。お前のカフェなら、どちらを残したい。","分かった。この量でもう一皿作る。同じ時間で出せるか、最後まで確かめるぞ。","晶氷のベリーパフェ。見た目の感想も聞く。俺は、食べる方を先に考えすぎるからな。","……お前の言う光り方、分かる。この器でよかった。","客に出した後も聞かせてくれ。食べ終わるまでどうだったか、お前の言葉で知りたい。"],
-  ["冷たい料理、よく出るようになったな。店で作る設備も、候補を見ておくか。","静音アイスクリームメーカー。今すぐ買えという話じゃない。使う手間も確かめる。","いつも立つ場所を教えろ。置いた後、他の仕事へ移りにくくなるなら困る。","音が小さい方を選んだ。……客の声も、お前の声も、聞こえる場所にしたい。","洗う順番と、片づける場所まで考えてから決める。作る時だけ便利でも、続かない。","金に余裕が出来た時でいい。候補の紙は置いていく。分からないところに印をつけておけ。","選んだ後も相談は聞く。……道具だけ渡して、あとは一人でやれとは言わない。"],
-  ["晶氷のベリーパフェ、五皿出たのか。メーカーの手順にも慣れたなら、次はコーヒーと合わせる。","初雪アフォガート。最初の冷たい味から、ゆっくり変わるところを残したい。","アイスは俺が見る。コーヒーの味はお前が頼む。苦さを決めるのに、遠慮するな。","まず、この量で。途中で薄くなりすぎないか、最後まで味を見る。","……今の方、後にもコーヒーの香りがある。お前は、どの時が好きだ。","分かった。同じ配合でもう一組作る。次も出せるよう、注ぐ順番まで書いておく。","溶け方を止めるんじゃなく、変わる味を楽しむ一皿か。俺だけなら、考えなかったな。","試食の分は座って食べろ。……俺も座る。お前の感想を聞きながら確かめたい。","客に出した日も教えてくれ。上手くいった話だけじゃなく、迷ったところも。次も一緒に考える。"],
+export const saeGrowthDialogue:[SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[],SimpleDialogueLine[]]=[
+  [d("バニラアイスの使い方、見せてくれ。カフェの冷凍庫で使う順番を確かめる。","serious"),d("まず、必要な量を決めてから出す。容器を開けたまま、別の準備を始めるな。","serious"),d("一皿分を量ってみろ。……今まで少し多く取ってたな。客が食べる量も見て、決めよう。","serious"),d("この分量なら、同じ一パックからもう一皿分取れる。次も同じ量になるよう、目安を残しておけ。","smile"),d("余った分を戻す場所も先に空ける。忙しくなってから探すと、迷う。","serious"),d("分からなかったら聞け。数字だけで判断しにくい時は、硬さと食べた感じも言ってくれ。","normal"),d("試食の分も取ったか。……お前が出すものだ。自分の好きなところまで知っておけ。","normal")],
+  [d("保管の順番、続けられてるんだな。今日は別の氷を試してみるか。","smile"),d("ダイヤモンドアイス。透明なところと、溶け方を見てほしい。","normal"),d("まず、いつもの器で。俺の倉庫とお前の店では、室温が違う。","serious"),d("時間は俺が見る。お前は、口にした時の感じを頼む。","serious"),d("……今の感想も残す。見た目がきれいなだけなら、カフェで使う理由が弱いからな。","serious"),d("最初は使い切れる量で試せ。仕入れを増やすのは、出す量が決まってからでいい。","serious"),d("気に入ったか。……そうか。俺が選んだものを、お前の店で試すのは、悪くない。","smile")],
+  [d("ダイヤモンドアイス、使えたんだな。今日はベリーと合わせる。","smile"),d("溶け方は、この器で測る。ベリーを出した時間、お前が記録してくれるか。","serious"),d("半解凍のところで味を見る。冷たさを揃えるだけじゃなく、果肉が残る方も比べたい。","serious"),d("……その速度でいい。急いで崩さず、一口ずつ。","serious"),d("アイスの甘さと、ベリーの酸味が両方分かるか。お前のカフェなら、どちらを残したい。","normal"),d("分かった。この量でもう一皿作る。同じ時間で出せるか、最後まで確かめるぞ。","serious"),d("晶氷のベリーパフェ。見た目の感想も聞く。俺は、食べる方を先に考えすぎるからな。","normal"),d("……お前の言う光り方、分かる。この器でよかった。","surprised"),d("客に出した後も聞かせてくれ。食べ終わるまでどうだったか、お前の言葉で知りたい。","smile")],
+  [d("冷たい料理、よく出るようになったな。店で作る設備も、候補を見ておくか。","normal"),d("静音アイスクリームメーカー。今すぐ買えという話じゃない。使う手間も確かめる。","serious"),d("いつも立つ場所を教えろ。置いた後、他の仕事へ移りにくくなるなら困る。","serious"),d("音が小さい方を選んだ。……客の声も、お前の声も、聞こえる場所にしたい。","blush"),d("洗う順番と、片づける場所まで考えてから決める。作る時だけ便利でも、続かない。","serious"),d("金に余裕が出来た時でいい。候補の紙は置いていく。分からないところに印をつけておけ。","normal"),d("選んだ後も相談は聞く。……道具だけ渡して、あとは一人でやれとは言わない。","smile")],
+  [d("晶氷のベリーパフェ、五皿出たのか。メーカーの手順にも慣れたなら、次はコーヒーと合わせる。","surprised"),d("初雪アフォガート。最初の冷たい味から、ゆっくり変わるところを残したい。","serious"),d("アイスは俺が見る。コーヒーの味はお前が頼む。苦さを決めるのに、遠慮するな。","serious"),d("まず、この量で。途中で薄くなりすぎないか、最後まで味を見る。","serious"),d("……今の方、後にもコーヒーの香りがある。お前は、どの時が好きだ。","normal"),d("分かった。同じ配合でもう一組作る。次も出せるよう、注ぐ順番まで書いておく。","serious"),d("溶け方を止めるんじゃなく、変わる味を楽しむ一皿か。俺だけなら、考えなかったな。","surprised"),d("試食の分は座って食べろ。……俺も座る。お前の感想を聞きながら確かめたい。","blush"),d("客に出した日も教えてくれ。上手くいった話だけじゃなく、迷ったところも。次も一緒に考える。","smile")],
 ];
 export const saeDateDialogue={
-  amusement:["混む前に回る案を書いた。だが、今日は予定を守るために来たんじゃない。お前の行きたい場所も聞く。","最初はどれだ。……分かった。俺は次に、あの観覧車へ乗りたい。","人が多いな。歩く速さ、これくらいでいいか。聞こえなかったら、近くで言え。","その菓子、一口ずつ交換するか。お前が好きな味も知りたい。","……笑うな。仕事の比較じゃない。今日は、記録も出さない。","観覧車、思ったより揺れる。平気な顔をしたかったが……少し緊張する。お前が隣なのもある。","手、つないでいいか。降りた後も、嫌じゃなければ。","景色は見てる。……今は、お前の横顔も。気づかれると、落ち着かないな。","次はお前が選べ。俺の好きな場所も、その後で言う。二人で決めたい。","帰るまで、まだ時間がある。もう一つ行こう。……お前といる日を、急いで終えたくない。"],
-  walk:["片づけ、終わったか。今日は納品の帰りじゃない。お前と歩きたくて来た。","車道側は俺が歩く。……前にも言ったな。今日はお前の歩幅に合わせる。","倉庫へ戻る時は、こんなふうに立ち止まらなかった。お前が見てる店の灯り、俺も気になる。","最初は、まだ働いてるのかと思ってた。それから、少し会って帰りたいと。","用を探してから入るのは、もうやめる。……今日は、会いたいって先に言えてよかった。","疲れてるか。近い道で帰ってもいい。お前はどうしたい。","遠回りか。……俺も、そのつもりで時間を空けた。次の橋まで歩こう。","手、つないでいいか。寒いからだけじゃない。恋人として、近くにいたい。","今日の店の話も聞かせろ。良かったことだけじゃなくて、疲れたことも。俺も話す。","次の休み、また相談しよう。予定が変わった時は、黙ったままにしない。お前に会う日も、決め直したいから。"],
-  home:["邪魔する。上着は、ここにかけていいか。……お前の部屋だと、少し勝手が違うな。","飲み物、ありがとう。今日は俺も座る。何か足りないかと聞きそうになったが、まず一緒に飲みたい。","温かさは、このくらいが好きだ。お前はどうだ。……同じに合わせなくていい。","隣、座っていいか。窮屈なら言え。","その本、ここまで読んだのか。俺が気になってた頁、もう少し先だ。今、一緒に読むか。","……黙った。退屈してるんじゃない。お前といる時は、言葉がなくても急いで帰らなくていいから。","今日は少し疲れた。肩、借りてもいいか。お前が疲れた時も、俺に言え。","同じ机にカップが二つあるの、前は落ち着かないと思ってた。……今は、俺の分があると、うれしい。","次は俺がお茶を用意する。お前が好きな温かさも覚えておく。","今日は、もう少しこのままでいたい。……用事がなくても隣にいたいって、俺からも言う。"],
+  amusement:[d("混む前に回る案を書いた。だが、今日は予定を守るために来たんじゃない。お前の行きたい場所も聞く。","smile"),d("最初はどれだ。……分かった。俺は次に、あの観覧車へ乗りたい。","normal"),d("人が多いな。歩く速さ、これくらいでいいか。聞こえなかったら、近くで言え。","normal"),d("その菓子、一口ずつ交換するか。お前が好きな味も知りたい。","smile"),d("……笑うな。仕事の比較じゃない。今日は、記録も出さない。","blush"),d("観覧車、思ったより揺れる。平気な顔をしたかったが……少し緊張する。お前が隣なのもある。","surprised"),d("手、つないでいいか。降りた後も、嫌じゃなければ。","blush"),d("景色は見てる。……今は、お前の横顔も。気づかれると、落ち着かないな。","blush"),d("次はお前が選べ。俺の好きな場所も、その後で言う。二人で決めたい。","smile"),d("帰るまで、まだ時間がある。もう一つ行こう。……お前といる日を、急いで終えたくない。","blush")],
+  walk:[d("片づけ、終わったか。今日は納品の帰りじゃない。お前と歩きたくて来た。","smile"),d("車道側は俺が歩く。……前にも言ったな。今日はお前の歩幅に合わせる。","serious"),d("倉庫へ戻る時は、こんなふうに立ち止まらなかった。お前が見てる店の灯り、俺も気になる。","normal"),d("最初は、まだ働いてるのかと思ってた。それから、少し会って帰りたいと。","blush"),d("用を探してから入るのは、もうやめる。……今日は、会いたいって先に言えてよかった。","smile"),d("疲れてるか。近い道で帰ってもいい。お前はどうしたい。","sad"),d("遠回りか。……俺も、そのつもりで時間を空けた。次の橋まで歩こう。","blush"),d("手、つないでいいか。寒いからだけじゃない。恋人として、近くにいたい。","blush"),d("今日の店の話も聞かせろ。良かったことだけじゃなくて、疲れたことも。俺も話す。","normal"),d("次の休み、また相談しよう。予定が変わった時は、黙ったままにしない。お前に会う日も、決め直したいから。","smile")],
+  home:[d("邪魔する。上着は、ここにかけていいか。……お前の部屋だと、少し勝手が違うな。","surprised"),d("飲み物、ありがとう。今日は俺も座る。何か足りないかと聞きそうになったが、まず一緒に飲みたい。","smile"),d("温かさは、このくらいが好きだ。お前はどうだ。……同じに合わせなくていい。","normal"),d("隣、座っていいか。窮屈なら言え。","blush"),d("その本、ここまで読んだのか。俺が気になってた頁、もう少し先だ。今、一緒に読むか。","smile"),d("……黙った。退屈してるんじゃない。お前といる時は、言葉がなくても急いで帰らなくていいから。","normal"),d("今日は少し疲れた。肩、借りてもいいか。お前が疲れた時も、俺に言え。","sad"),d("同じ机にカップが二つあるの、前は落ち着かないと思ってた。……今は、俺の分があると、うれしい。","blush"),d("次は俺がお茶を用意する。お前が好きな温かさも覚えておく。","smile"),d("今日は、もう少しこのままでいたい。……用事がなくても隣にいたいって、俺からも言う。","blush")],
 };

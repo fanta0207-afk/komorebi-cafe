@@ -311,14 +311,14 @@ export const characters: Character[] = [
     "occupation": "ショコラトリー店主・ショコラティエ",
     "supplierId": "chocolaterie",
     "profile": "若くして数々の賞を取った天才ショコラティエ。自信家で挑発的だが、味覚と仕事への妥協は一切ない。主人公を試すような言葉を投げながら、真剣な感想には誰より早く応える。好意が深まるほど独占欲を隠せなくなるが、相手の意思を無視することはしない。",
-    "image": "/assets/characters/cacao-c.png",
-    "storyImage": "/assets/characters/cacao-c-story-cutout.png",
+    "image": "/assets/characters/cacao-default-20261004.png",
+    "storyImage": "/assets/characters/cacao-default-20261004-story-cutout.png",
     "expressionImages": {
-      "smile": "/assets/characters/cacao-expression-smile.png",
-      "blush": "/assets/characters/cacao-expression-blush.png",
-      "sad": "/assets/characters/cacao-expression-sad.png",
-      "surprised": "/assets/characters/cacao-expression-surprised.png",
-      "serious": "/assets/characters/cacao-expression-serious.png"
+      "smile": "/assets/characters/cacao-expression-smile-20261004.png",
+      "blush": "/assets/characters/cacao-expression-blush-20261004.png",
+      "sad": "/assets/characters/cacao-expression-sad-20261004.png",
+      "surprised": "/assets/characters/cacao-expression-surprised-20261004.png",
+      "serious": "/assets/characters/cacao-expression-serious-20261004.png"
     },
     "giftReactionExpressions": {
       "love": "blush",

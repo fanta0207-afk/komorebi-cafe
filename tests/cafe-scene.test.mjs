@@ -261,10 +261,10 @@ test('Sae has five transparent story expression sprites with a normal-art fallba
   assert.equal(storyArtSource(sae,'missing-expression'),sae.storyImage);
 });
 
-test('Cacao uses the approved C watercolor design for portraits and its transparent cutout for stories',()=>{
+test('Cacao uses the newly approved watercolor design for every portrait and its transparent cutout for stories',()=>{
   const cacao=characters.find(character=>character.id==='cacao');
-  assert.equal(cacao.image,'/assets/characters/cacao-c.png');
-  assert.equal(cacao.storyImage,'/assets/characters/cacao-c-story-cutout.png');
+  assert.equal(cacao.image,'/assets/characters/cacao-default-20261004.png');
+  assert.equal(cacao.storyImage,'/assets/characters/cacao-default-20261004-story-cutout.png');
   assert.equal(cacao.supplierId,'chocolaterie');
   const png=readFileSync(new URL(`../public${cacao.image}`,import.meta.url));
   assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
@@ -274,6 +274,12 @@ test('Cacao uses the approved C watercolor design for portraits and its transpar
   assert.deepEqual([...storyPng.subarray(0,8)],[137,80,78,71,13,10,26,10]);
   assert.equal(storyPng.readUInt32BE(16),1024);
   assert.equal(storyPng.readUInt32BE(20),1536);
+  assert.equal(storyPng[25],6,'normal story art also supports transparency');
+  const {Portrait}=require(join(output,'components/GameUI.js'));
+  for(const props of [{face:true},{small:true,face:true},{}]){
+    const html=renderToStaticMarkup(React.createElement(Portrait,{character:cacao,...props}));
+    assert.ok(html.includes(`src="${cacao.image}"`),'all shared portrait sizes use the selected original');
+  }
 });
 
 test('Cacao has five RGBA expressions, transparent exterior pixels, and a normal-art fallback',()=>{
@@ -281,6 +287,9 @@ test('Cacao has five RGBA expressions, transparent exterior pixels, and a normal
   assert.deepEqual(Object.keys(cacao.expressionImages).sort(),['blush','sad','serious','smile','surprised']);
   for(const [expression,asset] of Object.entries(cacao.expressionImages)){
     assert.equal(storyArtSource(cacao,expression),asset);
+    const {StoryStandingArt}=require(join(output,'components/StoryStandingArt.js'));
+    const html=renderToStaticMarkup(React.createElement(StoryStandingArt,{character:cacao,expression}));
+    assert.ok(html.includes(`src="${asset}"`),`${expression} reaches the rendered standing art`);
     const png=readFileSync(new URL(`../public${asset}`,import.meta.url));
     assert.deepEqual([...png.subarray(0,8)],[137,80,78,71,13,10,26,10]);
     assert.equal(png.readUInt32BE(16),1024);
